@@ -1,70 +1,110 @@
-# Getting Started with Create React App
+# QuillForge
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A production-grade full-stack blogging platform designed with modern software engineering practices, enabling users to create, publish, discover, and manage content through a scalable and maintainable architecture.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+* User Authentication (Email/Password & Google OAuth)
+* Blog Creation, Editing, and Publishing
+* Blog Discovery and Search
+* User Dashboard
+* Analytics & Engagement Tracking
+* Admin Moderation Panel
+* Responsive Modern UI
+* REST API Architecture
+* Scalable Database Design
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## System Architecture
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+> Overall application workflow and architecture
 
-### `npm test`
+![QuillForge Architecture](docs/architecture.png)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## Tech Stack
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Frontend
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+* React
+* Tailwind CSS
+* React Router
+* Lucide React
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Backend
 
-### `npm run eject`
+* Node.js
+* Express.js
+* JWT Authentication
+* REST APIs
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Database
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+* MongoDB
+* Mongoose
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### DevOps
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+* Git & GitHub
+* Docker
+* CI/CD Pipelines
+* Deployment & Monitoring
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Project Structure
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```text
+quillforge/
+├── frontend/
+├── backend/
+├── docs/
+│   └── architecture.png
+├── README.md
+└── docker/
+```
 
-### Code Splitting
+## Development Workflow
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Requirements
+↓
+Feature Planning
+↓
+UI/UX Design
+↓
+Architecture Design
+↓
+Database Schema
+↓
+API Documentation
+↓
+Task Management
+↓
+Development
+↓
+Git Workflow
+↓
+CI/CD
+↓
+Dockerization
+↓
+Deployment
+↓
+Monitoring
 
-### Analyzing the Bundle Size
+## Future Enhancements
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+* AI-assisted content generation
+* Personalized recommendations
+* Advanced analytics dashboard
+* Real-time notifications
+* Collaborative editing
 
-### Making a Progressive Web App
+## Author
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Keshav Kakani
 
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+GitHub: https://github.com/keshav9926
+LinkedIn: https://www.linkedin.com/in/keshav-kakani-987586282
