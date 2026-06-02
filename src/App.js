@@ -136,7 +136,7 @@ function Navbar() {
               <Feather size={14} className="text-white" />
             </div>
             <span className="text-white font-bold text-lg tracking-tight" style={{fontFamily:"'Oxanium',sans-serif"}}>
-              Quill<span className="text-cyan-400">.</span>
+              QuillForge<span className="text-cyan-400">.</span>
             </span>
           </div>
 
