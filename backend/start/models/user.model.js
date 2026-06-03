@@ -21,21 +21,29 @@ const userSchema = new mongoose.Schema({
         },  
         password: {
             type: String,
-            required: true
+            
+        },
+        googleId: {
+            type: String,
+            unique: true,
+            sparse: true
         }
     },{
         timestamps: true
     });
     
     userSchema.pre('save', async function (next) {
+         if (!this.password) {
+        return;
+    }
         if (!this.isModified('password')) {
-            return next();
+            return ;
         }
         this.password = await bcrypt.hash(this.password, 10);
   
     });
 
-    userSchema.methods.isPassworrdCorrect = async function(password){
+    userSchema.methods.isPasswordCorrect = async function(password){
     return await bcrypt.compare(
         password,
         this.password
