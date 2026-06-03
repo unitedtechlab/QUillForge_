@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser, loginUser , getCurrentUser} from "../controllers/user.controller.js";
+import { registerUser, loginUser , getCurrentUser, logoutUser} from "../controllers/user.controller.js";
 import { verifyjwt } from "../middlewares/auth.middleware.js";
 import passport from "passport";
 
@@ -9,8 +9,10 @@ const router = Router();
 router.route("/register").post(registerUser);
 router.route("/login").post(loginUser);
 router.route("/current-user").get(verifyjwt, getCurrentUser);
+router.route("/logout").post(verifyjwt, logoutUser);
 
-console.log("Registering Google route");
+// login and regiter ke alava har action ke liye jwt se verfify hona padega tabhi pta chalega req kaha se aari hai 
+
 
 router.get(
   "/google",

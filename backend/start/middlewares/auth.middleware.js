@@ -21,6 +21,7 @@ const verifyjwt= asyncHandler(async (req,res,next)=>{
         throw new ApiError(401, "unauthenticated");
     }
     req.user = user;
+    next();
  
 
     // updating req object with user details from the token, so that we can access it in the route handlers and also to check if the user is authenticated or not

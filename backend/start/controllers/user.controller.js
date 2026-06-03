@@ -90,7 +90,25 @@ const getCurrentUser = asyncHandler(
     }
 );
 
+const logoutUser = asyncHandler(async(req,res)=>{
+
+    const options = {
+        httpOnly: true,
+        secure: false
+    };
+
+    return res
+        .clearCookie("accessToken", options)
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                {},
+                "Logged out successfully"
+            )
+        );
+});
 
 
 
-export { registerUser, loginUser, getCurrentUser };
+export { registerUser, loginUser, getCurrentUser, logoutUser };

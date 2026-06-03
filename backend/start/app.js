@@ -3,11 +3,15 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import router from "./routes/user.routes.js";
 import passport from "passport";
+//function of passport is to handle authentication and authorization in our application,
+//  it provides a simple and consistent API for handling different authentication strategies, such as local username/password, Google OAuth, Facebook OAuth, etc.
+//we can use  passport function by passport.initialize() middleware, which initializes the passport middleware and allows us to use it in our routes for authentication
+//  and authorization purposes.
 import session from "express-session";
 import "./config/passport.js";
 
 
-// this file is responsible for setting up the express app, middlewares and routes
+// this whole file is responsible for setting up the express app, middlewares and routes
 const app = express();
 
 // Middlewares
@@ -15,6 +19,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+
 app.use(
   session({
     secret: "googleauth",
@@ -24,6 +30,9 @@ app.use(
 );
 
 app.use(passport.initialize());
+// what above line does is it initializes the passport middleware, which is required to use any of the passport strategies,
+//  in our case we are using Google OAuth strategy, so we need to initialize passport before using it in our routes.
+
 
 // Test Route
 app.get("/", (req, res) => {
