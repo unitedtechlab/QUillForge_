@@ -18,7 +18,7 @@ app.get("/", (req, res) => {
 });
 
 // Routes
-app.use("/api/users", router);
+app.use("/api/v1/users", router);
 app.use((err, req, res, next) => {
     return res.status(err.statusCode || 500).json({
         success: false,
