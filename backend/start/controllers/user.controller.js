@@ -34,4 +34,63 @@ const registerUser = asyncHandler(async (req, res) => {
     return res.status(201).json(new ApiResponse(201, { createdUser }, "User registered successfully"));
 });
 
-export { registerUser };
+const loginUser = asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+    // Logic to authenticate user and generate token
+    if(!email || !password) {
+        throw new ApiError(400, "Email and password are required");
+    }
+
+    const user=await User.findOne({ email });
+    if(!user) {
+        throw new ApiError(401, "email dont exist");
+    }
+
+    const isPasswordValid = await user.isPassworrdCorrect(password);
+    if(!isPasswordValid) {
+        throw new ApiError(401, "invalid password");
+    }
+
+    const accessToken = user.generateAccessToken();
+
+    const options = {
+    httpOnly: true,
+    secure: false
+    // remember to change it later to true when deploying to production, as it will ensure that the cookie is only sent over HTTPS and not accessible via JavaScript, which adds an extra layer of security against XSS attacks.
+};
+
+return res
+.status(200)
+.cookie("accessToken", accessToken, options)
+.json(
+    new ApiResponse(
+        200,
+        {
+            user:{
+                _id: user._id,
+                email: user.email,
+                username: user.username
+            }
+        },
+        "Login successful"
+    )
+);
+});
+const getCurrentUser = asyncHandler(
+    async(req,res)=>{
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                req.user,
+                "Current user fetched"
+            )
+        );
+
+    }
+);
+
+
+
+
+export { registerUser, loginUser, getCurrentUser };
