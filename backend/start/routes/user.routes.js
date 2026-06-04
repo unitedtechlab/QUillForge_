@@ -13,7 +13,6 @@ router.route("/logout").post(verifyjwt, logoutUser);
 
 // login and regiter ke alava har action ke liye jwt se verfify hona padega tabhi pta chalega req kaha se aari hai 
 
-
 router.get(
   "/google",
   passport.authenticate(
@@ -43,18 +42,9 @@ router.get(
         httpOnly: true,
         secure: false
     };
-
-    return res
-        .cookie(
-            "accessToken",
-            accessToken,
-            options
-        )
-        .json({
-            success: true,
-            message: "Google Login Success",
-            user: req.user
-        });
+return res
+  .cookie("accessToken", accessToken, options)
+  .redirect("http://localhost:3000/dashboard");
 }
 );
 export default router;
