@@ -466,6 +466,10 @@ export default function Login() {
     return () => clearTimeout(t);
   }, []);
 
+  // what above function does is it sets visible to true after 80ms, and before that visible is false.
+  //  This is used to trigger the animations on the page, as many elements have a transition that depends on the visible state. 
+  // By initially setting visible to false and then changing it to true shortly after the component mounts, we can create a staggered entrance effect for the various elements on the login page.
+
   return (
     <div className="min-h-screen w-full relative" style={{ backgroundColor: "#080b14" }}>
       {/* Fonts */}

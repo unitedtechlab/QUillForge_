@@ -18,7 +18,7 @@ dns.setServers(["1.1.1.1", "1.0.0.1"]);
 
 // Connect to MongoDB and start the server
 connectmongo().then(() =>{
-    const PORT = process.env.PORT || 8000;
+    const PORT = process.env.PORT || 8102;
 
     app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
