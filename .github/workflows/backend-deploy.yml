@@ -1,0 +1,80 @@
+name: Deploy Backend to EC2
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      BACKEND_IMAGE: quillforge-backend:latest
+      BACKEND_CONTAINER_NAME: quillforge-backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Backend Docker Image
+        working-directory: ./backend
+        run: |
+          docker build -t "$BACKEND_IMAGE" .
+          docker save "$BACKEND_IMAGE" | gzip > ../backend.tar.gz
+
+      - name: Copy Docker Image to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.EC2_HOST }}
+          username: ${{ vars.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "backend.tar.gz"
+          target: "/home/${{ vars.EC2_USERNAME }}/quillforge"
+
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          PORT: ${{ secrets.PORT }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+
+        with:
+          host: ${{ vars.EC2_HOST }}
+          username: ${{ vars.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+
+          envs: PORT,MONGODB_URI,JWT_SECRET,JWT_EXPIRES_IN,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET
+
+          script: |
+            set -e
+
+            mkdir -p quillforge
+            cd quillforge
+
+            cat > .env.backend << EOF
+            PORT=${PORT}
+            MONGODB_URI=${MONGODB_URI}
+            JWT_SECRET=${JWT_SECRET}
+            JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+            GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+            GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+            EOF
+
+            gunzip -c backend.tar.gz | sudo docker load
+
+            sudo docker stop quillforge-backend || true
+            sudo docker rm quillforge-backend || true
+
+            sudo docker run -d \
+              --name quillforge-backend \
+              --env-file .env.backend \
+              -p 8102:8102 \
+              --restart unless-stopped \
+              quillforge-backend:latest
+
+            rm -f backend.tar.gz || true
+            sudo docker image prune -f
