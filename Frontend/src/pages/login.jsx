@@ -261,9 +261,8 @@ const handleSubmit = async (ev) => {
 };
 
 const handleGoogle = () => {
-  console.log("Google button clicked");
   window.location.href =
-    "http://localhost:8102/api/v1/users/google";
+    "https://api.quillforge.unitedtechlab.com/api/v1/users/google";
 };;
 
   return (
