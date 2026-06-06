@@ -44,7 +44,7 @@ router.get(
     };
 return res
   .cookie("accessToken", accessToken, options)
-  .redirect("http://localhost:3000/dashboard");
+  .redirect("https://quillforge.unitedtechlab.com/dashboard");
 }
 );
 export default router;
