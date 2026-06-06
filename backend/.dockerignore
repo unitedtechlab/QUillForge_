@@ -1,3 +1,5 @@
 node_modules
-.env
 .git
+.env
+npm-debug.log
+backend.tar.gz
