@@ -234,7 +234,7 @@ function Topbar({ collapsed, setCollapsed }) {
         {/* Avatar */}
         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center text-xs font-black text-white cursor-pointer hover:shadow-lg hover:shadow-cyan-500/20 transition-all"
           style={{ fontFamily: ACCENT.ox }}>
-          AX
+          {user?.username?.slice(0,2).toUpperCase() || "U"}
         </div>
       </div>
     </header>
