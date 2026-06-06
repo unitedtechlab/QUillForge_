@@ -384,7 +384,7 @@ catch (error) {
 };
 const handleGoogle = () => {
   window.location.href =
-    "http://localhost:8000/api/v1/users/google";
+    "http://localhost:8102/api/v1/users/google";
 };
 
   /* ── Success state ── */

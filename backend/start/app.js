@@ -17,7 +17,10 @@ const app = express();
 // Middlewares
 app.use(
     cors({
-        origin: "http://localhost:3000",
+        origin: [
+  "http://localhost:3000",
+  "https://quillforge.unitedtechlab.com"
+],
         credentials: true
     })  
 )

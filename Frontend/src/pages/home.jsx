@@ -5,6 +5,9 @@ import {
   Feather, Eye, Heart, TrendingUp, Sparkles,
   Lock, Rss, Award, Coffee, MousePointer, Play
 } from "lucide-react";
+import api from "../api/axios";
+import { useNavigate } from "react-router-dom";
+
 
 /* ─────────────────────────────────────────────
    HOOK – simple IntersectionObserver reveal
@@ -113,6 +116,8 @@ function GridBackground() {
    NAVBAR
 ───────────────────────────────────────────── */
 function Navbar() {
+  const navigate = useNavigate();
+
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -149,10 +154,21 @@ function Navbar() {
 
           {/* CTA */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="secondary" className="text-sm py-2">Sign in</Button>
-            <Button variant="primary" className="text-sm py-2">
-              Start writing <ArrowRight size={14} />
-            </Button>
+            <Button
+  variant="secondary"
+  className="text-sm py-2"
+  onClick={() => navigate("/login")}
+>
+  Sign in
+</Button>
+
+<Button
+  variant="primary"
+  className="text-sm py-2"
+  onClick={() => navigate("/login")}
+>
+  Start writing <ArrowRight size={14} />
+</Button>
           </div>
 
           {/* Mobile menu */}
@@ -174,8 +190,21 @@ function Navbar() {
             </button>
           ))}
           <div className="pt-3 flex flex-col gap-2">
-            <Button variant="secondary" className="justify-center">Sign in</Button>
-            <Button variant="primary" className="justify-center">Start writing <ArrowRight size={14} /></Button>
+            <Button
+  variant="secondary"
+  className="justify-center"
+  onClick={() => navigate("/login")}
+>
+  Sign in
+</Button>
+
+<Button
+  variant="primary"
+  className="justify-center"
+  onClick={() => navigate("/login")}
+>
+  Start writing <ArrowRight size={14} />
+</Button>
           </div>
         </div>
       )}
