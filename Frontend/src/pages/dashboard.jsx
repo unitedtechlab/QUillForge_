@@ -189,7 +189,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
 }
 
 /* ─────────────────── TOPBAR ─────────────────── */
-function Topbar({ collapsed, setCollapsed }) {
+function Topbar({ collapsed, setCollapsed,user }) {
   const [search, setSearch] = useState("");
   const [notifs, setNotifs] = useState(3);
 
@@ -709,7 +709,7 @@ useEffect(() => {
       <Background />
 
       <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} />
-      <Topbar collapsed={collapsed} setCollapsed={setCollapsed} />
+      <Topbar collapsed={collapsed} setCollapsed={setCollapsed} user={user} />
 
       {/* Main content */}
       <main
