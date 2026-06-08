@@ -29,8 +29,9 @@ const createBlog = asyncHandler(async (req, res) => {
 
     const blog = await Blog.create({
         title,
-        slug,
+        slug, // auto generated 
         excerpt,
+        views: 0,
         content,
         isPublished,
         author: req.user._id
