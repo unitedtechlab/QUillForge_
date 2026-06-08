@@ -56,6 +56,8 @@ const loginUser = asyncHandler(async (req, res) => {
     const options = {
     httpOnly: true,
     secure: true,
+    // false for development, true for production (ensures cookie is only sent over HTTPS)
+
     sameSite: "none"
     // remember to change it later to true when deploying to production, as it will ensure that the cookie is only sent over HTTPS and not accessible via JavaScript, which adds an extra layer of security against XSS attacks.
 };
@@ -96,6 +98,7 @@ const logoutUser = asyncHandler(async(req,res)=>{
     const options = {
         httpOnly: true,
         secure: true,
+        // false for development, true for production (ensures cookie is only sent over HTTPS)
         sameSite: "none"
     };
 

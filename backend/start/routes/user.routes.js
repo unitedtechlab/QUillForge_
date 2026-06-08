@@ -54,7 +54,8 @@ router.get(
 
     const options = {
         httpOnly: true,
-        secure: false
+        secure: true
+        // false for development, true for production (ensures cookie is only sent over HTTPS)
     };
 
 return res
