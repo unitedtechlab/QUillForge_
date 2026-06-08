@@ -4,7 +4,7 @@ import User from "../models/user.model.js";
 
 import dotenv from "dotenv";
 dotenv.config();
-console.log("PASSPORT FILE LOADED");
+
 passport.use(
   new GoogleStrategy(
     {
