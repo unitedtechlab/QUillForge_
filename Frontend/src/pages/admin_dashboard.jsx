@@ -14,6 +14,8 @@ import {
   Star, Activity, Users, Send, RefreshCw, Shield,
   BookMarked, Layers
 } from "lucide-react";
+import api from "../api/axios";
+import { Navigate } from "react-router-dom";
 
 /* ════════════════════════════════════════════════
    DESIGN TOKENS
@@ -881,6 +883,34 @@ function PlaceholderPage({ title, icon, desc }) {
    ROOT
 ════════════════════════════════════════════════ */
 export default function AdminDashboard() {
+
+const navigate = useNavigate();
+const[loading, setLoading] = useState(true);
+const[user,    setUser]    = useState(null);
+useEffect(() => {
+
+  api.get("/users/current-user")
+    .then((res) => {
+
+      const currentUser = res.data.data;
+
+      if (currentUser.role !== "admin") {
+        navigate("/");
+        return;
+      }
+
+      setUser(currentUser);
+
+    })
+    .catch(() => {
+      navigate("/");
+    })
+    .finally(() => {
+      setLoading(false);
+    });
+
+}, [navigate]);
+
   const [page,     setPage]   = useState("dashboard");
   const [sideOpen, setSideOpen] = useState(false);
 
@@ -901,6 +931,11 @@ export default function AdminDashboard() {
       default:          return <DashboardPage   key="dashboard" setPage={setPage}/>;
     }
   };
+
+
+  if (loading) {
+  return <div>Loading...</div>;
+}
 
   return (
     <div className="min-h-screen" style={{backgroundColor:T.bg, fontFamily:T.mono}}>
