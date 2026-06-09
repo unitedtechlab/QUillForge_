@@ -15,7 +15,7 @@ import {
   BookMarked, Layers
 } from "lucide-react";
 import api from "../api/axios";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 /* ════════════════════════════════════════════════
    DESIGN TOKENS
@@ -935,6 +935,8 @@ useEffect(() => {
 
   if (loading) {
   return <div>Loading...</div>;
+  if(!authorized) {return null;
+  }
 }
 
   return (

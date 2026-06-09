@@ -242,7 +242,11 @@ const handleSubmit = async (ev) => {
 
     console.log(res.data);
 
-    navigate("/dashboard");
+    if(response.data.data.user.role === "admin") {
+      navigate("/admin");
+    } else {
+      navigate("/dashboard");
+    }
 
   } catch (error) {
 
