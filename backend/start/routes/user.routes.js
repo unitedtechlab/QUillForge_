@@ -58,6 +58,12 @@ router.get(
         // false for development, true for production (ensures cookie is only sent over HTTPS)
     };
 
+if (req.user.role === "admin") {
+  return res
+    .cookie("accessToken", accessToken, options)
+    .redirect("https://quillforge.unitedtechlab.com/admin");
+}
+
 return res
   .cookie("accessToken", accessToken, options)
   .redirect("https://quillforge.unitedtechlab.com/dashboard");

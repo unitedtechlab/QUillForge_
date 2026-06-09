@@ -895,7 +895,7 @@ useEffect(() => {
       const currentUser = res.data.data;
 
       if (currentUser.role !== "admin") {
-        navigate("/");
+        navigate("/dashboard");
         return;
       }
 
@@ -935,8 +935,8 @@ useEffect(() => {
 
   if (loading) {
   return <div>Loading...</div>;
-  if(!authorized) {return null;
-  }
+
+
 }
 
   return (
