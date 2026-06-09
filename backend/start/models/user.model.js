@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
             type: String,
             enum: ["user", "admin"],
             default: "user"
-            
+
         }
     },{
         timestamps: true
@@ -65,7 +65,8 @@ const userSchema = new mongoose.Schema({
             {
                 _id: this._id,
                 email: this.email,
-                username: this.username
+                username: this.username,
+                role: this.role
             },
             process.env.JWT_SECRET,
             {
