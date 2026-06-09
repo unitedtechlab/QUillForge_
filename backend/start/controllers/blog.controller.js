@@ -9,7 +9,7 @@ const createBlog = asyncHandler(async (req, res) => {
         title,
         excerpt,
         content,
-        isPublished
+        isPublished=false
     } = req.body;
 
     if (!title || !content) {
@@ -37,10 +37,13 @@ const createBlog = asyncHandler(async (req, res) => {
         author: req.user._id
     });
 
+    const Blogdetails= await Blog.findById(blog._id)
+    .populate("author", "username email");
+
     return res.status(201).json(
         new ApiResponse(
             201,
-            blog,
+            Blogdetails,
             "Blog created successfully"
         )
     );

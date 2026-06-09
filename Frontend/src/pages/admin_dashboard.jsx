@@ -494,15 +494,48 @@ function CreateBlogPage() {
   const [saved,   setSaved]    = useState(false);
 
   const toSlug = v => v.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");
-  useEffect(()=>{ setSlug(toSlug(title)); },[title]);
+//   useEffect(()=>{ setSlug(toSlug(title)); },[title]);
 
-  const handleSave = async (publish=false) => {
+const handleSave = async (publish = false) => {
+
+  try {
+
     setSaving(true);
-    await new Promise(r=>setTimeout(r,1600));
-    setSaving(false); setSaved(true);
-    setTimeout(()=>setSaved(false),3000);
-    if(publish) setPub(true);
-  };
+
+    const res = await api.post("/blogs", {
+      title,
+      excerpt,
+      content,
+      isPublished: publish
+    });
+
+    console.log("BLOG CREATED:", res.data);
+
+    setSaved(true);
+
+    setTimeout(() => {
+      setSaved(false);
+    }, 3000);
+
+    if (publish) {
+      setPub(true);
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      error?.response?.data?.message ||
+      "Failed to create blog"
+    );
+
+  } finally {
+
+    setSaving(false);
+
+  }
+};
 
   const Field = ({ label, children }) => (
     <div className="space-y-2">

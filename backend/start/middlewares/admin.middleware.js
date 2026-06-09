@@ -10,7 +10,7 @@ export const verifyadmin = (req,res,next) => {
     if(req.user.role !== "admin") {
         return res.status(403).json({
             success: false,
-            message: "you not the admin dude ! "
+            message: "you not the admin! "
         });
 
 
