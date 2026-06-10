@@ -489,7 +489,10 @@ function Field({ label, children }) {
    2. GlassCard no longer inherits variants={fadeUp} so it won't
       re-animate when AdminDashboard re-renders (e.g. sideOpen change).
 ════════════════════════════════════════════════ */
-function CreateBlogPage() {
+function CreateBlogPage({
+  editingBlog,
+  setEditingBlog
+}) {
   const [title,    setTitle]   = useState("");
   const [slug,     setSlug]    = useState("");
   const [excerpt,  setExcerpt] = useState("");
@@ -500,26 +503,74 @@ function CreateBlogPage() {
   const [saving,   setSaving]  = useState(false);
   const [saved,    setSaved]   = useState(false);
 
+  useEffect(() => {
+
+  if (!editingBlog) return;
+
+  setTitle(editingBlog.title || "");
+  setExcerpt(editingBlog.excerpt || "");
+  setContent(editingBlog.content || "");
+  setPub(editingBlog.isPublished);
+
+}, [editingBlog]);
+
+
 
   useEffect(()=>{ setSlug(toSlug(title)); },[title]);
 
-  const handleSave = async (publish = false) => {
-    try {
-      setSaving(true);
-      const res = await api.post("/blogs", {
-        title, excerpt, content, isPublished: publish
-      });
+const handleSave = async (publish = false) => {
+  try {
+
+    setSaving(true);
+
+    let res;
+
+    if (editingBlog) {
+
+      res = await api.put(
+        `/blogs/${editingBlog._id}`,
+        {
+          title,
+          excerpt,
+          content,
+          isPublished: publish
+        }
+      );
+
+      console.log("BLOG UPDATED:", res.data);
+
+      setEditingBlog(null);
+
+    } else {
+
+      res = await api.post(
+        "/blogs",
+        {
+          title,
+          excerpt,
+          content,
+          isPublished: publish
+        }
+      );
+
       console.log("BLOG CREATED:", res.data);
-      setSaved(true);
-      setTimeout(()=>setSaved(false), 3000);
-      if (publish) setPub(true);
-    } catch (error) {
-      console.error(error);
-      alert(error?.response?.data?.message || "Failed to create blog");
-    } finally {
-      setSaving(false);
     }
-  };
+
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+
+    if (publish) setPub(true);
+
+  } catch (error) {
+
+    console.error(error);
+
+  } finally {
+
+    setSaving(false);
+
+  }
+};
 
   const inputCls = "w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-white/15 focus:outline-none focus:border-cyan-400/50 focus:bg-white/[0.05] transition-all";
 
@@ -528,7 +579,10 @@ function CreateBlogPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white" style={{fontFamily:T.ox}}>Create New Blog<span className="text-cyan-400">.</span></h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-white" style={{fontFamily:T.ox}}><h1>
+  {editingBlog ? "Edit Blog" : "Create New Blog"}
+  <span className="text-cyan-400">.</span>
+</h1><span className="text-cyan-400">.</span></h1>
           <p className="text-white/25 text-xs mt-1" style={{fontFamily:T.mono}}>Draft autosaves every 30 seconds</p>
         </div>
         {saved && (
@@ -696,7 +750,7 @@ function CreateBlogPage() {
 /* ════════════════════════════════════════════════
    MANAGE BLOGS PAGE
 ════════════════════════════════════════════════ */
-function ManageBlogsPage() {
+function ManageBlogsPage({setPage,setEditingBlog}) {
 
   const [blogs, setBlogs]       = useState([]);
   const [filter, setFilter]     = useState("all");
@@ -704,13 +758,8 @@ function ManageBlogsPage() {
   const [openMenu, setOpenMenu] = useState(null);
   const [selected, setSelected] = useState([]);
 
-  const [editModal, setEditModal] = useState(false);
-const [editingBlog, setEditingBlog] = useState(null);
 
-const [editTitle, setEditTitle] = useState("");
-const [editExcerpt, setEditExcerpt] = useState("");
-const [editContent, setEditContent] = useState("");
-const [editPublished, setEditPublished] = useState(false);
+
 
       useEffect(() => {
   fetchBlogs();
@@ -769,49 +818,19 @@ const startEdit = async (id) => {
 
     const res = await api.get(`/blogs/${id}`);
 
-    const blog = res.data.data;
+    setEditingBlog(res.data.data);
 
-    setEditingBlog(blog);
-
-    setEditTitle(blog.title);
-    setEditExcerpt(blog.excerpt || "");
-    setEditContent(blog.content);
-    setEditPublished(blog.isPublished);
-
-    setEditModal(true);
-
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-
-const saveEdit = async () => {
-  try {
-
-    await api.put(
-      `/blogs/${editingBlog._id}`,
-      {
-        title: editTitle,
-        excerpt: editExcerpt,
-        content: editContent,
-        isPublished: editPublished
-      }
-    );
-
-    fetchBlogs();
-
-    setEditModal(false);
-
-    alert("Blog updated successfully");
+    setPage("create");
 
   } catch (error) {
 
     console.error(error);
-    alert("Failed to update blog");
+    alert("Failed to load blog");
 
   }
 };
+
+
 
 
   return (
@@ -974,71 +993,7 @@ const saveEdit = async () => {
       </motion.div>
 
       
-      {editModal && (
-  <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-
-    <div className="bg-[#0b1020] border border-white/10 rounded-2xl p-6 w-full max-w-3xl">
-
-      <h2 className="text-white text-xl font-bold mb-4">
-        Edit Blog
-      </h2>
-
-      <input
-        value={editTitle}
-        onChange={(e)=>setEditTitle(e.target.value)}
-        className="w-full mb-3 p-3 rounded-lg bg-black/30 text-white border border-white/10"
-        placeholder="Title"
-      />
-
-      <textarea
-        value={editExcerpt}
-        onChange={(e)=>setEditExcerpt(e.target.value)}
-        rows={3}
-        className="w-full mb-3 p-3 rounded-lg bg-black/30 text-white border border-white/10"
-        placeholder="Excerpt"
-      />
-
-      <textarea
-        value={editContent}
-        onChange={(e)=>setEditContent(e.target.value)}
-        rows={10}
-        className="w-full mb-4 p-3 rounded-lg bg-black/30 text-white border border-white/10"
-        placeholder="Content"
-      />
-
-      <div className="flex items-center gap-2 mb-4">
-        <input
-          type="checkbox"
-          checked={editPublished}
-          onChange={(e)=>setEditPublished(e.target.checked)}
-        />
-        <span className="text-white">
-          Published
-        </span>
-      </div>
-
-      <div className="flex gap-3">
-
-        <button
-          onClick={saveEdit}
-          className="px-4 py-2 bg-cyan-500 rounded-lg text-white"
-        >
-          Save Changes
-        </button>
-
-        <button
-          onClick={()=>setEditModal(false)}
-          className="px-4 py-2 bg-red-500 rounded-lg text-white"
-        >
-          Cancel
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-)}
+      
     </motion.div>
   );
 }
@@ -1069,6 +1024,9 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [user,    setUser]    = useState(null);
+
+  const [editingBlog, setEditingBlog] = useState(null);
+
 
   useEffect(() => {
     api.get("/users/current-user")
@@ -1118,13 +1076,21 @@ export default function AdminDashboard() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
 
           {page === "dashboard" && <DashboardPage setPage={setPage}/>}
-          {page === "manage"    && <ManageBlogsPage />}
+          {page === "manage" && (
+  <ManageBlogsPage
+    setPage={setPage}
+    setEditingBlog={setEditingBlog}
+  />
+)}
           {page === "analytics" && <PlaceholderPage title="Analytics" icon={<BarChart3 size={24}/>} desc="Detailed performance charts coming soon."/>}
           {page === "settings"  && <PlaceholderPage title="Settings"  icon={<Settings size={24}/>}  desc="Profile and account settings coming soon."/>}
 
           {/* Always mounted so state is never lost, hidden when not active */}
           <div style={{ display: page === "create" ? "block" : "none" }}>
-            <CreateBlogPage />
+            <CreateBlogPage
+  editingBlog={editingBlog}
+  setEditingBlog={setEditingBlog}
+/>
           </div>
 
         </div>
