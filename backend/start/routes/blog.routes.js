@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {verifyjwt} from "../middlewares/auth.middleware.js";
 import {verifyadmin} from "../middlewares/admin.middleware.js";
-import {createBlog} from "../controllers/blog.controller.js";
+import {createBlog, getAllBlogs} from "../controllers/blog.controller.js";
 
 const router = Router();
 
