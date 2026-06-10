@@ -499,7 +499,7 @@ function CreateBlogPage() {
   const [pub,      setPub]     = useState(false);
   const [saving,   setSaving]  = useState(false);
   const [saved,    setSaved]   = useState(false);
-  const [editingBlog, setEditingBlog] = useState(null);
+
 
   useEffect(()=>{ setSlug(toSlug(title)); },[title]);
 
@@ -704,6 +704,13 @@ function ManageBlogsPage() {
   const [openMenu, setOpenMenu] = useState(null);
   const [selected, setSelected] = useState([]);
 
+  const [editModal, setEditModal] = useState(false);
+const [editingBlog, setEditingBlog] = useState(null);
+
+const [editTitle, setEditTitle] = useState("");
+const [editExcerpt, setEditExcerpt] = useState("");
+const [editContent, setEditContent] = useState("");
+const [editPublished, setEditPublished] = useState(false);
 
       useEffect(() => {
   fetchBlogs();
@@ -722,6 +729,8 @@ const fetchBlogs = async () => {
 
   }
 };
+
+
 const filtered = blogs
   .filter(
     b =>
@@ -755,17 +764,27 @@ const deleteB = async (id) => {
   }
 };
 
-const startEdit = (blog) => {
+const startEdit = async (id) => {
+  try {
 
-  setEditingBlog(blog);
+    const res = await api.get(`/blogs/${id}`);
 
-  setTitle(blog.title);
-  setExcerpt(blog.excerpt);
-  setContent(blog.content);
-  setPublished(blog.isPublished);
+    const blog = res.data.data;
 
-  setCurrentPage("create");
+    setEditingBlog(blog);
+
+    setEditTitle(blog.title);
+    setEditExcerpt(blog.excerpt || "");
+    setEditContent(blog.content);
+    setEditPublished(blog.isPublished);
+
+    setEditModal(true);
+
+  } catch (error) {
+    console.error(error);
+  }
 };
+
 
   return (
     <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} className="space-y-5">
@@ -858,7 +877,7 @@ const startEdit = (blog) => {
                     <div className="relative">
                       <div className="flex items-center gap-1">
                         {[
-                          { icon:<Edit3 size={11}/>,       title:"Edit",    cls:"hover:text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400/20", action:()=>startEdit(b) },
+                          { icon:<Edit3 size={11}/>,       title:"Edit",    cls:"hover:text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400/20" , action:()=>startEdit(b._id)},
                           
                           { icon:<Trash2 size={11}/>,       title:"Delete",  cls:"hover:text-red-400 hover:bg-red-400/10 hover:border-red-400/20", action:()=>deleteB(b._id) },
                         ].map((a,j)=>(
@@ -893,7 +912,7 @@ const startEdit = (blog) => {
 )}
                       </div>
                       <div className="flex items-center gap-2">
-                        {[{i:<Edit3 size={11}/>,c:"text-cyan-400"},{i:<ExternalLink size={11}/>,c:"text-violet-400"},{i:<Trash2 size={11}/>,c:"text-red-400",fn:()=>deleteB(b._id)}].map((a,j)=>(
+                        {[{i:<Edit3 size={11}/>,c:"text-cyan-400"},{i:<Trash2 size={11}/>,c:"text-red-400",fn:()=>deleteB(b._id)}].map((a,j)=>(
                           <button key={j} onClick={a.fn} className={`w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.04] flex items-center justify-center ${a.c} transition-all`}>{a.i}</button>
                         ))}
                       </div>
