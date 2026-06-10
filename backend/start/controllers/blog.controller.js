@@ -49,4 +49,19 @@ const createBlog = asyncHandler(async (req, res) => {
     );
 });
 
-export { createBlog };
+const getAllBlogs = asyncHandler(async (req, res) => {
+
+    const blogs = await Blog.find()
+        .populate("author", "username")
+        .sort({ createdAt: -1 });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            blogs,
+            "Blogs fetched successfully"
+        )
+    );
+});
+
+export { createBlog , getAllBlogs};
