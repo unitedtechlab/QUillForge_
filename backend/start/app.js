@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import router from "./routes/user.routes.js";
 import passport from "passport";
 import blogRouter from "./routes/blog.routes.js";
+import getAllBlogs  from "./controllers/blog.controller.js";
 //function of passport is to handle authentication and authorization in our application,
 //  it provides a simple and consistent API for handling different authentication strategies, such as local username/password, Google OAuth, Facebook OAuth, etc.
 //we can use  passport function by passport.initialize() middleware, which initializes the passport middleware and allows us to use it in our routes for authentication
