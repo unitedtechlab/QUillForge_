@@ -167,6 +167,7 @@ function Sidebar({ page, setPage, open, setOpen }) {
         </div>
 
         <div className="px-5 pt-5 pb-2">
+
           <p className="text-white/20 text-[9px] tracking-[0.2em] uppercase font-medium" style={{fontFamily:T.mono}}>Navigation</p>
         </div>
 
@@ -231,7 +232,9 @@ function Topbar({ setOpen, setPage }) {
       </div>
 
       <div className="flex items-center gap-2.5 ml-auto">
-        <GradientBtn onClick={()=>setPage("create")} className="hidden sm:flex text-xs px-4 py-2">
+        <GradientBtn onClick={() => {
+  setPage("create");
+}} className="hidden sm:flex text-xs px-4 py-2">
           <Plus size={13}/> New Blog
         </GradientBtn>
 
@@ -353,12 +356,16 @@ function DashboardPage({ setPage }) {
                 Good Morning, Keshav<span className="text-cyan-400">.</span>
               </motion.h1>
               <motion.p initial={{opacity:0}} animate={{opacity:1}} transition={{delay:0.26}}
+              
                 className="text-white/30 text-sm" style={{fontFamily:T.mono}}>
                 @keshav · Writer since 2026 · Admin
               </motion.p>
             </div>
             <motion.div initial={{opacity:0,scale:0.9}} animate={{opacity:1,scale:1}} transition={{delay:0.32}}>
-              <GradientBtn onClick={()=>setPage("create")} className="px-6 py-3 text-sm">
+              <GradientBtn onClick={() => {
+
+  setPage("create");
+}} className="px-6 py-3 text-sm">
                 <Plus size={15}/> Create New Blog
               </GradientBtn>
             </motion.div>
@@ -503,9 +510,17 @@ function CreateBlogPage({
   const [saving,   setSaving]  = useState(false);
   const [saved,    setSaved]   = useState(false);
 
-  useEffect(() => {
+useEffect(() => {
 
-  if (!editingBlog) return;
+  if (!editingBlog) {
+
+    setTitle("");
+    setExcerpt("");
+    setContent("");
+    setPub(false);
+
+    return;
+  }
 
   setTitle(editingBlog.title || "");
   setExcerpt(editingBlog.excerpt || "");
@@ -537,9 +552,12 @@ const handleSave = async (publish = false) => {
         }
       );
 
-      console.log("BLOG UPDATED:", res.data);
 
       setEditingBlog(null);
+      setTitle("");
+setExcerpt("");
+setContent("");
+setPub(false);
 
     } else {
 
@@ -579,10 +597,12 @@ const handleSave = async (publish = false) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white" style={{fontFamily:T.ox}}><h1>
+<h1
+  className="text-2xl sm:text-3xl font-black text-white"
+  style={{fontFamily:T.ox}}
+>
   {editingBlog ? "Edit Blog" : "Create New Blog"}
-  <span className="text-cyan-400">.</span>
-</h1><span className="text-cyan-400">.</span></h1>
+</h1>
           <p className="text-white/25 text-xs mt-1" style={{fontFamily:T.mono}}>Draft autosaves every 30 seconds</p>
         </div>
         {saved && (
@@ -1070,12 +1090,12 @@ export default function AdminDashboard() {
 
       <Background/>
       <Sidebar page={page} setPage={setPage} open={sideOpen} setOpen={setSideOpen}/>
-      <Topbar setOpen={setSideOpen} setPage={setPage}/>
+      <Topbar setOpen={setSideOpen} setPage={setPage} setEditingBlog={setEditingBlog}/>
 
       <main className="relative z-10 lg:pl-[220px] pt-16 min-h-screen">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
 
-          {page === "dashboard" && <DashboardPage setPage={setPage}/>}
+          {page === "dashboard" && <DashboardPage setPage={setPage} setEditingBlog={setEditingBlog}/>}
           {page === "manage" && (
   <ManageBlogsPage
     setPage={setPage}
@@ -1098,7 +1118,13 @@ export default function AdminDashboard() {
 
       <motion.button
         whileHover={{scale:1.05}} whileTap={{scale:0.95}}
-        onClick={()=>setPage("create")}
+        onClick={() => {
+
+  setEditingBlog(null);
+
+  setPage("create");
+
+}}
         className="fixed bottom-6 right-6 lg:hidden flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm text-white z-30 shadow-2xl shadow-cyan-500/30"
         style={{background:"linear-gradient(135deg,#22d3ee 0%,#7c3aed 100%)", fontFamily:T.ox}}>
         <Plus size={16}/> New Blog
