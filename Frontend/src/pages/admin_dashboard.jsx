@@ -393,7 +393,7 @@ function DashboardPage({ setPage }) {
                     <p className="text-white/20 text-[10px] mt-0.5" style={{fontFamily:T.mono}}>{"General"} · {new Date(b.createdAt).toLocaleDateString()}</p>
                   </div>
                   <Badge status={b.isPublished ? "published" : "draft"}/>
-                  {b.isPublished ? "published" : "draft"==="published" && (
+                  {b.isPublished   && (
                     <span className="text-white/25 text-[10px] flex items-center gap-1 flex-shrink-0" style={{fontFamily:T.mono}}>
                       <Eye size={9}/>{(b.views/1000).toFixed(1)}K
                     </span>
@@ -786,6 +786,34 @@ const startEdit = async (id) => {
 };
 
 
+const saveEdit = async () => {
+  try {
+
+    await api.put(
+      `/blogs/${editingBlog._id}`,
+      {
+        title: editTitle,
+        excerpt: editExcerpt,
+        content: editContent,
+        isPublished: editPublished
+      }
+    );
+
+    fetchBlogs();
+
+    setEditModal(false);
+
+    alert("Blog updated successfully");
+
+  } catch (error) {
+
+    console.error(error);
+    alert("Failed to update blog");
+
+  }
+};
+
+
   return (
     <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} className="space-y-5">
 
@@ -912,7 +940,7 @@ const startEdit = async (id) => {
 )}
                       </div>
                       <div className="flex items-center gap-2">
-                        {[{i:<Edit3 size={11}/>,c:"text-cyan-400"},{i:<Trash2 size={11}/>,c:"text-red-400",fn:()=>deleteB(b._id)}].map((a,j)=>(
+                        {[{i:<Edit3 size={11}/>,c:"text-cyan-400", fn:()=>startEdit(b._id)},{i:<Trash2 size={11}/>,c:"text-red-400",fn:()=>deleteB(b._id)}].map((a,j)=>(
                           <button key={j} onClick={a.fn} className={`w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.04] flex items-center justify-center ${a.c} transition-all`}>{a.i}</button>
                         ))}
                       </div>
@@ -944,6 +972,73 @@ const startEdit = async (id) => {
           )}
         </GlassCard>
       </motion.div>
+
+      
+      {editModal && (
+  <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+
+    <div className="bg-[#0b1020] border border-white/10 rounded-2xl p-6 w-full max-w-3xl">
+
+      <h2 className="text-white text-xl font-bold mb-4">
+        Edit Blog
+      </h2>
+
+      <input
+        value={editTitle}
+        onChange={(e)=>setEditTitle(e.target.value)}
+        className="w-full mb-3 p-3 rounded-lg bg-black/30 text-white border border-white/10"
+        placeholder="Title"
+      />
+
+      <textarea
+        value={editExcerpt}
+        onChange={(e)=>setEditExcerpt(e.target.value)}
+        rows={3}
+        className="w-full mb-3 p-3 rounded-lg bg-black/30 text-white border border-white/10"
+        placeholder="Excerpt"
+      />
+
+      <textarea
+        value={editContent}
+        onChange={(e)=>setEditContent(e.target.value)}
+        rows={10}
+        className="w-full mb-4 p-3 rounded-lg bg-black/30 text-white border border-white/10"
+        placeholder="Content"
+      />
+
+      <div className="flex items-center gap-2 mb-4">
+        <input
+          type="checkbox"
+          checked={editPublished}
+          onChange={(e)=>setEditPublished(e.target.checked)}
+        />
+        <span className="text-white">
+          Published
+        </span>
+      </div>
+
+      <div className="flex gap-3">
+
+        <button
+          onClick={saveEdit}
+          className="px-4 py-2 bg-cyan-500 rounded-lg text-white"
+        >
+          Save Changes
+        </button>
+
+        <button
+          onClick={()=>setEditModal(false)}
+          className="px-4 py-2 bg-red-500 rounded-lg text-white"
+        >
+          Cancel
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+)}
     </motion.div>
   );
 }
@@ -960,6 +1055,9 @@ function PlaceholderPage({ title, icon, desc }) {
       </div>
       <h2 className="text-2xl font-black text-white mb-2" style={{fontFamily:T.ox}}>{title}<span className="text-cyan-400">.</span></h2>
       <p className="text-white/25 text-sm max-w-xs" style={{fontFamily:T.mono}}>{desc}</p>
+
+
+
     </motion.div>
   );
 }
