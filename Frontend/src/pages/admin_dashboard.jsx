@@ -735,7 +735,7 @@ const filtered = blogs
 
   const toggleSelect = id => setSelected(s => s.includes(id) ? s.filter(x=>x!==id) : [...s,id]);
   const toggleAll    = () => setSelected(s => s.length===filtered.length ? [] : filtered.map(b=>b._id));
-  const deleteB      = id => { setBlogs(b=>b.filter(x=>x.id!==id)); setOpenMenu(null); };
+  const deleteB      = id => { setBlogs(b=>b.filter(x=>x._id!==id)); setOpenMenu(null); };
 
   return (
     <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} className="space-y-5">
@@ -744,7 +744,7 @@ const filtered = blogs
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-white" style={{fontFamily:T.ox}}>Manage Blogs<span className="text-cyan-400">.</span></h1>
-            <p className="text-white/25 text-xs mt-1" style={{fontFamily:T.mono}}>{blogs.length} total · {blogs.filter(b=>b.isPublished ? "published" : "draft"==="published").length} published · {blogs.filter(b=>b.isPublished ? "published" : "draft"==="draft").length} drafts</p>
+            <p className="text-white/25 text-xs mt-1" style={{fontFamily:T.mono}}>{blogs.length} total · {blogs.filter(b=>b.isPublished).length} published · {blogs.filter(b=>!b.isPublished).length} drafts</p>
           </div>
           <GradientBtn className="self-start text-xs px-4 py-2.5"><Plus size={13}/> New Blog</GradientBtn>
         </div>
@@ -761,7 +761,11 @@ const filtered = blogs
                       ?"bg-gradient-to-r from-cyan-500/20 to-violet-500/15 border border-cyan-500/25 text-white"
                       :"text-white/30 hover:text-white/60"
                   }`} style={{fontFamily:T.ox}}>
-                  {f} {f!=="all"&&`(${blogs.filter(b=>b.isPublished ? "published" : "draft"===f).length})`}
+                  {f} {f!=="all"&&`(${blogs.filter(
+  b =>
+    (f === "published" && b.isPublished) ||
+    (f === "draft" && !b.isPublished)
+).length})`}
                 </motion.button>
               ))}
             </div>
@@ -808,7 +812,7 @@ const filtered = blogs
                       className="w-4 h-4 rounded accent-cyan-400"/>
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-800 to-slate-900 border border-white/[0.07] flex items-center justify-center text-base flex-shrink-0">
-                        {b.isPublished ? "published" : "draft"==="published"?"⚡":"📝"}
+                        {b.isPublished ? "⚡":"📝"}
                       </div>
                       <div className="min-w-0">
                         <p className="text-white/80 text-xs font-semibold truncate group-hover:text-white transition-colors" style={{fontFamily:T.ox}}>{b.title}</p>
@@ -817,7 +821,7 @@ const filtered = blogs
                     </div>
                     <Badge status={b.isPublished ? "published" : "draft"}/>
                     <span className="text-white/50 text-xs flex items-center gap-1" style={{fontFamily:T.mono}}>
-                      <Eye size={9} className="text-violet-400"/>{b.isPublished ? "published" : "draft"==="published"?(b.views>=1000?`${(b.views/1000).toFixed(1)}K`:b.views):"—"}
+                      <Eye size={9} className="text-violet-400"/>{b.isPublished?(b.views>=1000?`${(b.views/1000).toFixed(1)}K`:b.views):"—"}
                     </span>
                     <span className="text-white/30 text-[10px]" style={{fontFamily:T.mono}}>{new Date(b.createdAt).toLocaleDateString()}</span>
                     <span className="text-white/30 text-[10px]" style={{fontFamily:T.mono}}>{new Date(b.updatedAt).toLocaleDateString()}</span>
@@ -839,14 +843,24 @@ const filtered = blogs
 
                   <div className="lg:hidden p-4 flex items-start gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/[0.07] flex items-center justify-center text-xl flex-shrink-0">
-                      {b.isPublished ? "published" : "draft"==="published"?"⚡":"📝"}
+                      {b.isPublished ?"⚡":"📝"}
                     </div>
                     <div className="flex-1 min-w-0 space-y-2">
                       <p className="text-white/80 text-sm font-semibold" style={{fontFamily:T.ox}}>{b.title}</p>
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge status={b.isPublished ? "published" : "draft"}/>
                         <span className="text-white/30 text-[10px]" style={{fontFamily:T.mono}}>{"General"}</span>
-                        {b.isPublished ? "published" : "draft"==="published" && <span className="text-violet-400 text-[10px] flex items-center gap-1" style={{fontFamily:T.mono}}><Eye size={9}/>{(b.views/1000).toFixed(1)}K</span>}
+                        {b.isPublished && (
+  <span
+    className="text-violet-400 text-[10px] flex items-center gap-1"
+    style={{fontFamily:T.mono}}
+  >
+    <Eye size={9}/>
+    {b.views >= 1000
+      ? `${(b.views / 1000).toFixed(1)}K`
+      : b.views}
+  </span>
+)}
                       </div>
                       <div className="flex items-center gap-2">
                         {[{i:<Edit3 size={11}/>,c:"text-cyan-400"},{i:<ExternalLink size={11}/>,c:"text-violet-400"},{i:<Trash2 size={11}/>,c:"text-red-400",fn:()=>deleteB(b._id)}].map((a,j)=>(
