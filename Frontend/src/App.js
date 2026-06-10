@@ -18,6 +18,7 @@ function App() {
     <Route path="/register" element={<Register />} />
     <Route path="/dashboard" element={<Dashboard />} />
     <Route path="/admin" element={<AdminDashboard />} />
+    <Route path="/blogs/:slug" element={<BlogPage />} />
   </Routes>
 </BrowserRouter>  
   );

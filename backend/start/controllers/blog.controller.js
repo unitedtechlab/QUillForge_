@@ -64,4 +64,63 @@ const getAllBlogs = asyncHandler(async (req, res) => {
     );
 });
 
-export { createBlog , getAllBlogs};
+const deleteBlog = asyncHandler(async (req, res) => {
+
+    const blog = await Blog.findByIdAndDelete(
+        req.params.id
+    );
+
+    if (!blog) {
+        throw new ApiError(
+            404,
+            "Blog not found"
+        );
+    }
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {},
+            "Blog deleted successfully"
+        )
+    );
+});
+
+const updateBlog = asyncHandler(async (req, res) => {
+
+    const {
+        title,
+        excerpt,
+        content,
+        isPublished
+    } = req.body;
+
+    const blog = await Blog.findById(
+        req.params.id
+    );
+
+    if (!blog) {
+        throw new ApiError(
+            404,
+            "Blog not found"
+        );
+    }
+
+    blog.title = title ?? blog.title;
+    blog.excerpt = excerpt ?? blog.excerpt;
+    blog.content = content ?? blog.content;
+    blog.isPublished =
+        isPublished ?? blog.isPublished;
+
+    await blog.save();
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            blog,
+            "Blog updated successfully"
+        )
+    );
+});
+
+export { createBlog , getAllBlogs, deleteBlog, updateBlog };

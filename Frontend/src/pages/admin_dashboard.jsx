@@ -499,6 +499,7 @@ function CreateBlogPage() {
   const [pub,      setPub]     = useState(false);
   const [saving,   setSaving]  = useState(false);
   const [saved,    setSaved]   = useState(false);
+  const [editingBlog, setEditingBlog] = useState(null);
 
   useEffect(()=>{ setSlug(toSlug(title)); },[title]);
 
@@ -735,7 +736,36 @@ const filtered = blogs
 
   const toggleSelect = id => setSelected(s => s.includes(id) ? s.filter(x=>x!==id) : [...s,id]);
   const toggleAll    = () => setSelected(s => s.length===filtered.length ? [] : filtered.map(b=>b._id));
-  const deleteB      = id => { setBlogs(b=>b.filter(x=>x._id!==id)); setOpenMenu(null); };
+const deleteB = async (id) => {
+  try {
+
+    await api.delete(`/blogs/${id}`);
+
+    setBlogs(b =>
+      b.filter(x => x._id !== id)
+    );
+
+    setOpenMenu(null);
+
+  } catch (error) {
+
+    console.error(error);
+    alert("Failed to delete blog");
+
+  }
+};
+
+const startEdit = (blog) => {
+
+  setEditingBlog(blog);
+
+  setTitle(blog.title);
+  setExcerpt(blog.excerpt);
+  setContent(blog.content);
+  setPublished(blog.isPublished);
+
+  setCurrentPage("create");
+};
 
   return (
     <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} className="space-y-5">
@@ -828,8 +858,8 @@ const filtered = blogs
                     <div className="relative">
                       <div className="flex items-center gap-1">
                         {[
-                          { icon:<Edit3 size={11}/>,       title:"Edit",    cls:"hover:text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400/20" },
-                          { icon:<ExternalLink size={11}/>, title:"Preview", cls:"hover:text-violet-400 hover:bg-violet-400/10 hover:border-violet-400/20" },
+                          { icon:<Edit3 size={11}/>,       title:"Edit",    cls:"hover:text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400/20", action:()=>startEdit(b) },
+                          
                           { icon:<Trash2 size={11}/>,       title:"Delete",  cls:"hover:text-red-400 hover:bg-red-400/10 hover:border-red-400/20", action:()=>deleteB(b._id) },
                         ].map((a,j)=>(
                           <motion.button key={j} title={a.title} onClick={a.action} whileHover={{scale:1.1}} whileTap={{scale:0.9}}
