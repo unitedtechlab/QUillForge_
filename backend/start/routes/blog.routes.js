@@ -6,7 +6,11 @@ import {createBlog, getAllBlogs, deleteBlog, updateBlog, getBlogById} from "../c
 const router = Router();
 
 router.post("/", verifyjwt, verifyadmin, createBlog);
+// this comes from createblog or edit blog (from admindashboard as of now ) 
+
 router.get("/", getAllBlogs);
+// this comes from manageblogs function first step which is fetchblogs function to get all blogs .
+
 // router.get("/:slug", getBlogBySlug);
 router.get("/:id", getBlogById);
 router.put("/:id", verifyjwt, verifyadmin, updateBlog);

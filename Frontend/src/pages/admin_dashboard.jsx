@@ -527,9 +527,11 @@ useEffect(() => {
   setContent(editingBlog.content || "");
   setPub(editingBlog.isPublished);
 
+
 }, [editingBlog]);
 
 
+// above code solves the error when we edit a blog then returns to creare new blog, the title, content are  not cleared, so it clears. 
 
   useEffect(()=>{ setSlug(toSlug(title)); },[title]);
 
@@ -539,6 +541,8 @@ const handleSave = async (publish = false) => {
     setSaving(true);
 
     let res;
+
+
 
     if (editingBlog) {
 
@@ -551,6 +555,9 @@ const handleSave = async (publish = false) => {
           isPublished: publish
         }
       );
+
+
+      // calls backend with the help of axios !
 
 
       setEditingBlog(null);
@@ -570,6 +577,8 @@ setPub(false);
           isPublished: publish
         }
       );
+
+      // same thing of calling backend . backend me bhi blog.controller -> create blog!
 
       console.log("BLOG CREATED:", res.data);
     }
@@ -791,6 +800,9 @@ const fetchBlogs = async () => {
     const res = await api.get("/blogs");
 
     setBlogs(res.data.data);
+    // in const[blogs,setblogs]= usestate([]) initially blogs are null, but after fetching , setblogs gets all blogs data and so blogs variable changes
+    // to all available blogs. 
+    
 
   } catch (error) {
 
@@ -1042,11 +1054,14 @@ function PlaceholderPage({ title, icon, desc }) {
 ════════════════════════════════════════════════ */
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  // usenavigate function is used to navigate to another page ,, 
   const [loading, setLoading] = useState(true);
   const [user,    setUser]    = useState(null);
 
   const [editingBlog, setEditingBlog] = useState(null);
 
+
+  //useeffect is used to run a function when the component mounts. it also runs when the component re-renders
 
   useEffect(() => {
     api.get("/users/current-user")
