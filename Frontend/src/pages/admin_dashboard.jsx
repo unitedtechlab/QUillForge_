@@ -53,6 +53,7 @@ import {
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
 import CreateBlogPage from "./CreateBlogPage";
+import ReadBlogsPage from "./ReadBlogsFeed";
 
 
 /* ════════════════════════════════════════════════
@@ -323,8 +324,8 @@ function GradientBtn({ children, onClick, className = "" }) {
 const NAV_ITEMS = [
   { id: "dashboard", icon: <LayoutDashboard size={15} />, label: "Dashboard" },
   { id: "create", icon: <PenLine size={15} />, label: "Create Blog" },
-  { id: "manage", icon: <BookOpen size={15} />, label: "Manage Blogs" },
-  { id: "analytics", icon: <BarChart3 size={15} />, label: "Analytics" },
+  { id: "manage", icon: <BookMarked size={15} />, label: "Manage Blogs" },
+  { id: "read", icon: <BookOpen size={15} />, label: "Read Blogs" },
   { id: "settings", icon: <Settings size={15} />, label: "Settings" },
 ];
 
@@ -445,7 +446,7 @@ function Sidebar({ page, setPage, open, setOpen, handleLogout }) {
 /* ════════════════════════════════════════════════
    TOPBAR
 ════════════════════════════════════════════════ */
-function Topbar({ setOpen, setPage }) {
+function Topbar({ setOpen, setPage, setEditingBlog }) {
   const [search, setSearch] = useState("");
   return (
     <div
@@ -479,6 +480,7 @@ function Topbar({ setOpen, setPage }) {
       <div className="flex items-center gap-2.5 ml-auto">
         <GradientBtn
           onClick={() => {
+            if (setEditingBlog) setEditingBlog(null);
             setPage("create");
           }}
           className="hidden sm:flex text-xs px-4 py-2"
@@ -1025,10 +1027,17 @@ function ManageBlogsPage({ setPage, setEditingBlog }) {
   const navigate = useNavigate();
 
 
+  // Fetch all blogs when the component mounts
   useEffect(() => {
     fetchBlogs();
   }, []);
 
+  /**
+   * Fetches all blogs from the database.
+   * 
+   * API Call:
+   * - Endpoint: GET /blogs (in backend start/routes/blog.routes.js)
+   */
   const fetchBlogs = async () => {
     try {
       const res = await api.get("/blogs");
@@ -1050,14 +1059,28 @@ function ManageBlogsPage({ setPage, setEditingBlog }) {
     )
     .filter((b) => b.title.toLowerCase().includes(search.toLowerCase()));
 
+  /**
+   * Toggles the selection status of a single blog item.
+   */
   const toggleSelect = (id) =>
     setSelected((s) =>
       s.includes(id) ? s.filter((x) => x !== id) : [...s, id],
     );
+
+  /**
+   * Toggles selection for all filtered blogs.
+   */
   const toggleAll = () =>
     setSelected((s) =>
       s.length === filtered.length ? [] : filtered.map((b) => b._id),
     );
+
+  /**
+   * Deletes a blog post by its ID.
+   * 
+   * API Call:
+   * - Endpoint: DELETE /blogs/:id (in backend start/routes/blog.routes.js)
+   */
   const deleteB = async (id) => {
     try {
       await api.delete(`/blogs/${id}`);
@@ -1071,6 +1094,12 @@ function ManageBlogsPage({ setPage, setEditingBlog }) {
     }
   };
 
+  /**
+   * Loads a blog post details by ID and prepares it inside the editor component.
+   * 
+   * API Call:
+   * - Endpoint: GET /blogs/:id (in backend start/routes/blog.routes.js)
+   */
   const startEdit = async (id) => {
     try {
       const res = await api.get(`/blogs/${id}`);
@@ -1451,8 +1480,15 @@ export default function AdminDashboard() {
 
   const [editingBlog, setEditingBlog] = useState(null);
 
-  //useeffect is used to run a function when the component mounts. it also runs when the component re-renders
-
+  /**
+   * Effect to verify admin authentication.
+   * 
+   * API Call:
+   * - Endpoint: GET /users/current-user (in backend start/routes/user.routes.js)
+   *   Validates that the logged-in user exists and has the "admin" role.
+   *   If they are not an admin, redirects to the regular user dashboard (/dashboard).
+   *   If request fails (not logged in), redirects to home page (/).
+   */
   useEffect(() => {
     api
       .get("/users/current-user")
@@ -1471,6 +1507,13 @@ export default function AdminDashboard() {
   const [page, setPage] = useState("dashboard");
   const [sideOpen, setSideOpen] = useState(false);
 
+  /**
+   * Logs out the administrator.
+   * 
+   * API Call:
+   * - Endpoint: POST /users/logout (in backend start/routes/user.routes.js)
+   *   Clears cookies containing JWT tokens and redirects to the landing page (/).
+   */
   const handleLogout = async () => {
     try {
       await api.post("/users/logout");
@@ -1537,12 +1580,8 @@ export default function AdminDashboard() {
               setEditingBlog={setEditingBlog}
             />
           )}
-          {page === "analytics" && (
-            <PlaceholderPage
-              title="Analytics"
-              icon={<BarChart3 size={24} />}
-              desc="Detailed performance charts coming soon."
-            />
+          {page === "read" && (
+            <ReadBlogsPage />
           )}
           {page === "settings" && (
             <PlaceholderPage

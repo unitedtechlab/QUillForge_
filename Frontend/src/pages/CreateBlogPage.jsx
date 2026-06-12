@@ -26,13 +26,21 @@ const T = {
 
 /* ════════════════════════════════════════════════
    HELPERS & SUB-COMPONENTS
-════════════════════════════════════════════════ */
+   ════════════════════════════════════════════════ */
+
+/**
+ * Converts a text title into a URL-friendly slug.
+ * Example: "My First Blog Post" -> "my-first-blog-post"
+ */
 const toSlug = (v) =>
   v
     .toLowerCase()
     .replace(/\s+/g, "-")
     .replace(/[^a-z0-9-]/g, "");
 
+/**
+ * A standard labeled wrapper layout for inputs.
+ */
 function Field({ label, children }) {
   return (
     <div className="space-y-2">
@@ -47,6 +55,9 @@ function Field({ label, children }) {
   );
 }
 
+/**
+ * Renders a glassmorphic card container with micro-animations and custom glows on hover.
+ */
 function GlassCard({ children, className = "", glow = "" }) {
   return (
     <motion.div
@@ -64,6 +75,9 @@ function GlassCard({ children, className = "", glow = "" }) {
   );
 }
 
+/**
+ * Renders a reusable action button with a cyan-to-violet gradient and tap/hover effects.
+ */
 function GradientBtn({ children, onClick, className = "" }) {
   return (
     <motion.button
@@ -83,7 +97,7 @@ function GradientBtn({ children, onClick, className = "" }) {
 
 /* ════════════════════════════════════════════════
    CREATE BLOG PAGE COMPONENT
-════════════════════════════════════════════════ */
+   ════════════════════════════════════════════════ */
 export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
@@ -95,6 +109,8 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  // Effect to load editingBlog properties into form fields when in edit mode,
+  // or clear them when launching a fresh blog creation.
   useEffect(() => {
     if (!editingBlog) {
       setTitle("");
@@ -110,17 +126,27 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
     setPub(editingBlog.isPublished);
   }, [editingBlog]);
 
+  // Effect to automatically synchronize URL Slug field with title changes.
   useEffect(() => {
     setSlug(toSlug(title));
   }, [title]);
 
+  /**
+   * Saves the blog post as either a draft or publishes it.
+   * 
+   * API Calls:
+   * 1. If updating an existing blog (editingBlog is defined):
+   *    - Endpoint: PUT /blogs/:id (in backend start/routes/blog.routes.js)
+   * 2. If creating a new blog:
+   *    - Endpoint: POST /blogs (in backend start/routes/blog.routes.js)
+   */
   const handleSave = async (publish = false) => {
     try {
       setSaving(true);
       let res;
 
       if (editingBlog) {
-        res = await api.put(`/blogs/${editingBlog._id}`, {
+        res = await api.put(`/blogs/${editingBlog._id}`, { 
           title,
           excerpt,
           content,

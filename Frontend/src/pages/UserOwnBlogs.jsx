@@ -112,19 +112,26 @@ function GradientBtn({ children, onClick, className = "" }) {
 }
 
 /* ════════════════════════════════════════════════
-   MY BLOGS PAGE COMPONENT
+   USER OWN BLOGS COMPONENT
 ════════════════════════════════════════════════ */
-export default function MyBlogsPage({ setActive, setEditingBlog, currentUser }) {
+export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser }) {
   const [blogs, setBlogs] = useState([]);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState([]);
   const navigate = useNavigate();
 
+  // Fetch all blogs when the page component is mounted
   useEffect(() => {
     fetchBlogs();
   }, []);
 
+  /**
+   * Fetches all blogs from the backend.
+   * 
+   * API Call:
+   * - Endpoint: GET /blogs (in backend start/routes/blog.routes.js)
+   */
   const fetchBlogs = async () => {
     try {
       const res = await api.get("/blogs");
@@ -151,16 +158,28 @@ export default function MyBlogsPage({ setActive, setEditingBlog, currentUser }) 
     )
     .filter((b) => b.title.toLowerCase().includes(search.toLowerCase()));
 
+  /**
+   * Toggles selection state of a specific blog in the checkbox list.
+   */
   const toggleSelect = (id) =>
     setSelected((s) =>
       s.includes(id) ? s.filter((x) => x !== id) : [...s, id]
     );
 
+  /**
+   * Selects all filtered blogs or deselects all of them.
+   */
   const toggleAll = () =>
     setSelected((s) =>
       s.length === filtered.length ? [] : filtered.map((b) => b._id)
     );
 
+  /**
+   * Deletes a single blog post.
+   * 
+   * API Call:
+   * - Endpoint: DELETE /blogs/:id (in backend start/routes/blog.routes.js)
+   */
   const deleteB = async (id) => {
     if (window.confirm("Are you sure you want to delete this blog?")) {
       try {
@@ -174,6 +193,12 @@ export default function MyBlogsPage({ setActive, setEditingBlog, currentUser }) 
     }
   };
 
+  /**
+   * Performs a bulk deletion on all checked/selected blogs.
+   * 
+   * API Call:
+   * - Endpoint: DELETE /blogs/:id (iterates in parallel via Promise.all)
+   */
   const handleBulkDelete = async () => {
     if (window.confirm(`Are you sure you want to delete ${selected.length} blogs?`)) {
       try {
@@ -187,6 +212,12 @@ export default function MyBlogsPage({ setActive, setEditingBlog, currentUser }) 
     }
   };
 
+  /**
+   * Loads a blog by ID to prepare for editing and switches views.
+   * 
+   * API Call:
+   * - Endpoint: GET /blogs/:id (in backend start/routes/blog.routes.js)
+   */
   const startEdit = async (id) => {
     try {
       const res = await api.get(`/blogs/${id}`);

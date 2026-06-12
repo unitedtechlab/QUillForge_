@@ -5,13 +5,14 @@ import {
   MessageSquare, TrendingUp, TrendingDown, ArrowRight, Menu, X,
   MoreHorizontal, Edit3, Trash2, ExternalLink, Star, Zap,
   Calendar, Clock, Tag, ChevronRight, ChevronUp, Sparkles,
-  Globe, Lock, FileText, Activity
+  Globe, Lock, FileText, Activity, BookMarked
 } from "lucide-react";
 
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
 import CreateBlogPage from "./CreateBlogPage";
-import MyBlogsPage from "./MyBlogsPage";
+import MyBlogsPage from "./UserOwnBlogs";
+import ReadBlogsPage from "./ReadBlogsFeed";
 
 
 
@@ -95,8 +96,8 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, h
   const nav = [
     { id: "dashboard", icon: <LayoutDashboard size={16}/>, label: "Dashboard" },
     { id: "create",    icon: <PenLine size={16}/>,         label: "Create Blog" },
-    { id: "blogs",     icon: <BookOpen size={16}/>,        label: "My Blogs" },
-    { id: "analytics", icon: <BarChart3 size={16}/>,       label: "Analytics" },
+    { id: "blogs",     icon: <BookMarked size={16}/>,      label: "My Blogs" },
+    { id: "read",      icon: <BookOpen size={16}/>,        label: "Read Blogs" },
     { id: "community", icon: <Users size={16}/>,           label: "Community" },
   ];
   const bottom = [
@@ -873,8 +874,13 @@ export default function Dashboard() {
             <MyBlogsPage setActive={setActive} setEditingBlog={setEditingBlog} currentUser={user} />
           </div>
 
+          {/* Read Blogs Page */}
+          <div style={{ display: active === "read" ? "block" : "none" }}>
+            <ReadBlogsPage />
+          </div>
+
           {/* Placeholder/Alternative Pages */}
-          {active !== "dashboard" && active !== "create" && active !== "blogs" && (
+          {active !== "dashboard" && active !== "create" && active !== "blogs" && active !== "read" && (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/15 to-violet-500/15 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-5">
                 {active === "analytics" ? <BarChart3 size={24} /> : <Users size={24} />}

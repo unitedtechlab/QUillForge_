@@ -10,7 +10,8 @@ router.post("/", verifyjwt, createBlog);
 
 router.get("/", getAllBlogs);
 // this comes from manageblogs function first step which is fetchblogs function to get all blogs .
-
+// admindashboard uses this to fetch all blogs to show in the table (i.e. manageblogs)
+// 
 // router.get("/:slug", getBlogBySlug);
 router.get("/:id", getBlogById);
 router.put("/:id", verifyjwt, updateBlog);
