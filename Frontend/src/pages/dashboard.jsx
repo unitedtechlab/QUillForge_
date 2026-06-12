@@ -91,7 +91,7 @@ function Sparkline({ data, color = "#22d3ee", height = 40 }) {
 }
 
 /* ─────────────────── SIDEBAR ─────────────────── */
-function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, handleNewBlog }) {
+function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, handleNewBlog, handleLogout }) {
   const nav = [
     { id: "dashboard", icon: <LayoutDashboard size={16}/>, label: "Dashboard" },
     { id: "create",    icon: <PenLine size={16}/>,         label: "Create Blog" },
@@ -169,6 +169,11 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, h
         <div className="p-3 border-t border-white/[0.06] space-y-1">
           {bottom.map(item => (
             <button key={item.id}
+              onClick={() => {
+                if (item.id === "logout") {
+                  handleLogout();
+                }
+              }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-white/30 hover:text-white/60 hover:bg-white/[0.04] group relative ${collapsed ? "lg:justify-center lg:px-2" : ""}`}
             >
               <span className="flex-shrink-0">{item.icon}</span>
@@ -740,6 +745,7 @@ function WritingStreak({ visible }) {
 
 /* ─────────────────── MAIN PAGE ─────────────────── */
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [active, setActive] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(true);
   const [visible, setVisible] = useState(false);
@@ -751,6 +757,15 @@ export default function Dashboard() {
     setEditingBlog(null);
     setActive("create");
     setCreateKey(prev => prev + 1);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await api.post("/users/logout");
+      navigate("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   useEffect(() => {
@@ -806,7 +821,7 @@ export default function Dashboard() {
 
       <Background />
 
-      <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} setEditingBlog={setEditingBlog} handleNewBlog={handleNewBlog} />
+      <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} setEditingBlog={setEditingBlog} handleNewBlog={handleNewBlog} handleLogout={handleLogout} />
       <Topbar collapsed={collapsed} setCollapsed={setCollapsed} user={user} setActive={setActive} setEditingBlog={setEditingBlog} handleNewBlog={handleNewBlog} />
 
       {/* Main content */}

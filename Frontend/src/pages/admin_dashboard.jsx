@@ -328,7 +328,7 @@ const NAV_ITEMS = [
   { id: "settings", icon: <Settings size={15} />, label: "Settings" },
 ];
 
-function Sidebar({ page, setPage, open, setOpen }) {
+function Sidebar({ page, setPage, open, setOpen, handleLogout }) {
   return (
     <>
       {open && (
@@ -425,6 +425,7 @@ function Sidebar({ page, setPage, open, setOpen }) {
         <div className="p-3 border-t border-white/[0.06] space-y-0.5">
           <motion.button
             whileHover={{ x: 3 }}
+            onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-white/25 hover:text-white/60 hover:bg-white/[0.04] transition-all border border-transparent text-left"
           >
             <LogOut size={15} />
@@ -1470,6 +1471,15 @@ export default function AdminDashboard() {
   const [page, setPage] = useState("dashboard");
   const [sideOpen, setSideOpen] = useState(false);
 
+  const handleLogout = async () => {
+    try {
+      await api.post("/users/logout");
+      navigate("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
   useEffect(() => {
     const check = () => {
       if (window.innerWidth >= 1024) setSideOpen(true);
@@ -1508,6 +1518,7 @@ export default function AdminDashboard() {
         setPage={setPage}
         open={sideOpen}
         setOpen={setSideOpen}
+        handleLogout={handleLogout}
       />
       <Topbar
         setOpen={setSideOpen}
