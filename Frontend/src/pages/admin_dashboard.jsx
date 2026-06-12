@@ -1409,7 +1409,7 @@ function ManageBlogsPage({ setPage, setEditingBlog }) {
   const [selected, setSelected] = useState([]);
 
   const navigate = useNavigate();
-  
+
 
   useEffect(() => {
     fetchBlogs();
@@ -1661,7 +1661,7 @@ function ManageBlogsPage({ setPage, setEditingBlog }) {
                         {[
                           {
                             icon: <Eye size={11} />,
-                            title: "Preview",
+                            title: "Wanna read ? 👀",
                             cls: "hover:text-emerald-400 hover:bg-emerald-400/10 hover:border-emerald-400/20",
                             action: () => navigate(`/blog/${b._id}`),
                           },

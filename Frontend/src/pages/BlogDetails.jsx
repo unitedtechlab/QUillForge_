@@ -117,46 +117,14 @@ function LoadingSkeleton() {
 ───────────────────────────────────────────── */
 export default function BlogDetails() {
   const { id } = useParams();
+
+  console.log("Current Blog ID:", id);
   const navigate = useNavigate();
 
-  const [blog, setBlog] = useState({
-  _id: "1",
-  title: "Building Scalable APIs with Node.js",
-  category: "Technology",
-  views: 2450,
-  likes: 324,
-  coverImage:
-    "https://images.unsplash.com/photo-1515879218367-8466d910aaa4",
-  createdAt: new Date(),
-  author: {
-    username: "Keshav",
-    role: "admin"
-  },
-  content: `
-    <h2>Introduction</h2>
+const [blog, setBlog] = useState(null);
 
-    <p>
-    QuillForge is a modern blogging platform built using React,
-    Node.js, Express and MongoDB.
-    </p>
 
-    <p>
-    This page demonstrates how a complete blog reading experience
-    will look once APIs are connected.
-    </p>
-
-    <blockquote>
-    Good architecture scales. Bad architecture survives.
-    </blockquote>
-
-    <h2>Conclusion</h2>
-
-    <p>
-    This blog page is now connected to the QuillForge UI.
-    </p>
-  `
-});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 const [relatedBlogs] = useState([
   {
@@ -194,6 +162,26 @@ const [relatedBlogs] = useState([
       console.error(err);
     }
   };
+
+  useEffect(() => {
+  const fetchBlog = async () => {
+    setLoading(true);
+    setError(false);
+
+    try {
+      const res = await api.get(`/blogs/${id}`);
+      setBlog(res.data.data);
+      setLikeCount(res.data.data.likes || 0);
+    } catch (err) {
+      console.error(err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchBlog();
+}, [id]);
 
   // useEffect(() => {
   //   incrementView();

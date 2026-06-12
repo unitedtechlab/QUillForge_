@@ -67,8 +67,7 @@ const getAllBlogs = asyncHandler(async (req, res) => {
 const deleteBlog = asyncHandler(async (req, res) => {
 
     const blog = await Blog.findByIdAndDelete(
-        req.params.id
-    );
+        req.params.id).populate("author", "username email role");
 
     if (!blog) {
         throw new ApiError(
@@ -122,4 +121,5 @@ const updateBlog = asyncHandler(async (req,res)=>{
   );
 });
 
-export { createBlog , getAllBlogs, deleteBlog, getBlogById, updateBlog };
+
+export { createBlog , getAllBlogs, deleteBlog, getBlogById, updateBlog};
