@@ -7,11 +7,10 @@ import {
   BookOpen,
   Calendar,
   Clock,
-  User,
   ArrowRight,
-  Sparkles,
-  X,
-  MessageSquare
+  ChevronDown,
+  ChevronUp,
+  ExternalLink
 } from "lucide-react";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
@@ -29,33 +28,28 @@ const T = {
    ANIMATION VARIANTS
 ════════════════════════════════════════════════ */
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 28 },
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] },
   },
 };
 
-const stagger = { show: { transition: { staggerChildren: 0.08 } } };
+const stagger = { show: { transition: { staggerChildren: 0.1 } } };
 
 /* ════════════════════════════════════════════════
-   SUB-COMPONENTS
+   GLASS CARD CONTAINER
 ════════════════════════════════════════════════ */
-function GlassCard({ children, className = "", onClick, glow = "" }) {
+function GlassCard({ children, className = "" }) {
   return (
     <motion.div
-      onClick={onClick}
-      whileHover={onClick ? {
-        y: -4,
-        borderColor: "rgba(34,211,238,0.3)",
-        boxShadow: "0 12px 30px rgba(34,211,238,0.08)"
-      } : {
-        borderColor: glow || "rgba(34,211,238,0.25)",
-        boxShadow: glow ? `0 0 40px ${glow}18` : "0 0 40px rgba(34,211,238,0.08)"
+      whileHover={{
+        borderColor: "rgba(34,211,238,0.2)",
+        boxShadow: "0 20px 40px rgba(34,211,238,0.03)"
       }}
-      transition={{ duration: 0.25 }}
-      className={`relative rounded-2xl border border-white/[0.07] bg-white/[0.025] backdrop-blur-md overflow-hidden ${onClick ? "cursor-pointer" : ""} ${className}`}
+      transition={{ duration: 0.3 }}
+      className={`relative rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-md overflow-hidden ${className}`}
     >
       {children}
     </motion.div>
@@ -71,7 +65,7 @@ export default function ReadBlogsFeed() {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [likedBlogs, setLikedBlogs] = useState({});
-  const [readingBlog, setReadingBlog] = useState(null);
+  const [expandedBlogs, setExpandedBlogs] = useState({});
   
   const navigate = useNavigate();
 
@@ -80,10 +74,7 @@ export default function ReadBlogsFeed() {
   }, []);
 
   /**
-   * Fetches all published blogs for reading.
-   * 
-   * API Call:
-   * - Endpoint: GET /blogs (in backend start/routes/blog.routes.js)
+   * Fetches all published blogs for the reading feed.
    */
   const fetchBlogs = async () => {
     try {
@@ -119,6 +110,16 @@ export default function ReadBlogsFeed() {
     });
   };
 
+  /**
+   * Toggles the inline expansion of the blog content.
+   */
+  const toggleExpand = (id) => {
+    setExpandedBlogs(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
   // Extract unique categories from blogs
   const categories = ["all", ...new Set(blogs.map(b => b.category || "General"))];
 
@@ -127,11 +128,12 @@ export default function ReadBlogsFeed() {
     .filter(b => selectedCategory === "all" || (b.category || "General") === selectedCategory)
     .filter(b => 
       b.title.toLowerCase().includes(search.toLowerCase()) ||
+      (b.content && b.content.toLowerCase().includes(search.toLowerCase())) ||
       (b.excerpt && b.excerpt.toLowerCase().includes(search.toLowerCase()))
     );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-4xl mx-auto">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -174,7 +176,7 @@ export default function ReadBlogsFeed() {
         ))}
       </div>
 
-      {/* Main Grid */}
+      {/* Main vertical feed */}
       {loading ? (
         <div className="py-24 text-center space-y-4">
           <motion.div
@@ -198,80 +200,127 @@ export default function ReadBlogsFeed() {
           variants={stagger}
           initial="hidden"
           animate="show"
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="space-y-8"
         >
           {filteredBlogs.map(blog => {
             const isLiked = !!likedBlogs[blog._id];
+            const isExpanded = !!expandedBlogs[blog._id];
+            const readTime = Math.max(3, Math.round((blog.content || "").split(/\s+/).length / 200));
+            const shouldTruncate = (blog.content || "").length > 450;
+
+            // Content presentation logic
+            const renderedContent = isExpanded 
+              ? blog.content 
+              : shouldTruncate 
+                ? `${blog.content.slice(0, 420)}...` 
+                : blog.content;
+
             return (
               <motion.div key={blog._id} variants={fadeUp}>
-                <GlassCard className="h-full flex flex-col p-6 space-y-4 group">
-                  {/* Category & Date */}
-                  <div className="flex items-center justify-between">
-                    <span
-                      className="px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-widest text-cyan-400 bg-cyan-400/10 border border-cyan-400/20"
-                      style={{ fontFamily: T.ox }}
-                    >
-                      {blog.category || "General"}
-                    </span>
-                    <span className="text-[10px] text-white/25 flex items-center gap-1" style={{ fontFamily: T.mono }}>
-                      <Calendar size={10} /> {new Date(blog.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                <GlassCard className="p-8 space-y-6">
+                  {/* Article Metadata Header */}
+                  <div className="flex items-center justify-between text-xs text-white/40">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-widest text-cyan-400 bg-cyan-400/10 border border-cyan-400/20"
+                        style={{ fontFamily: T.ox }}
+                      >
+                        {blog.category || "General"}
+                      </span>
+                      <span className="flex items-center gap-1" style={{ fontFamily: T.mono }}>
+                        <Calendar size={11} /> {new Date(blog.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </span>
+                    </div>
+                    <span className="flex items-center gap-1" style={{ fontFamily: T.mono }}>
+                      <Clock size={11} /> {readTime} min read
                     </span>
                   </div>
 
-                  {/* Title & Excerpt */}
-                  <div className="space-y-2 flex-1">
-                    <h3
-                      className="text-white font-bold text-base leading-snug group-hover:text-cyan-400 transition-colors line-clamp-2"
+                  {/* Title & Author Info */}
+                  <div className="space-y-2">
+                    <h2
+                      className="text-white font-extrabold text-2xl sm:text-3xl leading-tight tracking-tight hover:text-cyan-400 transition-colors"
                       style={{ fontFamily: T.ox }}
                     >
                       {blog.title}
-                    </h3>
-                    <p className="text-white/40 text-xs leading-relaxed line-clamp-3">
-                      {blog.excerpt || "No summary provided for this article."}
-                    </p>
-                  </div>
-
-                  {/* Author Information */}
-                  <div className="flex items-center gap-2 pt-3 border-t border-white/[0.04]">
-                    <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center text-[10px] font-black text-white">
-                      {blog.author?.username?.slice(0, 2).toUpperCase() || "A"}
+                    </h2>
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-md bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center text-[9px] font-black text-white">
+                        {blog.author?.username?.slice(0, 2).toUpperCase() || "A"}
+                      </div>
+                      <span className="text-[11px] font-medium text-white/50" style={{ fontFamily: T.ox }}>
+                        by <span className="text-white/80">@{blog.author?.username || "Anonymous"}</span>
+                      </span>
                     </div>
-                    <span className="text-[11px] font-medium text-white/50 truncate" style={{ fontFamily: T.ox }}>
-                      by {blog.author?.username || "Anonymous"}
-                    </span>
-                    <span className="ml-auto text-[10px] text-white/20 flex items-center gap-1" style={{ fontFamily: T.mono }}>
-                      <Clock size={10} /> {Math.max(3, Math.round((blog.content || "").split(/\s+/).length / 200))} min
-                    </span>
                   </div>
 
-                  {/* Actions & Stats */}
-                  <div className="flex items-center justify-between pt-1">
-                    <div className="flex items-center gap-3">
+                  {/* Excerpt if present */}
+                  {blog.excerpt && (
+                    <div className="p-4 rounded-xl border-l-2 border-cyan-400/30 bg-cyan-400/[0.02] text-xs leading-relaxed text-cyan-300/80 italic">
+                      "{blog.excerpt}"
+                    </div>
+                  )}
+
+                  {/* Divider */}
+                  <div className="h-px bg-white/[0.05]" />
+
+                  {/* Content Block */}
+                  <div className="relative">
+                    <div className="text-white/70 text-sm leading-relaxed whitespace-pre-wrap font-sans space-y-4">
+                      {renderedContent}
+                    </div>
+
+                    {/* Gradient Fade for Truncated Content */}
+                    {shouldTruncate && !isExpanded && (
+                      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#080b14] to-transparent pointer-events-none" />
+                    )}
+                  </div>
+
+                  {/* Inline Reader Expand / Collapse Toggle */}
+                  {shouldTruncate && (
+                    <button
+                      onClick={() => toggleExpand(blog._id)}
+                      className="flex items-center gap-1.5 text-xs text-cyan-400 font-bold hover:text-cyan-300 transition-all border border-cyan-400/20 px-4 py-2 rounded-xl bg-cyan-400/[0.03] hover:bg-cyan-400/[0.08]"
+                      style={{ fontFamily: T.ox }}
+                    >
+                      {isExpanded ? (
+                        <>Show Less <ChevronUp size={14} /></>
+                      ) : (
+                        <>Read Full Article <ChevronDown size={14} /></>
+                      )}
+                    </button>
+                  )}
+
+                  {/* Divider */}
+                  <div className="h-px bg-white/[0.05]" />
+
+                  {/* Bottom Stats & Actions */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleLike(blog._id);
-                        }}
-                        className={`flex items-center gap-1 text-[11px] font-semibold transition-all ${
-                          isLiked ? "text-pink-500 scale-105" : "text-white/20 hover:text-white/50"
+                        onClick={() => toggleLike(blog._id)}
+                        className={`flex items-center gap-1.5 text-xs font-semibold transition-all ${
+                          isLiked ? "text-pink-500 scale-105" : "text-white/30 hover:text-white/50"
                         }`}
                         style={{ fontFamily: T.mono }}
                       >
-                        <Heart size={12} className={isLiked ? "fill-pink-500 text-pink-500" : ""} />
-                        {blog.likes || 0}
+                        <Heart size={14} className={isLiked ? "fill-pink-500 text-pink-500" : ""} />
+                        <span>{blog.likes || 0} Likes</span>
                       </button>
-                      <span className="text-white/20 text-[11px] flex items-center gap-1" style={{ fontFamily: T.mono }}>
-                        <Eye size={12} className="text-violet-400" />
-                        {blog.views || 0}
+
+                      <span className="text-white/30 text-xs flex items-center gap-1.5" style={{ fontFamily: T.mono }}>
+                        <Eye size={14} className="text-violet-400" />
+                        <span>{blog.views || 0} Views</span>
                       </span>
                     </div>
 
                     <button
-                      onClick={() => setReadingBlog(blog)}
-                      className="flex items-center gap-1 text-xs text-cyan-400 font-bold hover:text-cyan-300 transition-all"
+                      onClick={() => navigate(`/blog/${blog._id}`)}
+                      className="flex items-center gap-1.5 text-xs text-white/30 hover:text-white transition-colors"
                       style={{ fontFamily: T.ox }}
                     >
-                      Read <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+                      <span>Open Page</span>
+                      <ExternalLink size={12} />
                     </button>
                   </div>
                 </GlassCard>
@@ -280,99 +329,6 @@ export default function ReadBlogsFeed() {
           })}
         </motion.div>
       )}
-
-      {/* Beautiful Modal Overlay to read articles inline */}
-      <AnimatePresence>
-        {readingBlog && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-3xl max-h-[85vh] bg-[#070a14] border border-white/[0.08] rounded-2xl overflow-hidden flex flex-col"
-            >
-              {/* Modal Top Bar */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06] bg-white/[0.01]">
-                <span className="text-white/25 text-[10px] uppercase tracking-wider font-semibold" style={{ fontFamily: T.mono }}>
-                  Article Reader
-                </span>
-                <button
-                  onClick={() => setReadingBlog(null)}
-                  className="p-1 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-all"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              {/* Scrollable Article Body */}
-              <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-widest text-cyan-400 bg-cyan-400/10 border border-cyan-400/20" style={{ fontFamily: T.ox }}>
-                      {readingBlog.category || "General"}
-                    </span>
-                    <span className="text-[10px] text-white/20" style={{ fontFamily: T.mono }}>
-                      Published {new Date(readingBlog.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <h2 className="text-2xl md:text-3xl font-black text-white leading-tight" style={{ fontFamily: T.ox }}>
-                    {readingBlog.title}
-                  </h2>
-                  <div className="flex items-center gap-2 pt-2 text-white/40 text-xs">
-                    <span className="font-semibold text-white/60">@{readingBlog.author?.username || "anonymous"}</span>
-                    <span>·</span>
-                    <span>{Math.max(3, Math.round((readingBlog.content || "").split(/\s+/).length / 200))} min read</span>
-                  </div>
-                </div>
-
-                <div className="h-px bg-white/[0.06]" />
-
-                {/* Excerpt panel */}
-                {readingBlog.excerpt && (
-                  <div className="p-4 rounded-xl border border-cyan-500/15 bg-cyan-500/5 text-xs leading-relaxed text-cyan-300/80 italic">
-                    "{readingBlog.excerpt}"
-                  </div>
-                )}
-
-                {/* Main Content */}
-                <div className="text-white/70 text-sm leading-relaxed whitespace-pre-wrap font-sans space-y-4">
-                  {readingBlog.content}
-                </div>
-              </div>
-
-              {/* Modal Footer */}
-              <div className="px-6 py-4 border-t border-white/[0.06] bg-white/[0.01] flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => toggleLike(readingBlog._id)}
-                    className={`flex items-center gap-1 text-xs font-semibold transition-all ${
-                      likedBlogs[readingBlog._id] ? "text-pink-500" : "text-white/30"
-                    }`}
-                  >
-                    <Heart size={14} className={likedBlogs[readingBlog._id] ? "fill-pink-500 text-pink-500" : ""} />
-                    {readingBlog.likes || 0} Likes
-                  </button>
-                  <span className="text-white/30 text-xs flex items-center gap-1">
-                    <Eye size={14} />
-                    {readingBlog.views || 0} Views
-                  </span>
-                </div>
-                <button
-                  onClick={() => {
-                    setReadingBlog(null);
-                    navigate(`/blog/${readingBlog._id}`);
-                  }}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.1] transition-all"
-                  style={{ fontFamily: T.ox }}
-                >
-                  Open Dedicated Page <ArrowRight size={12} />
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
