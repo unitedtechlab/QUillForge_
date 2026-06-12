@@ -114,7 +114,7 @@ function GradientBtn({ children, onClick, className = "" }) {
 /* ════════════════════════════════════════════════
    MY BLOGS PAGE COMPONENT
 ════════════════════════════════════════════════ */
-export default function MyBlogsPage({ setActive, setEditingBlog }) {
+export default function MyBlogsPage({ setActive, setEditingBlog, currentUser }) {
   const [blogs, setBlogs] = useState([]);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -134,7 +134,15 @@ export default function MyBlogsPage({ setActive, setEditingBlog }) {
     }
   };
 
-  const filtered = blogs
+  // Keep only the blogs authored by the current user
+  const userBlogs = blogs.filter((b) => {
+    if (!currentUser) return false;
+    if (!b.author) return false;
+    const authorId = typeof b.author === "object" ? b.author?._id : b.author;
+    return authorId === currentUser._id;
+  });
+
+  const filtered = userBlogs
     .filter(
       (b) =>
         filter === "all" ||
@@ -210,8 +218,8 @@ export default function MyBlogsPage({ setActive, setEditingBlog }) {
             className="text-white/25 text-xs mt-1"
             style={{ fontFamily: T.mono }}
           >
-            {blogs.length} total · {blogs.filter((b) => b.isPublished).length}{" "}
-            published · {blogs.filter((b) => !b.isPublished).length} drafts
+            {userBlogs.length} total · {userBlogs.filter((b) => b.isPublished).length}{" "}
+            published · {userBlogs.filter((b) => !b.isPublished).length} drafts
           </p>
         </div>
         <GradientBtn
@@ -243,7 +251,7 @@ export default function MyBlogsPage({ setActive, setEditingBlog }) {
                 {f}{" "}
                 {f !== "all" &&
                   `(${
-                    blogs.filter(
+                    userBlogs.filter(
                       (b) =>
                         (f === "published" && b.isPublished) ||
                         (f === "draft" && !b.isPublished)
@@ -488,7 +496,7 @@ export default function MyBlogsPage({ setActive, setEditingBlog }) {
               className="text-white/20 text-[10px]"
               style={{ fontFamily: T.mono }}
             >
-              Showing {filtered.length} of {blogs.length} blogs
+              Showing {filtered.length} of {userBlogs.length} blogs
             </p>
             <div className="flex items-center gap-1">
               {[1, 2, 3].map((p) => (

@@ -91,7 +91,7 @@ function Sparkline({ data, color = "#22d3ee", height = 40 }) {
 }
 
 /* ─────────────────── SIDEBAR ─────────────────── */
-function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog }) {
+function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, handleNewBlog }) {
   const nav = [
     { id: "dashboard", icon: <LayoutDashboard size={16}/>, label: "Dashboard" },
     { id: "create",    icon: <PenLine size={16}/>,         label: "Create Blog" },
@@ -135,7 +135,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog })
           {nav.map(item => {
             const isActive = active === item.id;
             return (
-              <button key={item.id} onClick={() => { if (item.id === "create") setEditingBlog(null); setActive(item.id); setCollapsed(window.innerWidth < 1024 ? true : collapsed); }}
+              <button key={item.id} onClick={() => { if (item.id === "create") { handleNewBlog(); } else { setActive(item.id); } setCollapsed(window.innerWidth < 1024 ? true : collapsed); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative ${
                   isActive
                     ? "bg-gradient-to-r from-cyan-500/15 to-violet-500/10 border border-cyan-500/25 text-white"
@@ -194,7 +194,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog })
 }
 
 /* ─────────────────── TOPBAR ─────────────────── */
-function Topbar({ collapsed, setCollapsed, user, setActive, setEditingBlog }) {
+function Topbar({ collapsed, setCollapsed, user, setActive, setEditingBlog, handleNewBlog }) {
   const [search, setSearch] = useState("");
   const [notifs, setNotifs] = useState(3);
 
@@ -221,7 +221,7 @@ function Topbar({ collapsed, setCollapsed, user, setActive, setEditingBlog }) {
 
       <div className="flex items-center gap-2 ml-auto">
         {/* New blog shortcut */}
-        <button onClick={() => { setEditingBlog(null); setActive("create"); }} className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all duration-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.25)] hover:scale-[1.02]"
+        <button onClick={handleNewBlog} className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all duration-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.25)] hover:scale-[1.02]"
           style={{ background: "linear-gradient(135deg,#22d3ee 0%,#7c3aed 100%)", fontFamily: ACCENT.ox }}>
           <Plus size={13} /> New Blog
         </button>
@@ -247,7 +247,7 @@ function Topbar({ collapsed, setCollapsed, user, setActive, setEditingBlog }) {
 }
 
 /* ─────────────────── WELCOME ─────────────────── */
-function WelcomeSection({ visible, user, setActive, setEditingBlog }) {
+function WelcomeSection({ visible, user, setActive, setEditingBlog, handleNewBlog }) {
     console.log("WELCOME USER:", user);
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
@@ -280,7 +280,7 @@ function WelcomeSection({ visible, user, setActive, setEditingBlog }) {
           </div>
 
           <div className="flex flex-col items-start sm:items-end gap-3">
-            <button onClick={() => { setEditingBlog(null); setActive("create"); }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-all duration-300 hover:shadow-[0_0_24px_rgba(34,211,238,0.3)] hover:scale-[1.02] active:scale-[0.98]"
+            <button onClick={handleNewBlog} className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-all duration-300 hover:shadow-[0_0_24px_rgba(34,211,238,0.3)] hover:scale-[1.02] active:scale-[0.98]"
               style={{ background: "linear-gradient(135deg,#22d3ee 0%,#7c3aed 100%)", fontFamily: ACCENT.ox }}>
               <Plus size={14} /> Create New Blog
             </button>
@@ -523,8 +523,8 @@ function BlogRow({ blog, index, visible, setActive, setEditingBlog, onDelete }) 
 }
 
 /* ─────────────────── RECENT BLOGS ─────────────────── */
-function RecentBlogs({ visible, setActive, setEditingBlog }) {
-  const [blogs, setBlogs] = useState(BLOGS);
+function RecentBlogs({ visible, setActive, setEditingBlog, currentUser }) {
+  const [blogs, setBlogs] = useState([]);
   const [filter, setFilter] = useState("all");
   const filters = ["all", "published", "draft"];
 
@@ -546,9 +546,17 @@ function RecentBlogs({ visible, setActive, setEditingBlog }) {
     setBlogs(prev => prev.filter(b => (b._id || b.id) !== id));
   };
 
+  // Keep only the blogs authored by the current user
+  const userBlogs = blogs.filter((b) => {
+    if (!currentUser) return false;
+    if (!b.author) return false;
+    const authorId = typeof b.author === "object" ? b.author?._id : b.author;
+    return authorId === currentUser._id;
+  });
+
   const filtered = filter === "all"
-    ? blogs
-    : blogs.filter(b => {
+    ? userBlogs
+    : userBlogs.filter(b => {
         const status = b.status || (b.isPublished ? "published" : "draft");
         return status === filter;
       });
@@ -561,7 +569,7 @@ function RecentBlogs({ visible, setActive, setEditingBlog }) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-4 border-b border-white/[0.06]">
           <div>
             <h2 className="text-base font-black text-white" style={{ fontFamily: ACCENT.ox }}>Recent Blogs</h2>
-            <p className="text-white/25 text-xs mt-0.5" style={{ fontFamily: ACCENT.mono }}>{blogs.length} total posts</p>
+            <p className="text-white/25 text-xs mt-0.5" style={{ fontFamily: ACCENT.mono }}>{userBlogs.length} total posts</p>
           </div>
           <div className="flex items-center gap-2">
             {/* Filter tabs */}
@@ -650,9 +658,9 @@ function ActivityFeed({ visible }) {
 }
 
 /* ─────────────────── QUICK ACTIONS ─────────────────── */
-function QuickActions({ visible, setActive, setEditingBlog }) {
+function QuickActions({ visible, setActive, setEditingBlog, handleNewBlog }) {
   const actions = [
-    { icon: <PenLine size={16}/>, label: "New Blog", desc: "Start writing", gradient: "from-cyan-500 to-violet-500", shadow: "shadow-cyan-500/20", onClick: () => { setEditingBlog(null); setActive("create"); } },
+    { icon: <PenLine size={16}/>, label: "New Blog", desc: "Start writing", gradient: "from-cyan-500 to-violet-500", shadow: "shadow-cyan-500/20", onClick: handleNewBlog },
     { icon: <BarChart3 size={16}/>, label: "Analytics", desc: "View insights", gradient: "from-violet-500 to-pink-500", shadow: "shadow-violet-500/20", onClick: () => setActive("analytics") },
     { icon: <Globe size={16}/>, label: "Go Live", desc: "Publish draft", gradient: "from-emerald-500 to-cyan-500", shadow: "shadow-emerald-500/20", onClick: () => setActive("blogs") },
   ];
@@ -737,6 +745,13 @@ export default function Dashboard() {
   const [visible, setVisible] = useState(false);
   const [user, setUser] = useState(null);
   const [editingBlog, setEditingBlog] = useState(null);
+  const [createKey, setCreateKey] = useState(0);
+
+  const handleNewBlog = () => {
+    setEditingBlog(null);
+    setActive("create");
+    setCreateKey(prev => prev + 1);
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -791,8 +806,8 @@ export default function Dashboard() {
 
       <Background />
 
-      <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} setEditingBlog={setEditingBlog} />
-      <Topbar collapsed={collapsed} setCollapsed={setCollapsed} user={user} setActive={setActive} setEditingBlog={setEditingBlog} />
+      <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} setEditingBlog={setEditingBlog} handleNewBlog={handleNewBlog} />
+      <Topbar collapsed={collapsed} setCollapsed={setCollapsed} user={user} setActive={setActive} setEditingBlog={setEditingBlog} handleNewBlog={handleNewBlog} />
 
       {/* Main content */}
       <main
@@ -810,6 +825,7 @@ export default function Dashboard() {
                 user={user}
                 setActive={setActive}
                 setEditingBlog={setEditingBlog}
+                handleNewBlog={handleNewBlog}
               />
 
               {/* Stats */}
@@ -819,13 +835,13 @@ export default function Dashboard() {
               <div className="grid xl:grid-cols-[1fr_320px] gap-6">
                 {/* Left column */}
                 <div className="space-y-6 min-w-0">
-                  <RecentBlogs visible={visible} setActive={setActive} setEditingBlog={setEditingBlog} />
+                  <RecentBlogs visible={visible} setActive={setActive} setEditingBlog={setEditingBlog} currentUser={user} />
                   <WritingStreak visible={visible} />
                 </div>
 
                 {/* Right column */}
                 <div className="space-y-5">
-                  <QuickActions visible={visible} setActive={setActive} setEditingBlog={setEditingBlog} />
+                  <QuickActions visible={visible} setActive={setActive} setEditingBlog={setEditingBlog} handleNewBlog={handleNewBlog} />
                   <ActivityFeed visible={visible} />
                 </div>
               </div>
@@ -834,12 +850,12 @@ export default function Dashboard() {
 
           {/* Create Blog Page */}
           <div style={{ display: active === "create" ? "block" : "none" }}>
-            <CreateBlogPage editingBlog={editingBlog} setEditingBlog={setEditingBlog} />
+            <CreateBlogPage key={editingBlog ? `edit-${editingBlog._id}` : `new-${createKey}`} editingBlog={editingBlog} setEditingBlog={setEditingBlog} />
           </div>
 
           {/* My Blogs Page */}
           <div style={{ display: active === "blogs" ? "block" : "none" }}>
-            <MyBlogsPage setActive={setActive} setEditingBlog={setEditingBlog} />
+            <MyBlogsPage setActive={setActive} setEditingBlog={setEditingBlog} currentUser={user} />
           </div>
 
           {/* Placeholder/Alternative Pages */}
@@ -863,7 +879,7 @@ export default function Dashboard() {
 
       {/* Mobile FAB */}
       <button
-        onClick={() => { setEditingBlog(null); setActive("create"); }}
+        onClick={handleNewBlog}
         className="fixed bottom-6 right-6 lg:hidden flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm text-white shadow-2xl shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:scale-105 active:scale-95 transition-all duration-300 z-30"
         style={{ background: "linear-gradient(135deg,#22d3ee 0%,#7c3aed 100%)", fontFamily: ACCENT.ox }}>
         <Plus size={16} /> New Blog

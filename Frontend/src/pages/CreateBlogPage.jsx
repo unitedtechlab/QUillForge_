@@ -141,6 +141,10 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
         });
 
         console.log("BLOG CREATED:", res.data);
+        setTitle("");
+        setExcerpt("");
+        setContent("");
+        setPub(false);
       }
 
       setSaved(true);
