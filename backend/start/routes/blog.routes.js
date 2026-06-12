@@ -1,11 +1,11 @@
 import { Router } from "express";
-import {verifyjwt} from "../middlewares/auth.middleware.js";
-import {verifyadmin} from "../middlewares/admin.middleware.js";
-import {createBlog, getAllBlogs, deleteBlog, updateBlog, getBlogById} from "../controllers/blog.controller.js";
+import { verifyjwt } from "../middlewares/auth.middleware.js";
+import { verifyadmin } from "../middlewares/admin.middleware.js";
+import { createBlog, getAllBlogs, deleteBlog, updateBlog, getBlogById } from "../controllers/blog.controller.js";
 
 const router = Router();
 
-router.post("/", verifyjwt, verifyadmin, createBlog);
+router.post("/", verifyjwt, createBlog);
 // this comes from createblog or edit blog (from admindashboard as of now ) 
 
 router.get("/", getAllBlogs);
@@ -13,7 +13,7 @@ router.get("/", getAllBlogs);
 
 // router.get("/:slug", getBlogBySlug);
 router.get("/:id", getBlogById);
-router.put("/:id", verifyjwt, verifyadmin, updateBlog);
- router.delete("/:id", verifyjwt, verifyadmin, deleteBlog);
+router.put("/:id", verifyjwt, updateBlog);
+router.delete("/:id", verifyjwt, deleteBlog);
 
 export default router;
