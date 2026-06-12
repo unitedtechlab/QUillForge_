@@ -9,6 +9,9 @@ import {
 } from "lucide-react";
 
 import api from "../api/axios";
+import { useNavigate } from "react-router-dom";
+import CreateBlogPage from "./CreateBlogPage";
+
 
 /* ─────────────────── CONSTANTS ─────────────────── */
 const ACCENT = { ox: "'Oxanium',sans-serif", mono: "'Space Mono',monospace" };
@@ -86,7 +89,7 @@ function Sparkline({ data, color = "#22d3ee", height = 40 }) {
 }
 
 /* ─────────────────── SIDEBAR ─────────────────── */
-function Sidebar({ active, setActive, collapsed, setCollapsed }) {
+function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog }) {
   const nav = [
     { id: "dashboard", icon: <LayoutDashboard size={16}/>, label: "Dashboard" },
     { id: "create",    icon: <PenLine size={16}/>,         label: "Create Blog" },
@@ -130,7 +133,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
           {nav.map(item => {
             const isActive = active === item.id;
             return (
-              <button key={item.id} onClick={() => { setActive(item.id); setCollapsed(window.innerWidth < 1024 ? true : collapsed); }}
+              <button key={item.id} onClick={() => { if (item.id === "create") setEditingBlog(null); setActive(item.id); setCollapsed(window.innerWidth < 1024 ? true : collapsed); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative ${
                   isActive
                     ? "bg-gradient-to-r from-cyan-500/15 to-violet-500/10 border border-cyan-500/25 text-white"
@@ -189,7 +192,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed }) {
 }
 
 /* ─────────────────── TOPBAR ─────────────────── */
-function Topbar({ collapsed, setCollapsed,user }) {
+function Topbar({ collapsed, setCollapsed, user, setActive, setEditingBlog }) {
   const [search, setSearch] = useState("");
   const [notifs, setNotifs] = useState(3);
 
@@ -216,7 +219,7 @@ function Topbar({ collapsed, setCollapsed,user }) {
 
       <div className="flex items-center gap-2 ml-auto">
         {/* New blog shortcut */}
-        <button className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all duration-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.25)] hover:scale-[1.02]"
+        <button onClick={() => { setEditingBlog(null); setActive("create"); }} className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all duration-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.25)] hover:scale-[1.02]"
           style={{ background: "linear-gradient(135deg,#22d3ee 0%,#7c3aed 100%)", fontFamily: ACCENT.ox }}>
           <Plus size={13} /> New Blog
         </button>
@@ -242,7 +245,7 @@ function Topbar({ collapsed, setCollapsed,user }) {
 }
 
 /* ─────────────────── WELCOME ─────────────────── */
-function WelcomeSection({ visible,user }) {
+function WelcomeSection({ visible, user, setActive, setEditingBlog }) {
     console.log("WELCOME USER:", user);
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
@@ -275,7 +278,7 @@ function WelcomeSection({ visible,user }) {
           </div>
 
           <div className="flex flex-col items-start sm:items-end gap-3">
-            <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-all duration-300 hover:shadow-[0_0_24px_rgba(34,211,238,0.3)] hover:scale-[1.02] active:scale-[0.98]"
+            <button onClick={() => { setEditingBlog(null); setActive("create"); }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-all duration-300 hover:shadow-[0_0_24px_rgba(34,211,238,0.3)] hover:scale-[1.02] active:scale-[0.98]"
               style={{ background: "linear-gradient(135deg,#22d3ee 0%,#7c3aed 100%)", fontFamily: ACCENT.ox }}>
               <Plus size={14} /> Create New Blog
             </button>
@@ -387,8 +390,61 @@ function StatusBadge({ status }) {
 }
 
 /* ─────────────────── BLOG ROW ─────────────────── */
-function BlogRow({ blog, index, visible }) {
+function BlogRow({ blog, index, visible, setActive, setEditingBlog, onDelete }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // Support both mock and real database formats
+  const displayTitle = blog.title;
+  const displayCategory = blog.category || "General";
+  const displayStatus = blog.status || (blog.isPublished ? "published" : "draft");
+  const displayViews = blog.views || 0;
+  const displayLikes = blog.likes || 0;
+  const displayComments = blog.comments || 0;
+  const displayDate = blog.date || (blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : "Jun 1, 2025");
+  const displayReadTime = blog.readTime || "5 min";
+  const displayEmoji = blog.emoji || (blog.isPublished ? "⚡" : "📝");
+
+  const handleEdit = async () => {
+    if (blog._id) {
+      try {
+        const res = await api.get(`/blogs/${blog._id}`);
+        setEditingBlog(res.data.data);
+        setActive("create");
+      } catch (err) {
+        console.error("Failed to load blog for editing:", err);
+        alert("Failed to load blog");
+      }
+    } else {
+      setEditingBlog(blog);
+      setActive("create");
+    }
+  };
+
+  const handleView = () => {
+    if (blog._id) {
+      navigate(`/blog/${blog._id}`);
+    } else {
+      alert("Mock posts cannot be viewed.");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (blog._id) {
+      if (window.confirm("Are you sure you want to delete this blog?")) {
+        try {
+          await api.delete(`/blogs/${blog._id}`);
+          onDelete(blog._id);
+        } catch (err) {
+          console.error("Failed to delete blog:", err);
+          alert("Failed to delete blog");
+        }
+      }
+    } else {
+      onDelete(blog.id);
+    }
+  };
+
   return (
     <div
       className={`group relative flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl border border-white/[0.05] hover:border-cyan-400/20 hover:bg-white/[0.03] transition-all duration-300 ${visible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-6"}`}
@@ -396,7 +452,7 @@ function BlogRow({ blog, index, visible }) {
 
       {/* Emoji thumb */}
       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/[0.07] flex items-center justify-center text-xl flex-shrink-0">
-        {blog.emoji}
+        {displayEmoji}
       </div>
 
       {/* Title + meta */}
@@ -404,30 +460,32 @@ function BlogRow({ blog, index, visible }) {
         <div className="flex flex-wrap items-center gap-2 mb-1">
           <p className="text-white/85 text-sm font-semibold truncate group-hover:text-white transition-colors"
             style={{ fontFamily: ACCENT.ox }}>
-            {blog.title}
+            {displayTitle}
           </p>
-          <StatusBadge status={blog.status} />
+          <StatusBadge status={displayStatus} />
         </div>
         <div className="flex flex-wrap items-center gap-3 text-[10px] text-white/25" style={{ fontFamily: ACCENT.mono }}>
-          <span className="flex items-center gap-1"><Tag size={9}/>{blog.category}</span>
-          <span className="flex items-center gap-1"><Clock size={9}/>{blog.readTime}</span>
-          <span className="flex items-center gap-1"><Calendar size={9}/>{blog.date}</span>
+          <span className="flex items-center gap-1"><Tag size={9}/>{displayCategory}</span>
+          <span className="flex items-center gap-1"><Clock size={9}/>{displayReadTime}</span>
+          <span className="flex items-center gap-1"><Calendar size={9}/>{displayDate}</span>
         </div>
       </div>
 
       {/* Stats */}
-      {blog.status === "published" && (
+      {displayStatus === "published" && (
         <div className="flex items-center gap-4 text-xs flex-shrink-0">
           <div className="text-center">
-            <p className="text-white/60 font-semibold" style={{ fontFamily: ACCENT.ox }}>{(blog.views / 1000).toFixed(1)}K</p>
+            <p className="text-white/60 font-semibold" style={{ fontFamily: ACCENT.ox }}>
+              {displayViews >= 1000 ? `${(displayViews / 1000).toFixed(1)}K` : displayViews}
+            </p>
             <p className="text-white/20 text-[9px] flex items-center gap-1 justify-center" style={{ fontFamily: ACCENT.mono }}><Eye size={8}/>Views</p>
           </div>
           <div className="text-center">
-            <p className="text-pink-400 font-semibold" style={{ fontFamily: ACCENT.ox }}>{blog.likes}</p>
+            <p className="text-pink-400 font-semibold" style={{ fontFamily: ACCENT.ox }}>{displayLikes}</p>
             <p className="text-white/20 text-[9px] flex items-center gap-1 justify-center" style={{ fontFamily: ACCENT.mono }}><Heart size={8}/>Likes</p>
           </div>
           <div className="text-center">
-            <p className="text-violet-400 font-semibold" style={{ fontFamily: ACCENT.ox }}>{blog.comments}</p>
+            <p className="text-violet-400 font-semibold" style={{ fontFamily: ACCENT.ox }}>{displayComments}</p>
             <p className="text-white/20 text-[9px] flex items-center gap-1 justify-center" style={{ fontFamily: ACCENT.mono }}><MessageSquare size={8}/>Comments</p>
           </div>
         </div>
@@ -444,11 +502,11 @@ function BlogRow({ blog, index, visible }) {
             <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
             <div className="absolute right-0 top-full mt-1.5 w-36 rounded-xl border border-white/[0.09] bg-[#0d1220] backdrop-blur-xl shadow-2xl shadow-black/50 z-20 overflow-hidden py-1">
               {[
-                { icon: <Edit3 size={12}/>, label: "Edit", color: "text-white/60" },
-                { icon: <ExternalLink size={12}/>, label: "View Post", color: "text-white/60" },
-                { icon: <Trash2 size={12}/>, label: "Delete", color: "text-red-400/80" },
+                { icon: <Edit3 size={12}/>, label: "Edit", color: "text-white/60", action: handleEdit },
+                { icon: <ExternalLink size={12}/>, label: "View Post", color: "text-white/60", action: handleView },
+                { icon: <Trash2 size={12}/>, label: "Delete", color: "text-red-400/80", action: handleDelete },
               ].map((a, i) => (
-                <button key={i} onClick={() => setMenuOpen(false)}
+                <button key={i} onClick={() => { setMenuOpen(false); a.action(); }}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs ${a.color} hover:bg-white/[0.05] transition-all`}
                   style={{ fontFamily: ACCENT.mono }}>
                   {a.icon}{a.label}
@@ -463,10 +521,35 @@ function BlogRow({ blog, index, visible }) {
 }
 
 /* ─────────────────── RECENT BLOGS ─────────────────── */
-function RecentBlogs({ visible }) {
+function RecentBlogs({ visible, setActive, setEditingBlog }) {
+  const [blogs, setBlogs] = useState(BLOGS);
   const [filter, setFilter] = useState("all");
   const filters = ["all", "published", "draft"];
-  const filtered = filter === "all" ? BLOGS : BLOGS.filter(b => b.status === filter);
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const res = await api.get("/blogs");
+        if (res.data && res.data.data && res.data.data.length > 0) {
+          setBlogs(res.data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch blogs in dashboard:", err);
+      }
+    };
+    fetchBlogs();
+  }, []);
+
+  const handleDeleteBlog = (id) => {
+    setBlogs(prev => prev.filter(b => (b._id || b.id) !== id));
+  };
+
+  const filtered = filter === "all"
+    ? blogs
+    : blogs.filter(b => {
+        const status = b.status || (b.isPublished ? "published" : "draft");
+        return status === filter;
+      });
 
   return (
     <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
@@ -476,7 +559,7 @@ function RecentBlogs({ visible }) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-4 border-b border-white/[0.06]">
           <div>
             <h2 className="text-base font-black text-white" style={{ fontFamily: ACCENT.ox }}>Recent Blogs</h2>
-            <p className="text-white/25 text-xs mt-0.5" style={{ fontFamily: ACCENT.mono }}>{BLOGS.length} total posts</p>
+            <p className="text-white/25 text-xs mt-0.5" style={{ fontFamily: ACCENT.mono }}>{blogs.length} total posts</p>
           </div>
           <div className="flex items-center gap-2">
             {/* Filter tabs */}
@@ -492,7 +575,7 @@ function RecentBlogs({ visible }) {
                 </button>
               ))}
             </div>
-            <button className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/[0.07] hover:border-white/20 text-white/40 hover:text-white text-xs transition-all"
+            <button onClick={() => setActive("blogs")} className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/[0.07] hover:border-white/20 text-white/40 hover:text-white text-xs transition-all"
               style={{ fontFamily: ACCENT.ox }}>
               View all <ChevronRight size={12}/>
             </button>
@@ -502,7 +585,7 @@ function RecentBlogs({ visible }) {
         {/* Blog list */}
         <div className="p-4 space-y-2">
           {filtered.map((blog, i) => (
-            <BlogRow key={blog.id} blog={blog} index={i} visible={visible} />
+            <BlogRow key={blog._id || blog.id} blog={blog} index={i} visible={visible} setActive={setActive} setEditingBlog={setEditingBlog} onDelete={handleDeleteBlog} />
           ))}
           {filtered.length === 0 && (
             <div className="py-12 text-center">
@@ -565,11 +648,11 @@ function ActivityFeed({ visible }) {
 }
 
 /* ─────────────────── QUICK ACTIONS ─────────────────── */
-function QuickActions({ visible }) {
+function QuickActions({ visible, setActive, setEditingBlog }) {
   const actions = [
-    { icon: <PenLine size={16}/>, label: "New Blog", desc: "Start writing", gradient: "from-cyan-500 to-violet-500", shadow: "shadow-cyan-500/20" },
-    { icon: <BarChart3 size={16}/>, label: "Analytics", desc: "View insights", gradient: "from-violet-500 to-pink-500", shadow: "shadow-violet-500/20" },
-    { icon: <Globe size={16}/>, label: "Go Live", desc: "Publish draft", gradient: "from-emerald-500 to-cyan-500", shadow: "shadow-emerald-500/20" },
+    { icon: <PenLine size={16}/>, label: "New Blog", desc: "Start writing", gradient: "from-cyan-500 to-violet-500", shadow: "shadow-cyan-500/20", onClick: () => { setEditingBlog(null); setActive("create"); } },
+    { icon: <BarChart3 size={16}/>, label: "Analytics", desc: "View insights", gradient: "from-violet-500 to-pink-500", shadow: "shadow-violet-500/20", onClick: () => setActive("analytics") },
+    { icon: <Globe size={16}/>, label: "Go Live", desc: "Publish draft", gradient: "from-emerald-500 to-cyan-500", shadow: "shadow-emerald-500/20", onClick: () => setActive("blogs") },
   ];
 
   return (
@@ -581,7 +664,7 @@ function QuickActions({ visible }) {
         </div>
         <div className="p-4 grid grid-cols-3 gap-3">
           {actions.map((a, i) => (
-            <button key={i}
+            <button key={i} onClick={a.onClick}
               className="flex flex-col items-center gap-2 p-4 rounded-xl border border-white/[0.06] hover:border-white/20 hover:bg-white/[0.04] transition-all duration-300 group hover:scale-[1.02] active:scale-[0.98]">
               <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${a.gradient} flex items-center justify-center text-white shadow-lg ${a.shadow} group-hover:shadow-xl transition-all`}>
                 {a.icon}
@@ -651,31 +734,29 @@ export default function Dashboard() {
   const [collapsed, setCollapsed] = useState(true);
   const [visible, setVisible] = useState(false);
   const [user, setUser] = useState(null);
+  const [editingBlog, setEditingBlog] = useState(null);
 
-useEffect(() => {
- 
-  const fetchUser = async () => {
-    try {
-      const res = await api.get("/users/current-user");
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await api.get("/users/current-user");
+        console.log(res.data);
+        setUser(res.data.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
 
-      console.log(res.data);
+    fetchUser();
+  }, []);
 
-      setUser(res.data.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setVisible(true);
+    }, 120);
 
-  fetchUser();
-}, []);
-
-useEffect(() => {
-  const t = setTimeout(() => {
-    setVisible(true);
-  }, 120);
-
-  return () => clearTimeout(t);
-}, []);
+    return () => clearTimeout(t);
+  }, []);
 
   /* auto-expand sidebar on desktop */
   useEffect(() => {
@@ -708,8 +789,8 @@ useEffect(() => {
 
       <Background />
 
-      <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} />
-      <Topbar collapsed={collapsed} setCollapsed={setCollapsed} user={user} />
+      <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} setEditingBlog={setEditingBlog} />
+      <Topbar collapsed={collapsed} setCollapsed={setCollapsed} user={user} setActive={setActive} setEditingBlog={setEditingBlog} />
 
       {/* Main content */}
       <main
@@ -718,34 +799,64 @@ useEffect(() => {
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
 
-          {/* Welcome */}
-          <WelcomeSection 
-          visible={visible}
-          user={user} />
+          {/* Conditional Rendering of Views */}
+          {active === "dashboard" && (
+            <>
+              {/* Welcome */}
+              <WelcomeSection 
+                visible={visible}
+                user={user}
+                setActive={setActive}
+                setEditingBlog={setEditingBlog}
+              />
 
-          {/* Stats */}
-          <StatCards visible={visible} />
+              {/* Stats */}
+              <StatCards visible={visible} />
 
-          {/* Main two-col grid */}
-          <div className="grid xl:grid-cols-[1fr_320px] gap-6">
-            {/* Left column */}
-            <div className="space-y-6 min-w-0">
-              <RecentBlogs visible={visible} />
-              <WritingStreak visible={visible} />
-            </div>
+              {/* Main two-col grid */}
+              <div className="grid xl:grid-cols-[1fr_320px] gap-6">
+                {/* Left column */}
+                <div className="space-y-6 min-w-0">
+                  <RecentBlogs visible={visible} setActive={setActive} setEditingBlog={setEditingBlog} />
+                  <WritingStreak visible={visible} />
+                </div>
 
-            {/* Right column */}
-            <div className="space-y-5">
-              <QuickActions visible={visible} />
-              <ActivityFeed visible={visible} />
-            </div>
+                {/* Right column */}
+                <div className="space-y-5">
+                  <QuickActions visible={visible} setActive={setActive} setEditingBlog={setEditingBlog} />
+                  <ActivityFeed visible={visible} />
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Create Blog Page */}
+          <div style={{ display: active === "create" ? "block" : "none" }}>
+            <CreateBlogPage editingBlog={editingBlog} setEditingBlog={setEditingBlog} />
           </div>
+
+          {/* Placeholder/Alternative Pages */}
+          {active !== "dashboard" && active !== "create" && (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/15 to-violet-500/15 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-5">
+                {active === "blogs" ? <BookOpen size={24} /> : active === "analytics" ? <BarChart3 size={24} /> : <Users size={24} />}
+              </div>
+              <h2 className="text-2xl font-black text-white mb-2" style={{ fontFamily: ACCENT.ox }}>
+                {active.charAt(0).toUpperCase() + active.slice(1)}
+                <span className="text-cyan-400">.</span>
+              </h2>
+              <p className="text-white/25 text-sm max-w-xs" style={{ fontFamily: ACCENT.mono }}>
+                {active === "blogs" ? "Manage your published posts and drafts." : active === "analytics" ? "Detailed performance analytics coming soon." : "Connect with the community here."}
+              </p>
+            </div>
+          )}
 
         </div>
       </main>
 
       {/* Mobile FAB */}
       <button
+        onClick={() => { setEditingBlog(null); setActive("create"); }}
         className="fixed bottom-6 right-6 lg:hidden flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm text-white shadow-2xl shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:scale-105 active:scale-95 transition-all duration-300 z-30"
         style={{ background: "linear-gradient(135deg,#22d3ee 0%,#7c3aed 100%)", fontFamily: ACCENT.ox }}>
         <Plus size={16} /> New Blog

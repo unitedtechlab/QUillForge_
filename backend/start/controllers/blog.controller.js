@@ -123,4 +123,4 @@ const updateBlog = asyncHandler(async (req,res)=>{
 });
 
 
-export { createBlog , getAllBlogs, deleteBlog, getBlogById, updateBlog, getBlogById};
+export { createBlog , getAllBlogs, deleteBlog, updateBlog, getBlogById};
