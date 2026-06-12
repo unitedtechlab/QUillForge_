@@ -11,6 +11,8 @@ import {
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
 import CreateBlogPage from "./CreateBlogPage";
+import MyBlogsPage from "./MyBlogsPage";
+
 
 
 /* ─────────────────── CONSTANTS ─────────────────── */
@@ -835,18 +837,23 @@ export default function Dashboard() {
             <CreateBlogPage editingBlog={editingBlog} setEditingBlog={setEditingBlog} />
           </div>
 
+          {/* My Blogs Page */}
+          <div style={{ display: active === "blogs" ? "block" : "none" }}>
+            <MyBlogsPage setActive={setActive} setEditingBlog={setEditingBlog} />
+          </div>
+
           {/* Placeholder/Alternative Pages */}
-          {active !== "dashboard" && active !== "create" && (
+          {active !== "dashboard" && active !== "create" && active !== "blogs" && (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/15 to-violet-500/15 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-5">
-                {active === "blogs" ? <BookOpen size={24} /> : active === "analytics" ? <BarChart3 size={24} /> : <Users size={24} />}
+                {active === "analytics" ? <BarChart3 size={24} /> : <Users size={24} />}
               </div>
               <h2 className="text-2xl font-black text-white mb-2" style={{ fontFamily: ACCENT.ox }}>
                 {active.charAt(0).toUpperCase() + active.slice(1)}
                 <span className="text-cyan-400">.</span>
               </h2>
               <p className="text-white/25 text-sm max-w-xs" style={{ fontFamily: ACCENT.mono }}>
-                {active === "blogs" ? "Manage your published posts and drafts." : active === "analytics" ? "Detailed performance analytics coming soon." : "Connect with the community here."}
+                {active === "analytics" ? "Detailed performance analytics coming soon." : "Connect with the community here."}
               </p>
             </div>
           )}
