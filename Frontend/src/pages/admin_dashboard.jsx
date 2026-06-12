@@ -1408,6 +1408,9 @@ function ManageBlogsPage({ setPage, setEditingBlog }) {
   const [openMenu, setOpenMenu] = useState(null);
   const [selected, setSelected] = useState([]);
 
+  const navigate = useNavigate();
+  
+
   useEffect(() => {
     fetchBlogs();
   }, []);
