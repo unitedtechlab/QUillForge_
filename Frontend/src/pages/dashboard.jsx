@@ -664,10 +664,17 @@ function ActivityFeed({ visible }) {
 }
 
 /* ─────────────────── QUICK ACTIONS ─────────────────── */
-function QuickActions({ visible, setActive, setEditingBlog, handleNewBlog }) {
+function QuickActions({ visible, setActive, setEditingBlog, handleNewBlog, setReadAdminOnly }) {
   const actions = [
     { icon: <PenLine size={16}/>, label: "New Blog", desc: "Start writing", gradient: "from-cyan-500 to-violet-500", shadow: "shadow-cyan-500/20", onClick: handleNewBlog },
-    { icon: <BarChart3 size={16}/>, label: "Analytics", desc: "View insights", gradient: "from-violet-500 to-pink-500", shadow: "shadow-violet-500/20", onClick: () => setActive("analytics") },
+    {
+      icon: <Star size={16}/>,
+      label: "Featured by Admin",
+      desc: "Admin picks",
+      gradient: "from-amber-500 to-orange-500",
+      shadow: "shadow-amber-500/20",
+      onClick: () => { setReadAdminOnly(true); setActive("read"); }
+    },
     { icon: <Globe size={16}/>, label: "Go Live", desc: "Publish draft", gradient: "from-emerald-500 to-cyan-500", shadow: "shadow-emerald-500/20", onClick: () => setActive("blogs") },
   ];
 
@@ -753,6 +760,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [editingBlog, setEditingBlog] = useState(null);
   const [createKey, setCreateKey] = useState(0);
+  const [readAdminOnly, setReadAdminOnly] = useState(false);
 
   const handleNewBlog = () => {
     setEditingBlog(null);
@@ -857,7 +865,7 @@ export default function Dashboard() {
 
                 {/* Right column */}
                 <div className="space-y-5">
-                  <QuickActions visible={visible} setActive={setActive} setEditingBlog={setEditingBlog} handleNewBlog={handleNewBlog} />
+                  <QuickActions visible={visible} setActive={setActive} setEditingBlog={setEditingBlog} handleNewBlog={handleNewBlog} setReadAdminOnly={setReadAdminOnly} />
                   <ActivityFeed visible={visible} />
                 </div>
               </div>
@@ -876,7 +884,7 @@ export default function Dashboard() {
 
           {/* Read Blogs Page */}
           <div style={{ display: active === "read" ? "block" : "none" }}>
-            <ReadBlogsPage />
+            <ReadBlogsPage adminOnly={readAdminOnly} />
           </div>
 
           {/* Placeholder/Alternative Pages */}

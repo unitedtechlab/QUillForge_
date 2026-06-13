@@ -10,7 +10,8 @@ import {
   ArrowRight,
   ChevronDown,
   ChevronUp,
-  ExternalLink
+  ExternalLink,
+  Star
 } from "lucide-react";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
@@ -59,13 +60,17 @@ function GlassCard({ children, className = "" }) {
 /* ════════════════════════════════════════════════
    READ BLOGS FEED PAGE
 ════════════════════════════════════════════════ */
-export default function ReadBlogsFeed() {
+export default function ReadBlogsFeed({ adminOnly = false }) {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [showAdminOnly, setShowAdminOnly] = useState(adminOnly);
   const [likedBlogs, setLikedBlogs] = useState({});
   const [expandedBlogs, setExpandedBlogs] = useState({});
+
+  // Sync when parent flips the adminOnly prop (e.g. navigating from Quick Actions)
+  useEffect(() => { setShowAdminOnly(adminOnly); }, [adminOnly]);
   
   const navigate = useNavigate();
 
@@ -123,10 +128,11 @@ export default function ReadBlogsFeed() {
   // Extract unique categories from blogs
   const categories = ["all", ...new Set(blogs.map(b => b.category || "General"))];
 
-  // Filter blogs based on category and search query
+  // Filter blogs based on adminOnly toggle, category and search query
   const filteredBlogs = blogs
+    .filter(b => !showAdminOnly || b.author?.role === "admin")
     .filter(b => selectedCategory === "all" || (b.category || "General") === selectedCategory)
-    .filter(b => 
+    .filter(b =>
       b.title.toLowerCase().includes(search.toLowerCase()) ||
       (b.content && b.content.toLowerCase().includes(search.toLowerCase())) ||
       (b.excerpt && b.excerpt.toLowerCase().includes(search.toLowerCase()))
@@ -158,8 +164,25 @@ export default function ReadBlogsFeed() {
         </div>
       </div>
 
-      {/* Category Pills */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+      {/* Category Pills + Featured by Admin toggle */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none flex-wrap">
+        {/* Featured by Admin pill */}
+        <button
+          onClick={() => setShowAdminOnly(v => !v)}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap border transition-all duration-300 ${
+            showAdminOnly
+              ? "bg-gradient-to-r from-amber-500/20 to-orange-500/15 border-amber-400/40 text-amber-300 shadow-sm shadow-amber-500/10"
+              : "text-white/30 hover:text-white/60 border-transparent bg-white/[0.02] hover:border-white/10"
+          }`}
+          style={{ fontFamily: T.ox }}
+        >
+          <Star size={10} className={showAdminOnly ? "text-amber-400 fill-amber-400" : ""} />
+          Featured by Admin
+        </button>
+
+        {/* Divider */}
+        <div className="w-px h-5 bg-white/10 flex-shrink-0" />
+
         {categories.map(cat => (
           <button
             key={cat}

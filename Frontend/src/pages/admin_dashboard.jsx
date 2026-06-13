@@ -641,7 +641,7 @@ function StatCard({
 /* ════════════════════════════════════════════════
    DASHBOARD PAGE
 ════════════════════════════════════════════════ */
-function DashboardPage({ setPage }) {
+function DashboardPage({ setPage, setReadAdminOnly }) {
   const stats = [
     {
       label: "Total Blogs",
@@ -869,11 +869,11 @@ function DashboardPage({ setPage }) {
                     action: () => setPage("create"),
                   },
                   {
-                    icon: <BarChart3 size={14} />,
-                    label: "View Analytics",
-                    desc: "See performance",
-                    grad: "from-violet-500 to-pink-500",
-                    action: () => setPage("analytics"),
+                    icon: <Star size={14} />,
+                    label: "Featured by Admin",
+                    desc: "Admin picks",
+                    grad: "from-amber-500 to-orange-500",
+                    action: () => { setReadAdminOnly(true); setPage("read"); },
                   },
                   {
                     icon: <Send size={14} />,
@@ -1506,6 +1506,7 @@ export default function AdminDashboard() {
 
   const [page, setPage] = useState("dashboard");
   const [sideOpen, setSideOpen] = useState(false);
+  const [readAdminOnly, setReadAdminOnly] = useState(false);
 
   /**
    * Logs out the administrator.
@@ -1572,7 +1573,7 @@ export default function AdminDashboard() {
       <main className="relative z-10 lg:pl-[220px] pt-16 min-h-screen">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           {page === "dashboard" && (
-            <DashboardPage setPage={setPage} setEditingBlog={setEditingBlog} />
+            <DashboardPage setPage={setPage} setEditingBlog={setEditingBlog} setReadAdminOnly={setReadAdminOnly} />
           )}
           {page === "manage" && (
             <ManageBlogsPage
@@ -1581,7 +1582,7 @@ export default function AdminDashboard() {
             />
           )}
           {page === "read" && (
-            <ReadBlogsPage />
+            <ReadBlogsPage adminOnly={readAdminOnly} />
           )}
           {page === "settings" && (
             <PlaceholderPage
