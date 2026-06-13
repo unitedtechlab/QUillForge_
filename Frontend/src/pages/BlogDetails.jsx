@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { 
-  Eye, Heart, Bookmark, Share2, ArrowLeft, Clock, Calendar, 
+  Eye, Heart, Share2, ArrowLeft, Clock, Calendar, 
   User, Check, Copy, ChevronRight, BookOpen, AlertCircle
 } from "lucide-react";
 import DOMPurify from "dompurify";
@@ -151,7 +151,6 @@ const [relatedBlogs] = useState([
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [likeLoading, setLikeLoading] = useState(false);
-  const [bookmarked, setBookmarked] = useState(false);
   const [copied, setCopied] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
@@ -169,6 +168,7 @@ const [relatedBlogs] = useState([
     const fetchBlog = async () => {
       setLoading(true);
       setError(false);
+      console.log("fetchBlog started for ID:", id);
 
       try {
         // Fetch blog and current user in parallel
@@ -177,24 +177,34 @@ const [relatedBlogs] = useState([
           api.get("/users/current-user")
         ]);
 
+        console.log("blogRes status:", blogRes.status);
+        console.log("userRes status:", userRes.status);
+
         if (blogRes.status === "fulfilled") {
           const blogData = blogRes.value.data.data;
           setBlog(blogData);
           // likes is now an array of user IDs
           const likesArr = blogData.likes || [];
           setLikeCount(likesArr.length);
+          console.log("Fetched blog data successfully:", blogData);
 
           if (userRes.status === "fulfilled") {
             const user = userRes.value.data.data;
             setCurrentUser(user);
+            console.log("Set currentUser successfully:", user);
             // Seed liked state — check if current user's ID is in the array
-            setLiked(likesArr.some(uid => uid.toString() === user._id.toString()));
+            const isLiked = likesArr.some(uid => uid.toString() === user._id.toString());
+            setLiked(isLiked);
+            console.log("Seeded liked state to:", isLiked);
+          } else {
+            console.log("userRes rejected with reason:", userRes.reason);
           }
         } else {
+          console.log("blogRes rejected with reason:", blogRes.reason);
           setError(true);
         }
       } catch (err) {
-        console.error(err);
+        console.error("fetchBlog caught error:", err);
         setError(true);
       } finally {
         setLoading(false);
@@ -269,21 +279,30 @@ const [relatedBlogs] = useState([
   }, []);
 
   const handleLike = async () => {
+    console.log("handleLike clicked! Current user state:", currentUser);
     if (!currentUser) {
+      console.log("handleLike aborted: currentUser is null or undefined!");
       // Not logged in — could redirect to login, for now just bail
       return;
     }
-    if (likeLoading) return;
+    if (likeLoading) {
+      console.log("handleLike aborted: already loading like request.");
+      return;
+    }
     setLikeLoading(true);
     // Optimistic update
     const wasLiked = liked;
     setLiked(!wasLiked);
     setLikeCount(prev => wasLiked ? prev - 1 : prev + 1);
+    console.log("Optimistically updated liked state to:", !wasLiked);
     try {
+      console.log("Sending PATCH request to like blog:", id);
       const res = await api.patch(`/blogs/${id}/like`);
+      console.log("PATCH response data:", res.data);
       // Confirm with server values
       setLikeCount(res.data.data.likes);
       setLiked(res.data.data.liked);
+      console.log("Server confirmed liked state:", res.data.data.liked, "likes count:", res.data.data.likes);
     } catch (err) {
       // Rollback on failure
       console.error("Like failed:", err);
@@ -529,18 +548,6 @@ const [relatedBlogs] = useState([
               </button>
 
               <button 
-                onClick={() => setBookmarked(!bookmarked)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl border text-sm font-semibold transition-all duration-300 ${
-                  bookmarked 
-                    ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.15)]" 
-                    : "bg-white/[0.02] border-white/[0.08] text-white/75 hover:border-cyan-500/30 hover:text-cyan-400"
-                }`}
-              >
-                <Bookmark size={16} className={bookmarked ? "fill-cyan-400" : ""} />
-                <span>{bookmarked ? "Bookmarked" : "Bookmark"}</span>
-              </button>
-
-              <button 
                 onClick={handleCopyUrl}
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl border text-sm font-semibold transition-all duration-300 ${
                   copied 
@@ -587,32 +594,6 @@ const [relatedBlogs] = useState([
           {/* Sticky Side Share Actions (Desktop only) */}
           <div className="hidden lg:block">
             <div className="sticky top-28 flex flex-col gap-3 p-3 bg-white/[0.02] border border-white/[0.06] rounded-2xl backdrop-blur-md">
-              <button 
-                onClick={handleLike}
-                title="Like Article"
-                className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-all duration-300 ${
-                  liked 
-                    ? "bg-pink-500/10 border-pink-500/30 text-pink-400" 
-                    : "border-transparent text-white/40 hover:text-pink-400 hover:bg-white/[0.04]"
-                }`}
-              >
-                <Heart size={18} className={liked ? "fill-pink-400" : ""} />
-              </button>
-
-              <button 
-                onClick={() => setBookmarked(!bookmarked)}
-                title="Bookmark"
-                className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-all duration-300 ${
-                  bookmarked 
-                    ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400" 
-                    : "border-transparent text-white/40 hover:text-cyan-400 hover:bg-white/[0.04]"
-                }`}
-              >
-                <Bookmark size={18} className={bookmarked ? "fill-cyan-400" : ""} />
-              </button>
-
-              <div className="h-px bg-white/[0.06]" />
-
               <button 
                 onClick={handleCopyUrl}
                 title="Copy URL"
