@@ -154,6 +154,14 @@ const incrementView = asyncHandler(async (req, res) => {
   );
 });
 
+// explaination of togglelike is as follows : 
+// togglelike is used to like or unlike a blog post.
+// it takes the id of the blog post as a parameter.
+// it checks if the blog post is liked by the user.
+// if the blog post is liked by the user, it removes the like.
+// if the blog post is not liked by the user, it adds the like.
+// it returns the number of likes and the liked status.
+
 const toggleLike = asyncHandler(async (req, res) => {
   const blog = await Blog.findById(req.params.id);
 
@@ -169,6 +177,9 @@ const toggleLike = asyncHandler(async (req, res) => {
   } else {
     blog.likes.push(req.user._id);
   }
+  // the above if else function works as follows :
+  // if the blog is already liked by the user, it removes the like.
+  // if the blog is not liked by the user, it adds the like.
 
   await blog.save();
 

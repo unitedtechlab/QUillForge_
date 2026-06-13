@@ -326,7 +326,6 @@ const NAV_ITEMS = [
   { id: "create", icon: <PenLine size={15} />, label: "Create Blog" },
   { id: "manage", icon: <BookMarked size={15} />, label: "Manage Blogs" },
   { id: "read", icon: <BookOpen size={15} />, label: "Read Blogs" },
-  { id: "settings", icon: <Settings size={15} />, label: "Settings" },
 ];
 
 function Sidebar({ page, setPage, open, setOpen, handleLogout }) {
@@ -1584,13 +1583,7 @@ export default function AdminDashboard() {
           {page === "read" && (
             <ReadBlogsPage adminOnly={readAdminOnly} />
           )}
-          {page === "settings" && (
-            <PlaceholderPage
-              title="Settings"
-              icon={<Settings size={24} />}
-              desc="Profile and account settings coming soon."
-            />
-          )}
+
 
           {/* Always mounted so state is never lost, hidden when not active */}
           <div style={{ display: page === "create" ? "block" : "none" }}>

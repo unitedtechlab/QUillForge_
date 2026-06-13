@@ -101,7 +101,6 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, h
     { id: "community", icon: <Users size={16}/>,           label: "Community" },
   ];
   const bottom = [
-    { id: "settings", icon: <Settings size={16}/>, label: "Settings" },
     { id: "logout",   icon: <LogOut size={16}/>,   label: "Logout" },
   ];
 
