@@ -108,15 +108,53 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
   const [pub, setPub] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [recovered, setRecovered] = useState(false);
+
+  // Load draft from localStorage on mount (if we are NOT editing an existing blog)
+  useEffect(() => {
+    if (!editingBlog) {
+      const savedDraft = localStorage.getItem("quillforge_draft");
+      if (savedDraft) {
+        try {
+          const { title: dTitle, excerpt: dExcerpt, content: dContent, category: dCategory, tags: dTags } = JSON.parse(savedDraft);
+          if (dTitle || dContent || dExcerpt) {
+            setTitle(dTitle || "");
+            setExcerpt(dExcerpt || "");
+            setContent(dContent || "");
+            setCategory(dCategory || "Technology");
+            setTags(dTags || "");
+            setRecovered(true);
+            setTimeout(() => setRecovered(false), 5000);
+          }
+        } catch (e) {
+          console.error("Failed to parse saved draft", e);
+        }
+      }
+    }
+  }, [editingBlog]);
+
+  // Save draft to localStorage whenever fields change
+  useEffect(() => {
+    if (editingBlog) return;
+    if (!title && !content && !excerpt && !tags) {
+      localStorage.removeItem("quillforge_draft");
+      return;
+    }
+    const draftData = { title, excerpt, content, category, tags };
+    localStorage.setItem("quillforge_draft", JSON.stringify(draftData));
+  }, [title, excerpt, content, category, tags, editingBlog]);
 
   // Effect to load editingBlog properties into form fields when in edit mode,
   // or clear them when launching a fresh blog creation.
   useEffect(() => {
     if (!editingBlog) {
-      setTitle("");
-      setExcerpt("");
-      setContent("");
-      setPub(false);
+      const savedDraft = localStorage.getItem("quillforge_draft");
+      if (!savedDraft) {
+        setTitle("");
+        setExcerpt("");
+        setContent("");
+        setPub(false);
+      }
       return;
     }
 
@@ -173,6 +211,7 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
         setPub(false);
       }
 
+      localStorage.removeItem("quillforge_draft");
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
 
@@ -211,6 +250,14 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
             style={{ fontFamily: T.mono }}
           >
             <CheckCircle2 size={12} /> Saved successfully
+          </div>
+        )}
+        {recovered && (
+          <div
+            className="flex items-center gap-2 text-cyan-400 text-xs border border-cyan-400/25 bg-cyan-400/10 px-3 py-2 rounded-xl"
+            style={{ fontFamily: T.mono }}
+          >
+            <CheckCircle2 size={12} /> Unsaved draft recovered
           </div>
         )}
       </div>

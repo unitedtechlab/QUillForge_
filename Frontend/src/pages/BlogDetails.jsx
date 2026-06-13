@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { 
   Eye, Heart, Share2, ArrowLeft, Clock, Calendar, 
-  User, Check, Copy, ChevronRight, BookOpen, AlertCircle
+  User, Check, Copy, ChevronRight, BookOpen, AlertCircle,
+  Volume2, Pause, Square, Maximize2, Minimize2
 } from "lucide-react";
 import DOMPurify from "dompurify";
 import api from "../api/axios";
@@ -154,6 +155,78 @@ const [relatedBlogs] = useState([
   const [copied, setCopied] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
+
+  // Focus Mode & Audio Narrator (TTS) States
+  const [focusMode, setFocusMode] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [isPausedAudio, setIsPausedAudio] = useState(false);
+  const [synth, setSynth] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      setSynth(window.speechSynthesis);
+    }
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setFocusMode(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  const speakContent = () => {
+    if (!synth || !blog) return;
+
+    if (isPausedAudio) {
+      synth.resume();
+      setIsPausedAudio(false);
+      setIsPlayingAudio(true);
+      return;
+    }
+
+    if (isPlayingAudio) {
+      synth.pause();
+      setIsPausedAudio(true);
+      setIsPlayingAudio(false);
+      return;
+    }
+
+    // Strip HTML tags for clean reading text
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = blog.content || "";
+    const plainText = tempDiv.textContent || tempDiv.innerText || "";
+    
+    // Add title for better introduction
+    const textToRead = `${blog.title}. Written by ${blog.author?.username || "Anonymous"}. ${plainText}`;
+
+    const utterance = new SpeechSynthesisUtterance(textToRead);
+    utterance.rate = 1.0;
+    
+    utterance.onend = () => {
+      setIsPlayingAudio(false);
+      setIsPausedAudio(false);
+    };
+
+    utterance.onerror = () => {
+      setIsPlayingAudio(false);
+      setIsPausedAudio(false);
+    };
+
+    synth.cancel();
+    synth.speak(utterance);
+    setIsPlayingAudio(true);
+  };
+
+  const stopSpeech = () => {
+    if (!synth) return;
+    synth.cancel();
+    setIsPlayingAudio(false);
+    setIsPausedAudio(false);
+  };
 
   // View Count API
   const incrementView = async () => {
@@ -373,7 +446,7 @@ const [relatedBlogs] = useState([
   );
 
   return (
-    <div className="min-h-screen bg-[#080b14] text-white relative font-sans selection:bg-cyan-500/30">
+    <div className={`min-h-screen relative font-sans selection:bg-cyan-500/30 transition-colors duration-500 ${focusMode ? "blog-focus-mode" : "bg-[#080b14] text-white"}`}>
       {/* Scroll Progress Indicator */}
       <div 
         className="fixed top-0 left-0 h-[4px] bg-gradient-to-r from-cyan-400 via-violet-500 to-pink-500 z-50 transition-all duration-100"
@@ -381,8 +454,28 @@ const [relatedBlogs] = useState([
       />
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Oxanium:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
         
+        .blog-focus-mode {
+          background-color: #0b0a09 !important;
+          color: #dfd8c9 !important;
+        }
+        .blog-focus-mode .blog-content p {
+          color: rgba(223, 216, 201, 0.85) !important;
+          font-family: 'Merriweather', Georgia, serif;
+          font-size: 1.25rem !important;
+          line-height: 1.95;
+          max-width: 720px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+        .blog-focus-mode .blog-content h1,
+        .blog-focus-mode .blog-content h2,
+        .blog-focus-mode .blog-content h3 {
+          color: #ffffff !important;
+          font-family: ${ACCENT.ox} !important;
+        }
+
         .blog-content h1, .blog-content h2, .blog-content h3 {
           font-family: ${ACCENT.ox};
           color: #ffffff;
@@ -449,13 +542,13 @@ const [relatedBlogs] = useState([
         .blog-content li { margin-bottom: 0.6em; }
       `}</style>
 
-      <Background />
+      {!focusMode && <Background />}
 
       {/* Main Container */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20">
         
         {/* Navigation & Header Actions */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-8" style={focusMode ? { display: "none" } : {}}>
           <button 
             onClick={() => navigate(-1)}
             className="group flex items-center gap-2 text-white/50 hover:text-white transition-colors py-2"
@@ -469,8 +562,27 @@ const [relatedBlogs] = useState([
           
           {/* Main Column */}
           <article className="min-w-0">
+            {/* Focus Mode Banner */}
+            {focusMode && (
+              <div 
+                className="flex items-center justify-between px-6 py-3.5 mb-8 rounded-2xl border border-violet-500/20 bg-violet-500/5 text-xs text-white/50 animate-pulse"
+                style={{ fontFamily: ACCENT.mono }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-violet-400 animate-ping" />
+                  <span>Distraction-Free Focus Mode is active.</span>
+                </div>
+                <button 
+                  onClick={() => setFocusMode(false)}
+                  className="px-3 py-1 rounded-lg border border-white/10 hover:border-white/30 text-white/80 transition-all cursor-pointer"
+                >
+                  Exit Focus Mode (ESC)
+                </button>
+              </div>
+            )}
+
             {/* Category badge */}
-            <div className="mb-4">
+            <div className="mb-4" style={focusMode ? { display: "none" } : {}}>
               <Badge color={getCategoryColor(blog.category)}>
                 {blog.category || "General"}
               </Badge>
@@ -478,14 +590,14 @@ const [relatedBlogs] = useState([
 
             {/* Blog Title */}
             <h1 
-              className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-[1.1] mb-6"
+              className={`font-black tracking-tight leading-[1.1] mb-6 transition-all duration-300 ${focusMode ? 'text-3xl sm:text-4xl text-center text-white/90 border-b border-white/[0.04] pb-6' : 'text-4xl sm:text-5xl md:text-6xl text-white'}`}
               style={{ fontFamily: ACCENT.ox }}
             >
               {blog.title}
             </h1>
 
             {/* Author / Date / Stats Meta row */}
-            <div className="flex flex-wrap items-center justify-between gap-6 pb-8 border-b border-white/[0.06] mb-8">
+            <div className="flex flex-wrap items-center justify-between gap-6 pb-8 border-b border-white/[0.06] mb-8" style={focusMode ? { display: "none" } : {}}>
               <div className="flex items-center gap-3">
                 {/* Author Avatar */}
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center text-sm font-black text-white border border-white/[0.08]">
@@ -519,7 +631,7 @@ const [relatedBlogs] = useState([
             </div>
 
             {/* Cover Image banner */}
-            <div className="relative w-full h-[250px] sm:h-[380px] md:h-[450px] rounded-3xl overflow-hidden border border-white/[0.08] mb-12 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+            <div className="relative w-full h-[250px] sm:h-[380px] md:h-[450px] rounded-3xl overflow-hidden border border-white/[0.08] mb-12 shadow-[0_20px_50px_rgba(0,0,0,0.5)]" style={focusMode ? { display: "none" } : {}}>
               <img 
                 src={coverImage} 
                 alt={blog.title} 
@@ -534,7 +646,7 @@ const [relatedBlogs] = useState([
             </div>
 
             {/* Engagement buttons bottom */}
-            <div className="flex items-center justify-center gap-4 py-8 border-y border-white/[0.06] my-12 max-w-[800px] mx-auto">
+            <div className="flex items-center justify-center gap-4 py-8 border-y border-white/[0.06] my-12 max-w-[800px] mx-auto" style={focusMode ? { display: "none" } : {}}>
               <button 
                 onClick={handleLike}
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl border text-sm font-semibold transition-all duration-300 ${
@@ -561,7 +673,7 @@ const [relatedBlogs] = useState([
             </div>
 
             {/* Author Bio Card */}
-            <div className="max-w-[800px] mx-auto mt-12 mb-16">
+            <div className="max-w-[800px] mx-auto mt-12 mb-16" style={focusMode ? { display: "none" } : {}}>
               <h3 className="text-xs font-bold text-white/35 uppercase tracking-wider mb-4" style={{ fontFamily: ACCENT.mono }}>
                 Written by
               </h3>
@@ -594,10 +706,60 @@ const [relatedBlogs] = useState([
           {/* Sticky Side Share Actions (Desktop only) */}
           <div className="hidden lg:block">
             <div className="sticky top-28 flex flex-col gap-3 p-3 bg-white/[0.02] border border-white/[0.06] rounded-2xl backdrop-blur-md">
+              {/* Audio Narrator */}
+              <button 
+                onClick={speakContent}
+                title={isPlayingAudio ? "Pause Narrator" : "Listen to Article"}
+                className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-all duration-300 relative group cursor-pointer ${
+                  isPlayingAudio 
+                    ? "bg-cyan-500/10 border-cyan-400/30 text-cyan-400" 
+                    : "border-transparent text-white/40 hover:text-white hover:bg-white/[0.04]"
+                }`}
+              >
+                {isPlayingAudio ? <Pause size={18} /> : <Volume2 size={18} />}
+                
+                {/* Tooltip */}
+                <div className="absolute right-full mr-3 px-2 py-1 rounded-md bg-slate-900 border border-white/10 text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200">
+                  {isPlayingAudio ? "Pause listening" : "Listen to article"}
+                </div>
+              </button>
+
+              {/* Stop Audio (Only show if playing or paused) */}
+              {(isPlayingAudio || isPausedAudio) && (
+                <button 
+                  onClick={stopSpeech}
+                  title="Stop Narrator"
+                  className="w-11 h-11 rounded-xl flex items-center justify-center border border-transparent text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-all duration-300 relative group cursor-pointer"
+                >
+                  <Square size={16} />
+                  <div className="absolute right-full mr-3 px-2 py-1 rounded-md bg-slate-900 border border-white/10 text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200">
+                    Stop Listening
+                  </div>
+                </button>
+              )}
+
+              {/* Distraction-Free Focus Mode */}
+              <button 
+                onClick={() => setFocusMode(prev => !prev)}
+                title="Toggle Focus Mode"
+                className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-all duration-300 relative group cursor-pointer ${
+                  focusMode 
+                    ? "bg-violet-500/10 border-violet-400/30 text-violet-400" 
+                    : "border-transparent text-white/40 hover:text-white hover:bg-white/[0.04]"
+                }`}
+              >
+                {focusMode ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                <div className="absolute right-full mr-3 px-2 py-1 rounded-md bg-slate-900 border border-white/10 text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200">
+                  {focusMode ? "Exit Focus Mode" : "Focus Mode"}
+                </div>
+              </button>
+
+              <div className="w-full h-px bg-white/[0.06] my-1" />
+
               <button 
                 onClick={handleCopyUrl}
                 title="Copy URL"
-                className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-all duration-300 relative group ${
+                className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-all duration-300 relative group cursor-pointer ${
                   copied 
                     ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" 
                     : "border-transparent text-white/40 hover:text-white hover:bg-white/[0.04]"
@@ -616,7 +778,7 @@ const [relatedBlogs] = useState([
         </div>
 
         {/* Related Blogs Section */}
-        {relatedBlogs.length > 0 && (
+        {relatedBlogs.length > 0 && !focusMode && (
           <div className="mt-16 pt-16 border-t border-white/[0.06]">
             <div className="flex justify-between items-end mb-8">
               <div>
