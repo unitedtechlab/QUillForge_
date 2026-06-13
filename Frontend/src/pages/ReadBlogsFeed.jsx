@@ -125,8 +125,12 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
     }));
   };
 
-  // Extract unique categories from blogs
-  const categories = ["all", ...new Set(blogs.map(b => b.category || "General"))];
+  // Extract unique real categories from blogs (exclude the "General" fallback)
+  const categories = ["all", ...new Set(
+    blogs
+      .map(b => b.category)
+      .filter(c => c && c.toLowerCase() !== "general")
+  )];
 
   // Filter blogs based on adminOnly toggle, category and search query
   const filteredBlogs = blogs

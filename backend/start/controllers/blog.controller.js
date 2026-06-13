@@ -52,7 +52,7 @@ const createBlog = asyncHandler(async (req, res) => {
 const getAllBlogs = asyncHandler(async (req, res) => {
 
   const blogs = await Blog.find()
-    .populate("author", "username")
+    .populate("author", "username role")
     .sort({ createdAt: -1 });
 
   return res.status(200).json(
