@@ -138,6 +138,48 @@ const updateBlog = asyncHandler(async (req, res) => {
     )
   );
 });
+const incrementView = asyncHandler(async (req, res) => {
+  const blog = await Blog.findByIdAndUpdate(
+    req.params.id,
+    { $inc: { views: 1 } },
+    { new: true }
+  );
+
+  if (!blog) {
+    throw new ApiError(404, "Blog not found");
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, { views: blog.views }, "View counted")
+  );
+});
+
+const toggleLike = asyncHandler(async (req, res) => {
+  const blog = await Blog.findById(req.params.id);
+
+  if (!blog) {
+    throw new ApiError(404, "Blog not found");
+  }
+
+  const userId = req.user._id.toString();
+  const alreadyLiked = blog.likes.some(id => id.toString() === userId);
+
+  if (alreadyLiked) {
+    blog.likes = blog.likes.filter(id => id.toString() !== userId);
+  } else {
+    blog.likes.push(req.user._id);
+  }
+
+  await blog.save();
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      { likes: blog.likes.length, liked: !alreadyLiked },
+      alreadyLiked ? "Like removed" : "Blog liked"
+    )
+  );
+});
 
 
-export { createBlog, getAllBlogs, deleteBlog, updateBlog, getBlogById };
+export { createBlog, getAllBlogs, deleteBlog, updateBlog, getBlogById, incrementView, toggleLike };

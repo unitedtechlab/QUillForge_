@@ -68,6 +68,7 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
   const [showAdminOnly, setShowAdminOnly] = useState(adminOnly);
   const [likedBlogs, setLikedBlogs] = useState({});
   const [expandedBlogs, setExpandedBlogs] = useState({});
+  const [currentUser, setCurrentUser] = useState(null);
 
   // Sync when parent flips the adminOnly prop (e.g. navigating from Quick Actions)
   useEffect(() => { setShowAdminOnly(adminOnly); }, [adminOnly]);
@@ -75,44 +76,93 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchBlogs();
+    const init = async () => {
+      try {
+        setLoading(true);
+        // Fetch blogs and current user in parallel
+        const [blogsRes, userRes] = await Promise.allSettled([
+          api.get("/blogs"),
+          api.get("/users/current-user")
+        ]);
+
+        let user = null;
+        if (userRes.status === "fulfilled") {
+          user = userRes.value.data.data;
+          setCurrentUser(user);
+        }
+
+        if (blogsRes.status === "fulfilled") {
+          const published = (blogsRes.value.data.data || []).filter(b => b.isPublished);
+          setBlogs(published);
+
+          // Seed liked state from each blog's likes array
+          if (user) {
+            const initialLiked = {};
+            published.forEach(b => {
+              initialLiked[b._id] = (b.likes || []).some(
+                uid => uid.toString() === user._id.toString()
+              );
+            });
+            setLikedBlogs(initialLiked);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load feed:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    init();
   }, []);
 
   /**
-   * Fetches all published blogs for the reading feed.
+   * Toggles like via API with optimistic UI update and rollback on failure.
    */
-  const fetchBlogs = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get("/blogs");
-      // Filter out drafts - only show published articles to readers
-      const published = (res.data.data || []).filter(b => b.isPublished);
-      setBlogs(published);
-    } catch (error) {
-      console.error("Failed to load feed:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const toggleLike = async (id) => {
+    if (!currentUser) return; // must be logged in
 
-  /**
-   * Toggles the like state of a blog post in the UI.
-   * Increments/decrements local count for immediate visual feedback.
-   */
-  const toggleLike = (id) => {
-    setLikedBlogs(prev => {
-      const isLiked = !prev[id];
+    const wasLiked = !!likedBlogs[id];
+
+    // Optimistic update
+    setLikedBlogs(prev => ({ ...prev, [id]: !wasLiked }));
+    setBlogs(curr => curr.map(b => {
+      if (b._id === id) {
+        const arr = b.likes || [];
+        return {
+          ...b,
+          likes: wasLiked
+            ? arr.filter(uid => uid.toString() !== currentUser._id.toString())
+            : [...arr, currentUser._id]
+        };
+      }
+      return b;
+    }));
+
+    try {
+      const res = await api.patch(`/blogs/${id}/like`);
+      // Confirm with server values
+      const { likes: newCount, liked: newLiked } = res.data.data;
+      setLikedBlogs(prev => ({ ...prev, [id]: newLiked }));
+      setBlogs(curr => curr.map(b =>
+        b._id === id ? { ...b, _likeCount: newCount } : b
+      ));
+    } catch (err) {
+      console.error("Like failed:", err);
+      // Rollback
+      setLikedBlogs(prev => ({ ...prev, [id]: wasLiked }));
       setBlogs(curr => curr.map(b => {
         if (b._id === id) {
+          const arr = b.likes || [];
           return {
             ...b,
-            likes: (b.likes || 0) + (isLiked ? 1 : -1)
+            likes: wasLiked
+              ? [...arr, currentUser._id]
+              : arr.filter(uid => uid.toString() !== currentUser._id.toString())
           };
         }
         return b;
       }));
-      return { ...prev, [id]: isLiked };
-    });
+    }
   };
 
   /**
@@ -332,7 +382,7 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
                         style={{ fontFamily: T.mono }}
                       >
                         <Heart size={14} className={isLiked ? "fill-pink-500 text-pink-500" : ""} />
-                        <span>{blog.likes || 0} Likes</span>
+                        <span>{(blog._likeCount ?? (blog.likes || []).length)} Likes</span>
                       </button>
 
                       <span className="text-white/30 text-xs flex items-center gap-1.5" style={{ fontFamily: T.mono }}>

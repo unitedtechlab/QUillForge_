@@ -1,18 +1,18 @@
 import { Router } from "express";
 import { verifyjwt } from "../middlewares/auth.middleware.js";
 import { verifyadmin } from "../middlewares/admin.middleware.js";
-import { createBlog, getAllBlogs, deleteBlog, updateBlog, getBlogById } from "../controllers/blog.controller.js";
+import { createBlog, getAllBlogs, deleteBlog, updateBlog, getBlogById, incrementView, toggleLike } from "../controllers/blog.controller.js";
 
 const router = Router();
 
 router.post("/", verifyjwt, createBlog);
-// this comes from createblog or edit blog (from admindashboard as of now ) 
 
 router.get("/", getAllBlogs);
-// this comes from manageblogs function first step which is fetchblogs function to get all blogs .
-// admindashboard uses this to fetch all blogs to show in the table (i.e. manageblogs)
-// 
-// router.get("/:slug", getBlogBySlug);
+
+// Must be declared before /:id so Express does not treat "view"/"like" as an id param
+router.patch("/:id/view", incrementView);
+router.patch("/:id/like", verifyjwt, toggleLike);
+
 router.get("/:id", getBlogById);
 router.put("/:id", verifyjwt, updateBlog);
 router.delete("/:id", verifyjwt, deleteBlog);

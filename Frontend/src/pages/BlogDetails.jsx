@@ -147,12 +147,14 @@ const [relatedBlogs] = useState([
   }
 ]);
 
-  // Local interaction state (UI only)
+  // Local interaction state
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [likeLoading, setLikeLoading] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [copied, setCopied] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [currentUser, setCurrentUser] = useState(null);
 
   // View Count API
   const incrementView = async () => {
@@ -164,28 +166,45 @@ const [relatedBlogs] = useState([
   };
 
   useEffect(() => {
-  const fetchBlog = async () => {
-    setLoading(true);
-    setError(false);
+    const fetchBlog = async () => {
+      setLoading(true);
+      setError(false);
 
-    try {
-      const res = await api.get(`/blogs/${id}`);
-      setBlog(res.data.data);
-      setLikeCount(res.data.data.likes || 0);
-    } catch (err) {
-      console.error(err);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
+      try {
+        // Fetch blog and current user in parallel
+        const [blogRes, userRes] = await Promise.allSettled([
+          api.get(`/blogs/${id}`),
+          api.get("/users/current-user")
+        ]);
 
-  fetchBlog();
-}, [id]);
+        if (blogRes.status === "fulfilled") {
+          const blogData = blogRes.value.data.data;
+          setBlog(blogData);
+          // likes is now an array of user IDs
+          const likesArr = blogData.likes || [];
+          setLikeCount(likesArr.length);
 
-  // useEffect(() => {
-  //   incrementView();
-  // }, [id]);
+          if (userRes.status === "fulfilled") {
+            const user = userRes.value.data.data;
+            setCurrentUser(user);
+            // Seed liked state — check if current user's ID is in the array
+            setLiked(likesArr.some(uid => uid.toString() === user._id.toString()));
+          }
+        } else {
+          setError(true);
+        }
+      } catch (err) {
+        console.error(err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBlog();
+    // Increment view count every time this blog page is opened
+    api.patch(`/blogs/${id}/view`).catch(() => {});
+  }, [id]);
 
   // // Fetch blog details
   // useEffect(() => {
@@ -249,13 +268,30 @@ const [relatedBlogs] = useState([
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLike = () => {
-    if (liked) {
-      setLikeCount(prev => prev - 1);
-    } else {
-      setLikeCount(prev => prev + 1);
+  const handleLike = async () => {
+    if (!currentUser) {
+      // Not logged in — could redirect to login, for now just bail
+      return;
     }
-    setLiked(!liked);
+    if (likeLoading) return;
+    setLikeLoading(true);
+    // Optimistic update
+    const wasLiked = liked;
+    setLiked(!wasLiked);
+    setLikeCount(prev => wasLiked ? prev - 1 : prev + 1);
+    try {
+      const res = await api.patch(`/blogs/${id}/like`);
+      // Confirm with server values
+      setLikeCount(res.data.data.likes);
+      setLiked(res.data.data.liked);
+    } catch (err) {
+      // Rollback on failure
+      console.error("Like failed:", err);
+      setLiked(wasLiked);
+      setLikeCount(prev => wasLiked ? prev + 1 : prev - 1);
+    } finally {
+      setLikeLoading(false);
+    }
   };
 
   const handleCopyUrl = async () => {
