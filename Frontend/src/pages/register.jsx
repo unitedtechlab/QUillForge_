@@ -320,6 +320,11 @@ function RegisterForm({ visible }) {
     setHints(h);
   }, [form]);
 
+  /**
+   * Performs client-side validation on the registration form inputs.
+   * Checks username format/length, email presence, password complexity score, and confirms matching passwords.
+   * @returns {Object} Validation errors keyed by input field name.
+   */
   const validate = () => {
     const e = {};
     if (!form.username)             e.username = "Username is required";
@@ -338,54 +343,61 @@ function RegisterForm({ visible }) {
     return e;
   };
 
-const handleSubmit = async (ev) => {
-  ev.preventDefault();
+  /**
+   * Submits registration data to the backend API.
+   * API CALL: POST `/users/register` (in backend start/routes/user.routes.js)
+   * Why: Registers a new user account inside the database.
+   * If successful: Updates `done` state to show the verification success UI.
+   */
+  const handleSubmit = async (ev) => {
+    ev.preventDefault();
 
-  const e = validate();
+    const e = validate();
 
-  if (Object.keys(e).length) {
-    setErrors(e);
-    return;
-  }
+    if (Object.keys(e).length) {
+      setErrors(e);
+      return;
+    }
 
-  setErrors({});
+    setErrors({});
 
-  try {
+    try {
+      setLoading(true);
 
-    setLoading(true);
+      const res = await api.post(
+        "/users/register",
+        {
+          username: form.username,
+          email: form.email,
+          password: form.password
+        }
+      );
 
-    const res = await api.post(
-      "/users/register",
-      {
-        username: form.username,
-        email: form.email,
-        password: form.password
-      }
-    );
+      console.log(res.data);
+      setDone(true);
 
-    console.log(res.data);
+    } catch (error) {
+      console.log("FULL ERROR:", error);
+      console.log("RESPONSE:", error.response);
+      alert(
+        error.response?.data?.message ||
+        error.message ||
+        "Registration failed"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    setDone(true);
-
-  } 
-catch (error) {
-
-  console.log("FULL ERROR:", error);
-
-  console.log("RESPONSE:", error.response);
-
-  alert(
-    error.response?.data?.message ||
-    error.message ||
-    "Registration failed"
-  );
-
-}
-};
-const handleGoogle = () => {
-  window.location.href =
-     "https://api.quillforge.unitedtechlab.com/api/v1/users/google";
-};
+  /**
+   * Redirects the client browser to the third-party Google OAuth 2.0 endpoint.
+   * API CALL: GET `/users/google` (initiated via window.location redirect)
+   * Why: Leverages Google Identity Services to create/authenticate user profiles.
+   */
+  const handleGoogle = () => {
+    window.location.href =
+       "https://api.quillforge.unitedtechlab.com/api/v1/users/google";
+  };
 
   /* ── Success state ── */
   if (done) {
@@ -518,6 +530,8 @@ const handleGoogle = () => {
             error={errors.password}
             rightElement={
               <button
+                // BUTTON ACTION: Toggles password text visibility
+                // CALLS FUNCTION: setShowPass(!showPass)
                 type="button"
                 onClick={() => setShowPass(!showPass)}
                 className="text-white/20 hover:text-white/50 transition-colors p-0.5"
@@ -541,6 +555,8 @@ const handleGoogle = () => {
           hint={hints.confirm}
           rightElement={
             <button
+              // BUTTON ACTION: Toggles confirm password visibility
+              // CALLS FUNCTION: setShowConfirm(!showConfirm)
               type="button"
               onClick={() => setShowConfirm(!showConfirm)}
               className="text-white/20 hover:text-white/50 transition-colors p-0.5"
@@ -554,6 +570,8 @@ const handleGoogle = () => {
         <TermsCheckbox />
 
         {/* Submit */}
+        {/* BUTTON ACTION: Submits form to create a new user account */}
+        {/* CALLS FUNCTION: handleSubmit(ev) */}
         <button
           type="submit"
           disabled={loading}

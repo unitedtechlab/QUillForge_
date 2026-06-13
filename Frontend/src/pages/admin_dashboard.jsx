@@ -645,6 +645,11 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  /**
+   * Loads all blog posts in the application to calculate admin-wide statistics.
+   * API CALL: GET `/blogs` (in backend start/routes/blog.routes.js)
+   * Why: Computes totals for views, publication statuses, monthly streaks, and recent entries.
+   */
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
@@ -659,6 +664,11 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
     fetchBlogs();
   }, []);
 
+  /**
+   * Retrieves a blog post's details by ID and redirects the administrator to the create/edit view.
+   * API CALL: GET `/blogs/:id` (in backend start/routes/blog.routes.js)
+   * Why: Populates the blog editor with the document's content for updates.
+   */
   const startEdit = async (id) => {
     try {
       const res = await api.get(`/blogs/${id}`);
@@ -670,6 +680,11 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
     }
   };
 
+  /**
+   * Requests the permanent deletion of a blog post by ID.
+   * API CALL: DELETE `/blogs/:id` (in backend start/routes/blog.routes.js)
+   * Why: Purges spam or outdated content from the platform database.
+   */
   const deleteBlog = async (id) => {
     if (!window.confirm("Are you sure you want to delete this blog?")) return;
     try {

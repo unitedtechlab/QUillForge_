@@ -269,6 +269,8 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
           <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.06] rounded-xl p-1 flex-shrink-0">
             {["all", "published", "draft"].map((f) => (
               <motion.button
+                // BUTTON ACTION: Filters blogs list by status (all, published, draft)
+                // CALLS FUNCTION: setFilter(f)
                 key={f}
                 onClick={() => setFilter(f)}
                 whileTap={{ scale: 0.95 }}
@@ -308,6 +310,8 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
 
           {selected.length > 0 && (
             <motion.button
+              // BUTTON ACTION: Performs bulk delete API requests for all checked items
+              // CALLS FUNCTION: handleBulkDelete()
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               onClick={handleBulkDelete}
@@ -409,6 +413,10 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
                   </span>
                   <div className="relative">
                     <div className="flex items-center gap-1">
+                      {/* BUTTON ACTIONS: Loops through the operational triggers for each blog row */}
+                      {/* 1. View / Open blog post detail page (triggers router navigation) */}
+                      {/* 2. Edit blog post (calls startEdit API loader & switches view) */}
+                      {/* 3. Delete blog post (calls deleteB API request handler) */}
                       {[
                         {
                           icon: <Eye size={11} />,

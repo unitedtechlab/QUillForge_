@@ -129,6 +129,10 @@ function Navbar() {
 
   const links = ["Features", "Pricing", "Blog", "About"];
 
+  /**
+   * Smoothly scrolls the viewport to a section identified by the lowercase link name.
+   * Why: Enhances landing page navigation without page reloads.
+   */
   const scrollToSection = (id) => {
     const element = document.getElementById(id.toLowerCase());
     if (element) {
@@ -548,6 +552,12 @@ function BlogPreview() {
     { _id: "mock6", emoji: "🌿", tag: "Lifestyle", title: "The Minimalist Developer's Productivity System", author: "Lena Ross", read: "6 min", views: "5.3K", likesCount: 487, isMock: true },
   ];
 
+  /**
+   * Fetches published blogs to showcase on the home page's trending section.
+   * API CALL: GET `/blogs` (in backend start/routes/blog.routes.js)
+   * Why: Showcases real user contributions to new site visitors, and automatically
+   * falls back to static mock data if the backend is unreachable or empty.
+   */
   useEffect(() => {
     api.get("/blogs")
       .then(res => {

@@ -393,6 +393,8 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
                   {pub ? "Live on site" : "Draft"}
                 </p>
               </div>
+              {/* BUTTON ACTION: Toggles direct publish flag status */}
+              {/* CALLS FUNCTION: setPub(!pub) */}
               <motion.button
                 onClick={() => setPub(!pub)}
                 whileTap={{ scale: 0.95 }}
@@ -407,6 +409,8 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
             </div>
 
             <div className="space-y-2.5">
+              {/* BUTTON ACTION: Saves the blog content as a draft */}
+              {/* CALLS FUNCTION: handleSave(false) */}
               <motion.button
                 onClick={() => handleSave(false)}
                 disabled={saving}
@@ -427,6 +431,8 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
                   </>
                 )}
               </motion.button>
+              {/* BUTTON ACTION: Publishes the blog directly */}
+              {/* CALLS FUNCTION: handleSave(true) */}
               <GradientBtn
                 onClick={() => handleSave(true)}
                 className="w-full py-3 text-xs"

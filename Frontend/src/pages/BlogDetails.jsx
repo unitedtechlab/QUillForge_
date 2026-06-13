@@ -178,6 +178,11 @@ const [relatedBlogs] = useState([
     };
   }, []);
 
+  /**
+   * Reads the blog content aloud using the native Speech Synthesis Web API.
+   * Why: Enhances accessibility by narrating text content, stripping out rich HTML tags,
+   * and providing Play/Pause/Resume playback controls.
+   */
   const speakContent = () => {
     if (!synth || !blog) return;
 
@@ -221,6 +226,10 @@ const [relatedBlogs] = useState([
     setIsPlayingAudio(true);
   };
 
+  /**
+   * Halts all active speech synthesis playback.
+   * Why: Terminates background narration instantly when requested by the user or when navigating away.
+   */
   const stopSpeech = () => {
     if (!synth) return;
     synth.cancel();
@@ -228,7 +237,11 @@ const [relatedBlogs] = useState([
     setIsPausedAudio(false);
   };
 
-  // View Count API
+  /**
+   * Triggers a view count update API request for the current blog.
+   * API CALL: PATCH `/blogs/:id/view` (in backend start/routes/blog.routes.js)
+   * Why: Records an article impression in the backend database for statistics.
+   */
   const incrementView = async () => {
     try {
       await api.patch(`/blogs/${id}/view`);
@@ -237,6 +250,14 @@ const [relatedBlogs] = useState([
     }
   };
 
+  /**
+   * Fetches the details of the blog post and profile context for the current user in parallel.
+   * API CALLS:
+   * 1. GET `/blogs/:id` (in backend start/routes/blog.routes.js) - loads blog metadata, content, and likes array.
+   * 2. GET `/users/current-user` (in backend start/routes/user.routes.js) - reads session to see if liked status matches.
+   * 3. PATCH `/blogs/:id/view` (in backend start/routes/blog.routes.js) - records a page view.
+   * Why: Displays the full article, configures custom user interaction indicators (likes), and bumps view count.
+   */
   useEffect(() => {
     const fetchBlog = async () => {
       setLoading(true);
@@ -338,7 +359,10 @@ const [relatedBlogs] = useState([
   //   setCopied(false);
   // }, [id]);
 
-  // Scroll progress handler
+  /**
+   * Event listener callback to track scroll progress.
+   * Why: Powers the visual progress bar at the top of the header.
+   */
   useEffect(() => {
     const handleScroll = () => {
       const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
@@ -351,6 +375,12 @@ const [relatedBlogs] = useState([
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  /**
+   * Likes/unlikes the current blog post.
+   * API CALL: PATCH `/blogs/:id/like` (in backend start/routes/blog.routes.js)
+   * Why: Upvotes or downvotes the post count.
+   * UX Strategy: Updates the UI immediately using optimistic calculations and falls back on error.
+   */
   const handleLike = async () => {
     console.log("handleLike clicked! Current user state:", currentUser);
     if (!currentUser) {
@@ -386,6 +416,10 @@ const [relatedBlogs] = useState([
     }
   };
 
+  /**
+   * Copies the current web page URL to the user's system clipboard.
+   * Why: Gives the user a quick way to share this article link.
+   */
   const handleCopyUrl = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -647,6 +681,8 @@ const [relatedBlogs] = useState([
 
             {/* Engagement buttons bottom */}
             <div className="flex items-center justify-center gap-4 py-8 border-y border-white/[0.06] my-12 max-w-[800px] mx-auto" style={focusMode ? { display: "none" } : {}}>
+              {/* BUTTON ACTION: Upvotes / downvotes the article's like total */}
+              {/* CALLS FUNCTION: handleLike() */}
               <button 
                 onClick={handleLike}
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl border text-sm font-semibold transition-all duration-300 ${
@@ -659,6 +695,8 @@ const [relatedBlogs] = useState([
                 <span>{liked ? "Liked" : "Like Article"}</span>
               </button>
 
+              {/* BUTTON ACTION: Copies the current URL to system clipboard */}
+              {/* CALLS FUNCTION: handleCopyUrl() */}
               <button 
                 onClick={handleCopyUrl}
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl border text-sm font-semibold transition-all duration-300 ${
@@ -707,6 +745,8 @@ const [relatedBlogs] = useState([
           <div className="hidden lg:block">
             <div className="sticky top-28 flex flex-col gap-3 p-3 bg-white/[0.02] border border-white/[0.06] rounded-2xl backdrop-blur-md">
               {/* Audio Narrator */}
+              {/* BUTTON ACTION: Initiates or pauses TTS audio narration of article content */}
+              {/* CALLS FUNCTION: speakContent() */}
               <button 
                 onClick={speakContent}
                 title={isPlayingAudio ? "Pause Narrator" : "Listen to Article"}
@@ -727,6 +767,8 @@ const [relatedBlogs] = useState([
               {/* Stop Audio (Only show if playing or paused) */}
               {(isPlayingAudio || isPausedAudio) && (
                 <button 
+                  // BUTTON ACTION: Completely halts active TTS audio playback
+                  // CALLS FUNCTION: stopSpeech()
                   onClick={stopSpeech}
                   title="Stop Narrator"
                   className="w-11 h-11 rounded-xl flex items-center justify-center border border-transparent text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-all duration-300 relative group cursor-pointer"
@@ -739,6 +781,8 @@ const [relatedBlogs] = useState([
               )}
 
               {/* Distraction-Free Focus Mode */}
+              {/* BUTTON ACTION: Toggles sepia distraction-free focus mode with large serif font */}
+              {/* CALLS FUNCTION: setFocusMode(prev => !prev) */}
               <button 
                 onClick={() => setFocusMode(prev => !prev)}
                 title="Toggle Focus Mode"
@@ -756,6 +800,8 @@ const [relatedBlogs] = useState([
 
               <div className="w-full h-px bg-white/[0.06] my-1" />
 
+              {/* BUTTON ACTION: Copies the page URL to system clipboard */}
+              {/* CALLS FUNCTION: handleCopyUrl() */}
               <button 
                 onClick={handleCopyUrl}
                 title="Copy URL"

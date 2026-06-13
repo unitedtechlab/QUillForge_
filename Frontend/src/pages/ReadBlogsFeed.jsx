@@ -75,6 +75,13 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
   
   const navigate = useNavigate();
 
+  /**
+   * Side effect on mount to fetch all blog posts and retrieve current user context.
+   * API CALLS:
+   * 1. GET `/blogs` (in backend start/routes/blog.routes.js) - loads all posts from database.
+   * 2. GET `/users/current-user` (in backend start/routes/user.routes.js) - checks current user profile session.
+   * Why: Checks if a user session is active, populates feed state, and pre-renders like state markers.
+   */
   useEffect(() => {
     const init = async () => {
       try {
@@ -116,7 +123,10 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
   }, []);
 
   /**
-   * Toggles like via API with optimistic UI update and rollback on failure.
+   * Toggles the like status of a blog post for the current user.
+   * API CALL: PATCH `/blogs/:id/like` (in backend start/routes/blog.routes.js)
+   * Why: Registers/unregisters the user's like vote in the database.
+   * UX Strategy: Uses optimistic UI updates immediately before API completion; rolls back state on API error.
    */
   const toggleLike = async (id) => {
     if (!currentUser) return; // must be logged in
@@ -175,7 +185,8 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
   };
 
   /**
-   * Toggles the inline expansion of the blog content.
+   * Toggles the local inline expansion of long blog contents in the feed view.
+   * @param {String} id Blog ID.
    */
   const toggleExpand = (id) => {
     setExpandedBlogs(prev => ({
@@ -229,7 +240,8 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
 
       {/* Category Pills + Featured by Admin toggle */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none flex-wrap">
-        {/* Featured by Admin pill */}
+        {/* BUTTON ACTION: Toggles feed filter to show only posts written by administrators */}
+        {/* CALLS FUNCTION: setShowAdminOnly(v => !v) */}
         <button
           onClick={() => setShowAdminOnly(v => !v)}
           className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap border transition-all duration-300 ${
@@ -248,6 +260,8 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
 
         {categories.map(cat => (
           <button
+            // BUTTON ACTION: Filters feed content by the clicked blog category
+            // CALLS FUNCTION: setSelectedCategory(cat)
             key={cat}
             onClick={() => setSelectedCategory(cat)}
             className={`px-4 py-2 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap border ${
@@ -365,6 +379,8 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
                   {/* Inline Reader Expand / Collapse Toggle */}
                   {shouldTruncate && (
                     <button
+                      // BUTTON ACTION: Toggles full inline article text display
+                      // CALLS FUNCTION: toggleExpand(blog._id)
                       onClick={() => toggleExpand(blog._id)}
                       className="flex items-center gap-1.5 text-xs text-cyan-400 font-bold hover:text-cyan-300 transition-all border border-cyan-400/20 px-4 py-2 rounded-xl bg-cyan-400/[0.03] hover:bg-cyan-400/[0.08]"
                       style={{ fontFamily: T.ox }}
@@ -383,6 +399,8 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
                   {/* Bottom Stats & Actions */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
+                      {/* BUTTON ACTION: Upvotes / downvotes the article's like total */}
+                      {/* CALLS FUNCTION: toggleLike(blog._id) */}
                       <button
                         onClick={() => toggleLike(blog._id)}
                         className={`flex items-center gap-1.5 text-xs font-semibold transition-all ${
@@ -400,6 +418,8 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
                       </span>
                     </div>
 
+                    {/* BUTTON ACTION: Navigates router to the detailed post details view */}
+                    {/* CALLS FUNCTION: navigate(`/blog/${blog._id}`) */}
                     <button
                       onClick={() => navigate(`/blog/${blog._id}`)}
                       className="flex items-center gap-1.5 text-xs text-white/30 hover:text-white transition-colors"

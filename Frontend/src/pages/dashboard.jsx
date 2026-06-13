@@ -832,12 +832,21 @@ export default function Dashboard() {
   const [blogs, setBlogs] = useState([]);
   const [blogsLoading, setBlogsLoading] = useState(true);
 
+  /**
+   * Resets editing state and redirects active viewport focus to the blog editor screen.
+   * Why: Ensures the editor launches with blank inputs instead of lingering edit session data.
+   */
   const handleNewBlog = () => {
     setEditingBlog(null);
     setActive("create");
     setCreateKey(prev => prev + 1);
   };
 
+  /**
+   * Performs an asynchronous user logout request and wipes authorization tokens.
+   * API CALL: POST `/users/logout` (in backend start/routes/user.routes.js)
+   * Why: Destroys server-side and client-side session contexts, then redirects user to home.
+   */
   const handleLogout = async () => {
     try {
       await api.post("/users/logout");
@@ -847,6 +856,11 @@ export default function Dashboard() {
     }
   };
 
+  /**
+   * Side effect to retrieve profile information of the currently logged-in user.
+   * API CALL: GET `/users/current-user` (in backend start/routes/user.routes.js)
+   * Why: Validates active session and obtains user details to customize dashboard headers.
+   */
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -861,6 +875,11 @@ export default function Dashboard() {
     fetchUser();
   }, []);
 
+  /**
+   * Side effect to reload all blog posts to synchronize metrics, streak, and recent lists.
+   * API CALL: GET `/blogs` (in backend start/routes/blog.routes.js)
+   * Why: Keeps analytics dials current, updates writing activity, and updates lists on changes.
+   */
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
@@ -894,6 +913,11 @@ export default function Dashboard() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  /**
+   * Destroys a user's blog post by its unique database ID.
+   * API CALL: DELETE `/blogs/:id` (in backend start/routes/blog.routes.js)
+   * Why: Removes the post object permanently from the server and local list state.
+   */
   const handleDeleteBlog = async (id) => {
     try {
       await api.delete(`/blogs/${id}`);

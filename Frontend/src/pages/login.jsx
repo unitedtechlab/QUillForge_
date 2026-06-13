@@ -207,6 +207,11 @@ function LoginForm({ visible }) {
   const [loading, setLoading]     = useState(false);
   const [errors, setErrors]       = useState({});
 
+  /**
+   * Performs client-side validation on the login form inputs.
+   * Checks if email is present and structurally valid, and if password satisfies minimum length.
+   * @returns {Object} Validation error messages keyed by input name.
+   */
   const validate = () => {
     const e = {};
     if (!email)                          e.email    = "Email is required";
@@ -215,59 +220,66 @@ function LoginForm({ visible }) {
     else if (password.length < 6)       e.password = "At least 6 characters";
     return e;
   };
-const navigate = useNavigate();
-const handleSubmit = async (ev) => {
-  ev.preventDefault();
 
-  const e = validate();
+  const navigate = useNavigate();
 
-  if (Object.keys(e).length) {
-    setErrors(e);
-    return;
-  }
+  /**
+   * Submits the credentials to the authentication API.
+   * API CALL: POST `/users/login` (in backend start/routes/user.routes.js)
+   * Why: Authenticates the user credentials and sets the cross-origin accessToken HTTPOnly cookie.
+   * If successful: Navigates to `/admin` or `/dashboard` based on user's authorized role.
+   */
+  const handleSubmit = async (ev) => {
+    ev.preventDefault();
 
-  setErrors({});
+    const e = validate();
 
-  try {
-
-    setLoading(true);
-
-    const res = await api.post(
-      "/users/login",
-      {
-        email,
-        password
-      }
-    );
-
-    console.log(res.data);
-
-    if(res.data.data.user.role === "admin") {
-      navigate("/admin");
-    } else {
-      navigate("/dashboard");
+    if (Object.keys(e).length) {
+      setErrors(e);
+      return;
     }
 
-  } catch (error) {
+    setErrors({});
 
-    console.log(error.response?.data);
+    try {
+      setLoading(true);
 
-    alert(
-      error.response?.data?.message ||
-      "Login failed"
-    );
+      const res = await api.post(
+        "/users/login",
+        {
+          email,
+          password
+        }
+      );
 
-  } finally {
+      console.log(res.data);
 
-    setLoading(false);
+      if(res.data.data.user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
 
-  }
-};
+    } catch (error) {
+      console.log(error.response?.data);
+      alert(
+        error.response?.data?.message ||
+        "Login failed"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const handleGoogle = () => {
-  window.location.href =
-    "https://api.quillforge.unitedtechlab.com/api/v1/users/google";
-};;
+  /**
+   * Redirects the user to the third-party Google OAuth 2.0 authentication flow.
+   * API CALL: GET `/users/google` (initiated via window.location redirect)
+   * Why: Initiates server-side OAuth registration/login flow through Google Accounts.
+   */
+  const handleGoogle = () => {
+    window.location.href =
+      "https://api.quillforge.unitedtechlab.com/api/v1/users/google";
+  };
 
   return (
     <div className="flex flex-col justify-center h-full px-6 sm:px-12 lg:px-16 py-12">
@@ -305,6 +317,8 @@ const handleGoogle = () => {
         className={`mb-6 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
         style={{ transitionDelay: "200ms" }}
       >
+        {/* BUTTON ACTION: Initiates Google OAuth 2.0 authentication flow */}
+        {/* CALLS FUNCTION: handleGoogle() */}
         <button
           onClick={handleGoogle}
           className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl border border-white/[0.08] bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.08] text-white/70 hover:text-white text-sm font-medium transition-all duration-300 group"
@@ -361,6 +375,8 @@ const handleGoogle = () => {
           error={errors.password}
           rightElement={
             <button
+              // BUTTON ACTION: Toggles password text visibility
+              // CALLS FUNCTION: setShowPass(!showPass)
               type="button"
               onClick={() => setShowPass(!showPass)}
               className="text-white/25 hover:text-white/60 transition-colors p-0.5"
@@ -373,6 +389,8 @@ const handleGoogle = () => {
         {/* Remember + Forgot */}
         <div className="flex items-center justify-between pt-1">
           <label className="flex items-center gap-2.5 cursor-pointer group">
+            {/* BUTTON ACTION: Toggles remember state */}
+            {/* CALLS FUNCTION: setRemember(!remember) */}
             <div
               onClick={() => setRemember(!remember)}
               className={`w-4 h-4 rounded flex items-center justify-center border transition-all duration-200 ${
@@ -396,7 +414,8 @@ const handleGoogle = () => {
           </a>
         </div>
 
-        {/* Submit */}
+        {/* BUTTON ACTION: Submits form to login API */}
+        {/* CALLS FUNCTION: handleSubmit(ev) */}
         <button
           type="submit"
           disabled={loading}
