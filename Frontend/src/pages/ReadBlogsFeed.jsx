@@ -143,9 +143,18 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
       // Confirm with server values
       const { likes: newCount, liked: newLiked } = res.data.data;
       setLikedBlogs(prev => ({ ...prev, [id]: newLiked }));
-      setBlogs(curr => curr.map(b =>
-        b._id === id ? { ...b, _likeCount: newCount } : b
-      ));
+      setBlogs(curr => curr.map(b => {
+        if (b._id === id) {
+          let newLikesArr = [];
+          if (newLiked) {
+            newLikesArr = [currentUser._id, ...Array(Math.max(0, newCount - 1)).fill("other_user")];
+          } else {
+            newLikesArr = Array(newCount).fill("other_user");
+          }
+          return { ...b, likes: newLikesArr };
+        }
+        return b;
+      }));
     } catch (err) {
       console.error("Like failed:", err);
       // Rollback
@@ -382,7 +391,7 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
                         style={{ fontFamily: T.mono }}
                       >
                         <Heart size={14} className={isLiked ? "fill-pink-500 text-pink-500" : ""} />
-                        <span>{(blog._likeCount ?? (blog.likes || []).length)} Likes</span>
+                        <span>{(blog.likes || []).length} Likes</span>
                       </button>
 
                       <span className="text-white/30 text-xs flex items-center gap-1.5" style={{ fontFamily: T.mono }}>

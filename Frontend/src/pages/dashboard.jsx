@@ -5,7 +5,7 @@ import {
   MessageSquare, TrendingUp, TrendingDown, ArrowRight, Menu, X,
   MoreHorizontal, Edit3, Trash2, ExternalLink, Star, Zap,
   Calendar, Clock, Tag, ChevronRight, ChevronUp, Sparkles,
-  Globe, Lock, FileText, Activity, BookMarked
+  Globe, Lock, FileText, Activity, BookMarked, Save
 } from "lucide-react";
 
 import api from "../api/axios";
@@ -301,14 +301,25 @@ function WelcomeSection({ visible, user, setActive, setEditingBlog, handleNewBlo
 }
 
 /* ─────────────────── STAT CARDS ─────────────────── */
-function StatCards({ visible }) {
+function StatCards({ visible, userBlogs }) {
+  const totalBlogs = userBlogs ? userBlogs.length : 0;
+  const totalViews = userBlogs ? userBlogs.reduce((sum, b) => sum + (b.views || 0), 0) : 0;
+  const totalLikes = userBlogs ? userBlogs.reduce((sum, b) => sum + (Array.isArray(b.likes) ? b.likes.length : (b.likes || 0)), 0) : 0;
+
+  const getNewBlogsThisMonth = () => {
+    if (!userBlogs) return 0;
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    return userBlogs.filter((b) => new Date(b.createdAt) > oneMonthAgo).length;
+  };
+
   const cards = [
     {
       label: "Total Blogs",
-      value: 5,
+      value: totalBlogs,
       icon: <FileText size={18}/>,
       iconBg: "bg-cyan-400/10 border-cyan-400/20 text-cyan-400",
-      trend: "+2 this month",
+      trend: `+${getNewBlogsThisMonth()} this month`,
       up: true,
       color: "from-cyan-400 to-cyan-300",
       sparkColor: "#22d3ee",
@@ -317,7 +328,7 @@ function StatCards({ visible }) {
     },
     {
       label: "Total Views",
-      value: 38636,
+      value: totalViews,
       icon: <Eye size={18}/>,
       iconBg: "bg-violet-400/10 border-violet-400/20 text-violet-400",
       trend: "+14.2% vs last month",
@@ -329,7 +340,7 @@ function StatCards({ visible }) {
     },
     {
       label: "Total Likes",
-      value: 2209,
+      value: totalLikes,
       icon: <Heart size={18}/>,
       iconBg: "bg-pink-400/10 border-pink-400/20 text-pink-400",
       trend: "+8.7% vs last month",
@@ -406,7 +417,7 @@ function BlogRow({ blog, index, visible, setActive, setEditingBlog, onDelete }) 
   const displayCategory = blog.category || "General";
   const displayStatus = blog.status || (blog.isPublished ? "published" : "draft");
   const displayViews = blog.views || 0;
-  const displayLikes = blog.likes || 0;
+  const displayLikes = Array.isArray(blog.likes) ? blog.likes.length : (typeof blog.likes === "number" ? blog.likes : 0);
   const displayComments = blog.comments || 0;
   const displayDate = blog.date || (blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : "Jun 1, 2025");
   const displayReadTime = blog.readTime || "5 min";
@@ -465,7 +476,7 @@ function BlogRow({ blog, index, visible, setActive, setEditingBlog, onDelete }) 
       {/* Title + meta */}
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-2 mb-1">
-          <p className="text-white/85 text-sm font-semibold truncate group-hover:text-white transition-colors"
+          <p className="text-white/85 text-sm font-semibold truncate group-hover:text-cyan-300 transition-colors"
             style={{ fontFamily: ACCENT.ox }}>
             {displayTitle}
           </p>
@@ -528,36 +539,9 @@ function BlogRow({ blog, index, visible, setActive, setEditingBlog, onDelete }) 
 }
 
 /* ─────────────────── RECENT BLOGS ─────────────────── */
-function RecentBlogs({ visible, setActive, setEditingBlog, currentUser }) {
-  const [blogs, setBlogs] = useState([]);
+function RecentBlogs({ visible, setActive, setEditingBlog, userBlogs, onDelete }) {
   const [filter, setFilter] = useState("all");
   const filters = ["all", "published", "draft"];
-
-  useEffect(() => {
-    const fetchBlogs = async () => {
-      try {
-        const res = await api.get("/blogs");
-        if (res.data && res.data.data && res.data.data.length > 0) {
-          setBlogs(res.data.data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch blogs in dashboard:", err);
-      }
-    };
-    fetchBlogs();
-  }, []);
-
-  const handleDeleteBlog = (id) => {
-    setBlogs(prev => prev.filter(b => (b._id || b.id) !== id));
-  };
-
-  // Keep only the blogs authored by the current user
-  const userBlogs = blogs.filter((b) => {
-    if (!currentUser) return false;
-    if (!b.author) return false;
-    const authorId = typeof b.author === "object" ? b.author?._id : b.author;
-    return authorId === currentUser._id;
-  });
 
   const filtered = filter === "all"
     ? userBlogs
@@ -600,7 +584,7 @@ function RecentBlogs({ visible, setActive, setEditingBlog, currentUser }) {
         {/* Blog list */}
         <div className="p-4 space-y-2">
           {filtered.map((blog, i) => (
-            <BlogRow key={blog._id || blog.id} blog={blog} index={i} visible={visible} setActive={setActive} setEditingBlog={setEditingBlog} onDelete={handleDeleteBlog} />
+            <BlogRow key={blog._id || blog.id} blog={blog} index={i} visible={visible} setActive={setActive} setEditingBlog={setEditingBlog} onDelete={onDelete} />
           ))}
           {filtered.length === 0 && (
             <div className="py-12 text-center">
@@ -615,14 +599,53 @@ function RecentBlogs({ visible, setActive, setEditingBlog, currentUser }) {
 }
 
 /* ─────────────────── ACTIVITY FEED ─────────────────── */
-function ActivityFeed({ visible }) {
-  const items = [
-    { icon: <Heart size={12}/>, color: "text-pink-400 bg-pink-400/10 border-pink-400/20", text: "Sarah liked your post", sub: "TypeScript Generics", time: "2m ago" },
-    { icon: <MessageSquare size={12}/>, color: "text-violet-400 bg-violet-400/10 border-violet-400/20", text: "New comment from Mike", sub: "Scalable APIs post", time: "18m ago" },
-    { icon: <Eye size={12}/>, color: "text-cyan-400 bg-cyan-400/10 border-cyan-400/20", text: "Your post is trending", sub: "800+ views today", time: "1h ago" },
-    { icon: <Users size={12}/>, color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20", text: "14 new followers", sub: "This week", time: "3h ago" },
-    { icon: <Star size={12}/>, color: "text-amber-400 bg-amber-400/10 border-amber-400/20", text: "Featured on homepage", sub: "Minimalist UI post", time: "1d ago" },
-  ];
+function ActivityFeed({ visible, userBlogs }) {
+  const getDynamicActivities = () => {
+    if (!userBlogs) return [];
+    const acts = [];
+    userBlogs.forEach(b => {
+      const timeDiff = Date.now() - new Date(b.updatedAt || b.createdAt).getTime();
+      let timeStr = "Just now";
+      const minutes = Math.floor(timeDiff / 60000);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+      if (days > 0) timeStr = `${days}d ago`;
+      else if (hours > 0) timeStr = `${hours}h ago`;
+      else if (minutes > 0) timeStr = `${minutes}m ago`;
+
+      if (b.isPublished) {
+        acts.push({
+          icon: <Globe size={12}/>,
+          color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
+          text: `You published '${b.title}'`,
+          time: timeStr,
+          timestamp: new Date(b.updatedAt || b.createdAt).getTime()
+        });
+      } else {
+        acts.push({
+          icon: <Save size={12}/>,
+          color: "text-amber-400 bg-amber-400/10 border-amber-400/20",
+          text: `You saved draft '${b.title}'`,
+          time: timeStr,
+          timestamp: new Date(b.updatedAt || b.createdAt).getTime()
+        });
+      }
+
+      if (b.views >= 50) {
+        acts.push({
+          icon: <TrendingUp size={12}/>,
+          color: "text-violet-400 bg-violet-400/10 border-violet-400/20",
+          text: `'${b.title}' crossed ${b.views} views`,
+          time: "Milestone",
+          timestamp: new Date(b.updatedAt || b.createdAt).getTime() - 500
+        });
+      }
+    });
+
+    return acts.sort((a,b) => b.timestamp - a.timestamp).slice(0, 5);
+  };
+
+  const activitiesList = getDynamicActivities();
 
   return (
     <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
@@ -636,7 +659,7 @@ function ActivityFeed({ visible }) {
           <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         </div>
         <div className="p-4 space-y-2.5">
-          {items.map((item, i) => (
+          {activitiesList.map((item, i) => (
             <div key={i}
               className={`flex items-start gap-3 p-3 rounded-xl hover:bg-white/[0.03] transition-all duration-200 cursor-pointer group ${visible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"}`}
               style={{ transitionDelay: `${400 + i * 60}ms`, transitionDuration: "500ms" }}>
@@ -647,15 +670,17 @@ function ActivityFeed({ visible }) {
                 <p className="text-white/70 text-xs group-hover:text-white transition-colors" style={{ fontFamily: ACCENT.mono }}>
                   {item.text}
                 </p>
-                <p className="text-white/25 text-[10px] mt-0.5 truncate" style={{ fontFamily: ACCENT.mono }}>
-                  {item.sub}
-                </p>
               </div>
               <span className="text-white/20 text-[10px] flex-shrink-0 mt-0.5" style={{ fontFamily: ACCENT.mono }}>
                 {item.time}
               </span>
             </div>
           ))}
+          {activitiesList.length === 0 && (
+            <div className="py-8 text-center text-white/20 text-xs" style={{ fontFamily: ACCENT.mono }}>
+              No recent activities
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -663,7 +688,9 @@ function ActivityFeed({ visible }) {
 }
 
 /* ─────────────────── QUICK ACTIONS ─────────────────── */
-function QuickActions({ visible, setActive, setEditingBlog, handleNewBlog, setReadAdminOnly }) {
+function QuickActions({ visible, setActive, setEditingBlog, handleNewBlog, setReadAdminOnly, userBlogs }) {
+  const draftCount = userBlogs ? userBlogs.filter(b => !b.isPublished).length : 0;
+
   const actions = [
     { icon: <PenLine size={16}/>, label: "New Blog", desc: "Start writing", gradient: "from-cyan-500 to-violet-500", shadow: "shadow-cyan-500/20", onClick: handleNewBlog },
     {
@@ -674,7 +701,7 @@ function QuickActions({ visible, setActive, setEditingBlog, handleNewBlog, setRe
       shadow: "shadow-amber-500/20",
       onClick: () => { setReadAdminOnly(true); setActive("read"); }
     },
-    { icon: <Globe size={16}/>, label: "Go Live", desc: "Publish draft", gradient: "from-emerald-500 to-cyan-500", shadow: "shadow-emerald-500/20", onClick: () => setActive("blogs") },
+    { icon: <Globe size={16}/>, label: "Go Live", desc: `${draftCount} drafts pending`, gradient: "from-emerald-500 to-cyan-500", shadow: "shadow-emerald-500/20", onClick: () => setActive("blogs") },
   ];
 
   return (
@@ -704,12 +731,51 @@ function QuickActions({ visible, setActive, setEditingBlog, handleNewBlog, setRe
 }
 
 /* ─────────────────── WRITING STREAK ─────────────────── */
-function WritingStreak({ visible }) {
+function WritingStreak({ visible, userBlogs }) {
   const weeks = 12;
-  const days = Array.from({ length: weeks * 7 }, (_, i) => ({
-    val: Math.random() > 0.45 ? Math.floor(Math.random() * 4) + 1 : 0,
-  }));
   const levels = ["bg-white/[0.05]", "bg-cyan-900/60", "bg-cyan-700/70", "bg-cyan-500/80", "bg-cyan-400"];
+
+  const calculateStreak = () => {
+    if (!userBlogs || userBlogs.length === 0) return 0;
+    
+    // Get unique creation dates
+    const dates = new Set(userBlogs.map(b => new Date(b.createdAt).toDateString()));
+    let streak = 0;
+    let checkDate = new Date();
+    
+    if (!dates.has(checkDate.toDateString())) {
+      checkDate.setDate(checkDate.getDate() - 1);
+    }
+    
+    while (dates.has(checkDate.toDateString())) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    }
+    return streak;
+  };
+
+  const getHeatmapData = () => {
+    const daysData = [];
+    const datesMap = {};
+    
+    if (userBlogs) {
+      userBlogs.forEach(b => {
+        const dStr = new Date(b.createdAt).toDateString();
+        datesMap[dStr] = (datesMap[dStr] || 0) + 1;
+      });
+    }
+    
+    for (let i = 83; i >= 0; i--) {
+      const checkDate = new Date();
+      checkDate.setDate(checkDate.getDate() - i);
+      const count = datesMap[checkDate.toDateString()] || 0;
+      daysData.push({ val: count });
+    }
+    return daysData;
+  };
+
+  const streak = calculateStreak();
+  const heatmapData = getHeatmapData();
 
   return (
     <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
@@ -722,7 +788,7 @@ function WritingStreak({ visible }) {
           </div>
           <div className="flex items-center gap-2 text-xs" style={{ fontFamily: ACCENT.ox }}>
             <Activity size={12} className="text-cyan-400" />
-            <span className="text-cyan-400 font-bold">5 day streak</span>
+            <span className="text-cyan-400 font-bold">{streak} day streak</span>
           </div>
         </div>
         <div className="p-5">
@@ -730,10 +796,11 @@ function WritingStreak({ visible }) {
             {Array.from({ length: weeks }, (_, w) => (
               <div key={w} className="flex flex-col gap-1 flex-shrink-0">
                 {Array.from({ length: 7 }, (_, d) => {
-                  const cell = days[w * 7 + d];
+                  const cell = heatmapData[w * 7 + d] || { val: 0 };
+                  const clampedVal = Math.min(cell.val, levels.length - 1);
                   return (
                     <div key={d} title={`${cell.val} post${cell.val !== 1 ? "s" : ""}`}
-                      className={`w-3 h-3 rounded-sm ${levels[cell.val]} transition-all hover:scale-125 cursor-pointer`} />
+                      className={`w-3 h-3 rounded-sm ${levels[clampedVal]} transition-all hover:scale-125 cursor-pointer`} />
                   );
                 })}
               </div>
@@ -760,6 +827,10 @@ export default function Dashboard() {
   const [editingBlog, setEditingBlog] = useState(null);
   const [createKey, setCreateKey] = useState(0);
   const [readAdminOnly, setReadAdminOnly] = useState(false);
+
+  // New state for user's blogs
+  const [blogs, setBlogs] = useState([]);
+  const [blogsLoading, setBlogsLoading] = useState(true);
 
   const handleNewBlog = () => {
     setEditingBlog(null);
@@ -791,6 +862,20 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const res = await api.get("/blogs");
+        setBlogs(res.data.data || []);
+      } catch (err) {
+        console.error("Failed to fetch blogs in dashboard:", err);
+      } finally {
+        setBlogsLoading(false);
+      }
+    };
+    fetchBlogs();
+  }, [active]);
+
+  useEffect(() => {
     const t = setTimeout(() => {
       setVisible(true);
     }, 120);
@@ -808,6 +893,23 @@ export default function Dashboard() {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
+
+  const handleDeleteBlog = async (id) => {
+    try {
+      await api.delete(`/blogs/${id}`);
+      setBlogs(prev => prev.filter(b => (b._id || b.id) !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete blog");
+    }
+  };
+
+  const userBlogs = blogs.filter((b) => {
+    if (!user) return false;
+    if (!b.author) return false;
+    const authorId = typeof b.author === "object" ? b.author?._id : b.author;
+    return authorId === user._id;
+  });
 
   const sideW = collapsed ? 0 : 230;
 
@@ -852,20 +954,20 @@ export default function Dashboard() {
               />
 
               {/* Stats */}
-              <StatCards visible={visible} />
+              <StatCards visible={visible} userBlogs={userBlogs} />
 
               {/* Main two-col grid */}
               <div className="grid xl:grid-cols-[1fr_320px] gap-6">
                 {/* Left column */}
                 <div className="space-y-6 min-w-0">
-                  <RecentBlogs visible={visible} setActive={setActive} setEditingBlog={setEditingBlog} currentUser={user} />
-                  <WritingStreak visible={visible} />
+                  <RecentBlogs visible={visible} setActive={setActive} setEditingBlog={setEditingBlog} userBlogs={userBlogs} onDelete={handleDeleteBlog} />
+                  <WritingStreak visible={visible} userBlogs={userBlogs} />
                 </div>
 
                 {/* Right column */}
                 <div className="space-y-5">
-                  <QuickActions visible={visible} setActive={setActive} setEditingBlog={setEditingBlog} handleNewBlog={handleNewBlog} setReadAdminOnly={setReadAdminOnly} />
-                  <ActivityFeed visible={visible} />
+                  <QuickActions visible={visible} setActive={setActive} setEditingBlog={setEditingBlog} handleNewBlog={handleNewBlog} setReadAdminOnly={setReadAdminOnly} userBlogs={userBlogs} />
+                  <ActivityFeed visible={visible} userBlogs={userBlogs} />
                 </div>
               </div>
             </>

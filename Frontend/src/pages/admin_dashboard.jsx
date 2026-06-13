@@ -640,33 +640,90 @@ function StatCard({
 /* ════════════════════════════════════════════════
    DASHBOARD PAGE
 ════════════════════════════════════════════════ */
-function DashboardPage({ setPage, setReadAdminOnly }) {
+function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
+  const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const res = await api.get("/blogs");
+        setBlogs(res.data.data || []);
+      } catch (err) {
+        console.error("Failed to fetch blogs in dashboard:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBlogs();
+  }, []);
+
+  const startEdit = async (id) => {
+    try {
+      const res = await api.get(`/blogs/${id}`);
+      setEditingBlog(res.data.data);
+      setPage("create");
+    } catch (error) {
+      console.error(error);
+      alert("Failed to load blog");
+    }
+  };
+
+  const deleteBlog = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this blog?")) return;
+    try {
+      await api.delete(`/blogs/${id}`);
+      setBlogs((prev) => prev.filter((x) => x._id !== id));
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete blog");
+    }
+  };
+
+  const totalBlogs = blogs.length;
+  const publishedBlogsCount = blogs.filter((b) => b.isPublished).length;
+  const draftBlogsCount = blogs.filter((b) => !b.isPublished).length;
+  const totalViews = blogs.reduce((acc, b) => acc + (b.views || 0), 0);
+
+  const getNewBlogsThisMonth = () => {
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    return blogs.filter((b) => new Date(b.createdAt) > oneMonthAgo).length;
+  };
+
+  const getNewPublishedThisMonth = () => {
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    return blogs.filter((b) => b.isPublished && new Date(b.createdAt) > oneMonthAgo).length;
+  };
+
   const stats = [
     {
       label: "Total Blogs",
-      value: 6,
+      value: totalBlogs,
       icon: <BookOpen size={16} />,
       gradFrom: "#22d3ee",
       gradTo: "#67e8f9",
       glowColor: "#22d3ee",
-      trend: "+2 this month",
+      trend: `+${getNewBlogsThisMonth()} this month`,
       data: null,
       delay: 0,
     },
     {
       label: "Published Blogs",
-      value: 4,
+      value: publishedBlogsCount,
       icon: <Globe size={16} />,
       gradFrom: "#34d399",
       gradTo: "#6ee7b7",
       glowColor: "#34d399",
-      trend: "+1 this month",
+      trend: `+${getNewPublishedThisMonth()} this month`,
       data: null,
       delay: 0.06,
     },
     {
       label: "Draft Blogs",
-      value: 2,
+      value: draftBlogsCount,
       icon: <FileText size={16} />,
       gradFrom: "#fbbf24",
       gradTo: "#fde68a",
@@ -677,7 +734,7 @@ function DashboardPage({ setPage, setReadAdminOnly }) {
     },
     {
       label: "Total Views",
-      value: 38636,
+      value: totalViews,
       icon: <Eye size={16} />,
       gradFrom: "#a78bfa",
       gradTo: "#c4b5fd",
@@ -687,6 +744,67 @@ function DashboardPage({ setPage, setReadAdminOnly }) {
       delay: 0.18,
     },
   ];
+
+  const recentBlogs = [...blogs]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5);
+
+  // Generate activities dynamically from fetched blogs
+  const dynamicActivities = () => {
+    const acts = [];
+
+    // Map recent edits/publications
+    const sortedByUpdate = [...blogs]
+      .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
+      .slice(0, 5);
+
+    sortedByUpdate.forEach((b) => {
+      const timeDiff = Date.now() - new Date(b.updatedAt || b.createdAt).getTime();
+      let timeStr = "Just now";
+      const minutes = Math.floor(timeDiff / 60000);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+      if (days > 0) timeStr = `${days}d ago`;
+      else if (hours > 0) timeStr = `${hours}h ago`;
+      else if (minutes > 0) timeStr = `${minutes}m ago`;
+
+      if (b.isPublished) {
+        acts.push({
+          icon: <Globe size={12} />,
+          color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
+          text: `Published '${b.title}'`,
+          time: timeStr,
+          timestamp: new Date(b.updatedAt || b.createdAt).getTime()
+        });
+      } else {
+        acts.push({
+          icon: <Save size={12} />,
+          color: "text-amber-400 bg-amber-400/10 border-amber-400/20",
+          text: `Saved draft '${b.title}'`,
+          time: timeStr,
+          timestamp: new Date(b.updatedAt || b.createdAt).getTime()
+        });
+      }
+    });
+
+    // Add view milestone activities if applicable
+    blogs.forEach((b) => {
+      if (b.views >= 100) {
+        acts.push({
+          icon: <TrendingUp size={12} />,
+          color: "text-violet-400 bg-violet-400/10 border-violet-400/20",
+          text: `'${b.title}' crossed ${b.views >= 1000 ? `${(b.views / 1000).toFixed(0)}k` : b.views} views`,
+          time: "Milestone",
+          timestamp: new Date(b.updatedAt || b.createdAt).getTime() - 1000 // slightly older
+        });
+      }
+    });
+
+    // Sort by timestamp desc and limit to 5
+    return acts.sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
+  };
+
+  const activitiesList = dynamicActivities();
 
   return (
     <motion.div
@@ -725,7 +843,7 @@ function DashboardPage({ setPage, setReadAdminOnly }) {
                 className="text-3xl sm:text-4xl font-black text-white tracking-tight"
                 style={{ fontFamily: T.ox }}
               >
-                Good Morning, Keshav<span className="text-cyan-400">.</span>
+                Good Morning, {user?.username || "Admin"}<span className="text-cyan-400">.</span>
               </motion.h1>
               <motion.p
                 initial={{ opacity: 0 }}
@@ -734,7 +852,7 @@ function DashboardPage({ setPage, setReadAdminOnly }) {
                 className="text-white/30 text-sm"
                 style={{ fontFamily: T.mono }}
               >
-                @keshav · Writer since 2026 · Admin
+                @{user?.username || "admin"} · Writer since {user?.createdAt ? new Date(user.createdAt).getFullYear() : "2026"} · Admin
               </motion.p>
             </div>
             <motion.div
@@ -744,6 +862,7 @@ function DashboardPage({ setPage, setReadAdminOnly }) {
             >
               <GradientBtn
                 onClick={() => {
+                  setEditingBlog(null);
                   setPage("create");
                 }}
                 className="px-6 py-3 text-sm"
@@ -786,7 +905,7 @@ function DashboardPage({ setPage, setReadAdminOnly }) {
                   className="text-white/20 text-[10px] mt-0.5"
                   style={{ fontFamily: T.mono }}
                 >
-                  {BLOGS.length} total posts
+                  {totalBlogs} total posts
                 </p>
               </div>
               <button
@@ -798,7 +917,7 @@ function DashboardPage({ setPage, setReadAdminOnly }) {
               </button>
             </div>
             <div className="p-4 space-y-1.5">
-              {BLOGS.map((b, i) => (
+              {recentBlogs.map((b, i) => (
                 <motion.div
                   key={b._id}
                   initial={{ opacity: 0, x: -12 }}
@@ -806,9 +925,9 @@ function DashboardPage({ setPage, setReadAdminOnly }) {
                   transition={{ delay: 0.3 + i * 0.06 }}
                   className="group flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.04] border border-transparent hover:border-white/[0.07] transition-all cursor-pointer"
                 >
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0" onClick={() => navigate(`/blog/${b._id}`)}>
                     <p
-                      className="text-white/75 text-xs font-medium truncate group-hover:text-white transition-colors"
+                      className="text-white/75 text-xs font-medium truncate group-hover:text-cyan-300 transition-colors"
                       style={{ fontFamily: T.ox }}
                     >
                       {b.title}
@@ -817,7 +936,7 @@ function DashboardPage({ setPage, setReadAdminOnly }) {
                       className="text-white/20 text-[10px] mt-0.5"
                       style={{ fontFamily: T.mono }}
                     >
-                      {"General"} · {new Date(b.createdAt).toLocaleDateString()}
+                      {b.category || "General"} · {b.createdAt ? new Date(b.createdAt).toLocaleDateString() : "June 2026"}
                     </p>
                   </div>
                   <Badge status={b.isPublished ? "published" : "draft"} />
@@ -827,19 +946,30 @@ function DashboardPage({ setPage, setReadAdminOnly }) {
                       style={{ fontFamily: T.mono }}
                     >
                       <Eye size={9} />
-                      {(b.views / 1000).toFixed(1)}K
+                      {b.views >= 1000 ? `${(b.views / 1000).toFixed(1)}K` : b.views || 0}
                     </span>
                   )}
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                    <button className="w-6 h-6 rounded-lg bg-white/[0.05] hover:bg-cyan-400/10 hover:text-cyan-400 text-white/30 flex items-center justify-center transition-all">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); startEdit(b._id); }}
+                      className="w-6 h-6 rounded-lg bg-white/[0.05] hover:bg-cyan-400/10 hover:text-cyan-400 text-white/30 flex items-center justify-center transition-all"
+                    >
                       <Edit3 size={10} />
                     </button>
-                    <button className="w-6 h-6 rounded-lg bg-white/[0.05] hover:bg-red-400/10 hover:text-red-400 text-white/30 flex items-center justify-center transition-all">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); deleteBlog(b._id); }}
+                      className="w-6 h-6 rounded-lg bg-white/[0.05] hover:bg-red-400/10 hover:text-red-400 text-white/30 flex items-center justify-center transition-all"
+                    >
                       <Trash2 size={10} />
                     </button>
                   </div>
                 </motion.div>
               ))}
+              {recentBlogs.length === 0 && (
+                <div className="text-center py-8 text-white/20 text-xs" style={{ fontFamily: T.mono }}>
+                  No blogs found.
+                </div>
+              )}
             </div>
           </GlassCard>
         </motion.div>
@@ -865,7 +995,7 @@ function DashboardPage({ setPage, setReadAdminOnly }) {
                     label: "Create Blog",
                     desc: "Start writing",
                     grad: "from-cyan-500 to-violet-500",
-                    action: () => setPage("create"),
+                    action: () => { setEditingBlog(null); setPage("create"); },
                   },
                   {
                     icon: <Star size={14} />,
@@ -877,7 +1007,7 @@ function DashboardPage({ setPage, setReadAdminOnly }) {
                   {
                     icon: <Send size={14} />,
                     label: "Publish Drafts",
-                    desc: "2 drafts pending",
+                    desc: `${draftBlogsCount} drafts pending`,
                     grad: "from-amber-500 to-orange-500",
                     action: () => setPage("manage"),
                   },
@@ -941,7 +1071,7 @@ function DashboardPage({ setPage, setReadAdminOnly }) {
                 </div>
               </div>
               <div className="p-4 space-y-2">
-                {ACTIVITY.map((a, i) => (
+                {activitiesList.map((a, i) => (
                   <motion.div
                     key={i}
                     initial={{ opacity: 0, x: 12 }}
@@ -970,6 +1100,11 @@ function DashboardPage({ setPage, setReadAdminOnly }) {
                     </span>
                   </motion.div>
                 ))}
+                {activitiesList.length === 0 && (
+                  <div className="text-center py-8 text-white/20 text-xs" style={{ fontFamily: T.mono }}>
+                    No recent activity.
+                  </div>
+                )}
               </div>
             </GlassCard>
           </motion.div>
@@ -1572,7 +1707,7 @@ export default function AdminDashboard() {
       <main className="relative z-10 lg:pl-[220px] pt-16 min-h-screen">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           {page === "dashboard" && (
-            <DashboardPage setPage={setPage} setEditingBlog={setEditingBlog} setReadAdminOnly={setReadAdminOnly} />
+            <DashboardPage setPage={setPage} setEditingBlog={setEditingBlog} setReadAdminOnly={setReadAdminOnly} user={user} />
           )}
           {page === "manage" && (
             <ManageBlogsPage
