@@ -129,6 +129,13 @@ function Navbar() {
 
   const links = ["Features", "Pricing", "Blog", "About"];
 
+  const scrollToSection = (id) => {
+    const element = document.getElementById(id.toLowerCase());
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
       scrolled ? "bg-[#080b14]/90 backdrop-blur-xl border-b border-white/[0.06] shadow-2xl" : ""
@@ -148,27 +155,27 @@ function Navbar() {
           {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-1">
             {links.map(l => (
-              <Button key={l} variant="ghost" className="text-sm">{l}</Button>
+              <Button key={l} variant="ghost" className="text-sm" onClick={() => scrollToSection(l)}>{l}</Button>
             ))}
           </div>
 
           {/* CTA */}
           <div className="hidden md:flex items-center gap-3">
             <Button
-  variant="secondary"
-  className="text-sm py-2"
-  onClick={() => navigate("/login")}
->
-  Sign in
-</Button>
+              variant="secondary"
+              className="text-sm py-2"
+              onClick={() => navigate("/login")}
+            >
+              Sign in
+            </Button>
 
-<Button
-  variant="primary"
-  className="text-sm py-2"
-  onClick={() => navigate("/login")}
->
-  Start writing <ArrowRight size={14} />
-</Button>
+            <Button
+              variant="primary"
+              className="text-sm py-2"
+              onClick={() => navigate("/register")}
+            >
+              Start writing <ArrowRight size={14} />
+            </Button>
           </div>
 
           {/* Mobile menu */}
@@ -185,26 +192,26 @@ function Navbar() {
       {menuOpen && (
         <div className="md:hidden bg-[#080b14]/95 backdrop-blur-xl border-b border-white/[0.06] px-4 py-4 space-y-1">
           {links.map(l => (
-            <button key={l} className="block w-full text-left px-4 py-3 text-white/70 hover:text-white rounded-xl hover:bg-white/[0.05] transition-all text-sm">
+            <button key={l} onClick={() => { scrollToSection(l); setMenuOpen(false); }} className="block w-full text-left px-4 py-3 text-white/70 hover:text-white rounded-xl hover:bg-white/[0.05] transition-all text-sm">
               {l}
             </button>
           ))}
           <div className="pt-3 flex flex-col gap-2">
             <Button
-  variant="secondary"
-  className="justify-center"
-  onClick={() => navigate("/login")}
->
-  Sign in
-</Button>
+              variant="secondary"
+              className="justify-center"
+              onClick={() => navigate("/login")}
+            >
+              Sign in
+            </Button>
 
-<Button
-  variant="primary"
-  className="justify-center"
-  onClick={() => navigate("/login")}
->
-  Start writing <ArrowRight size={14} />
-</Button>
+            <Button
+              variant="primary"
+              className="justify-center"
+              onClick={() => navigate("/register")}
+            >
+              Start writing <ArrowRight size={14} />
+            </Button>
           </div>
         </div>
       )}
@@ -215,8 +222,9 @@ function Navbar() {
 /* ─────────────────────────────────────────────
    HERO
 ───────────────────────────────────────────── */
-function Hero() {
+function Hero({ onWatchDemo }) {
   const [ref, visible] = useReveal(0.1);
+  const navigate = useNavigate();
 
   return (
     <section ref={ref} className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 pt-24 pb-16 overflow-hidden">
@@ -248,10 +256,10 @@ function Hero() {
       {/* CTAs */}
       <div className={`mt-10 flex flex-col sm:flex-row items-center gap-4 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
         style={{ transitionDelay: "500ms" }}>
-        <Button variant="primary" className="text-base px-8 py-4 rounded-2xl">
+        <Button variant="primary" className="text-base px-8 py-4 rounded-2xl" onClick={() => navigate("/register")}>
           Start for free <ArrowRight size={16} />
         </Button>
-        <Button variant="secondary" className="text-base px-8 py-4 rounded-2xl gap-3">
+        <Button variant="secondary" className="text-base px-8 py-4 rounded-2xl gap-3" onClick={onWatchDemo}>
           <Play size={14} className="text-cyan-400" /> Watch demo
         </Button>
       </div>
@@ -440,7 +448,7 @@ function Features() {
   };
 
   return (
-    <section ref={ref} className="relative py-28 px-4 max-w-7xl mx-auto">
+    <section id="features" ref={ref} className="relative py-28 px-4 max-w-7xl mx-auto">
       <div className={`text-center mb-16 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
         <Badge color="cyan"><Zap size={10}/> Features</Badge>
         <h2 className="mt-5 text-4xl sm:text-5xl font-black tracking-tight text-white" style={{fontFamily:"'Oxanium',sans-serif"}}>
@@ -486,7 +494,7 @@ function HowItWorks() {
   ];
 
   return (
-    <section ref={ref} className="relative py-28 px-4">
+    <section id="about" ref={ref} className="relative py-28 px-4">
       <div className="max-w-7xl mx-auto">
         <div className={`text-center mb-16 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
           <Badge color="violet"><Coffee size={10}/> How it works</Badge>
@@ -528,17 +536,35 @@ function HowItWorks() {
 ───────────────────────────────────────────── */
 function BlogPreview() {
   const [ref, visible] = useReveal();
-  const posts = [
-    { emoji: "⚡", tag: "Technology", title: "The Future of Web Development in 2025", author: "Alex Chen", read: "5 min", views: "12.4K", likes: 891 },
-    { emoji: "🎨", tag: "Design", title: "Designing for Dark Mode: A Complete Guide", author: "Sara Kim", read: "8 min", views: "9.1K", likes: 723 },
-    { emoji: "🚀", tag: "Startup", title: "How We Scaled to 1M Users With Zero Budget", author: "Mike Torres", read: "12 min", views: "31K", likes: 2100 },
-    { emoji: "🧠", tag: "AI", title: "Building LLM-Powered Apps That Actually Work", author: "Priya Nair", read: "10 min", views: "18.2K", likes: 1340 },
-    { emoji: "📐", tag: "Engineering", title: "Clean Architecture in Node.js: A Deep Dive", author: "James Wu", read: "15 min", views: "7.8K", likes: 610 },
-    { emoji: "🌿", tag: "Lifestyle", title: "The Minimalist Developer's Productivity System", author: "Lena Ross", read: "6 min", views: "5.3K", likes: 487 },
+  const navigate = useNavigate();
+  const [posts, setPosts] = useState([]);
+
+  const fallbackPosts = [
+    { _id: "mock1", emoji: "⚡", tag: "Technology", title: "The Future of Web Development in 2025", author: "Alex Chen", read: "5 min", views: "12.4K", likesCount: 891, isMock: true },
+    { _id: "mock2", emoji: "🎨", tag: "Design", title: "Designing for Dark Mode: A Complete Guide", author: "Sara Kim", read: "8 min", views: "9.1K", likesCount: 723, isMock: true },
+    { _id: "mock3", emoji: "🚀", tag: "Startup", title: "How We Scaled to 1M Users With Zero Budget", author: "Mike Torres", read: "12 min", views: "31K", likesCount: 2100, isMock: true },
+    { _id: "mock4", emoji: "🧠", tag: "AI", title: "Building LLM-Powered Apps That Actually Work", author: "Priya Nair", read: "10 min", views: "18.2K", likesCount: 1340, isMock: true },
+    { _id: "mock5", emoji: "📐", tag: "Engineering", title: "Clean Architecture in Node.js: A Deep Dive", author: "James Wu", read: "15 min", views: "7.8K", likesCount: 610, isMock: true },
+    { _id: "mock6", emoji: "🌿", tag: "Lifestyle", title: "The Minimalist Developer's Productivity System", author: "Lena Ross", read: "6 min", views: "5.3K", likesCount: 487, isMock: true },
   ];
 
+  useEffect(() => {
+    api.get("/blogs")
+      .then(res => {
+        const published = (res.data.data || []).filter(b => b.isPublished);
+        if (published.length > 0) {
+          setPosts(published.slice(0, 6));
+        } else {
+          setPosts(fallbackPosts);
+        }
+      })
+      .catch(() => {
+        setPosts(fallbackPosts);
+      });
+  }, []);
+
   return (
-    <section ref={ref} className="relative py-28 px-4 max-w-7xl mx-auto">
+    <section id="blog" ref={ref} className="relative py-28 px-4 max-w-7xl mx-auto">
       <div className={`flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-6 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
         <div>
           <Badge color="pink"><BookOpen size={10}/> Explore</Badge>
@@ -546,48 +572,63 @@ function BlogPreview() {
             Trending stories <GradientText>today</GradientText>
           </h2>
         </div>
-        <Button variant="secondary" className="self-start sm:self-auto">
+        <Button variant="secondary" className="self-start sm:self-auto" onClick={() => navigate("/login")}>
           View all posts <ChevronRight size={14}/>
         </Button>
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {posts.map((p, i) => (
-          <div key={i}
-            className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
-            style={{ transitionDelay: `${i * 80}ms` }}>
-            <GlassCard className="overflow-hidden group cursor-pointer h-full flex flex-col">
-              {/* Thumbnail */}
-              <div className="h-40 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center text-6xl relative overflow-hidden">
-                <span className="transform group-hover:scale-110 transition-transform duration-500">{p.emoji}</span>
-                <div className="absolute inset-0 bg-gradient-to-t from-[#080b14]/80 to-transparent" />
-                <div className="absolute bottom-3 left-4">
-                  <Badge color={["cyan","violet","pink","green"][i%4]}>{p.tag}</Badge>
+        {posts.map((p, i) => {
+          const authorName = p.isMock ? p.author : (p.author?.fullName || p.author?.username || "Writer");
+          const displayLikes = p.isMock ? p.likesCount : (p.likes || []).length;
+          const displayViews = p.isMock ? p.views : (p.views >= 1000 ? `${(p.views / 1000).toFixed(1)}K` : p.views);
+          
+          return (
+            <div key={p._id || i}
+              className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
+              style={{ transitionDelay: `${i * 80}ms` }}>
+              <GlassCard 
+                className="overflow-hidden group cursor-pointer h-full flex flex-col"
+                onClick={() => {
+                  if (p.isMock) {
+                    navigate("/login");
+                  } else {
+                    navigate(`/blog/${p._id}`);
+                  }
+                }}
+              >
+                {/* Thumbnail */}
+                <div className="h-40 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center text-6xl relative overflow-hidden">
+                  <span className="transform group-hover:scale-110 transition-transform duration-500">{p.emoji || "📝"}</span>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#080b14]/80 to-transparent" />
+                  <div className="absolute bottom-3 left-4">
+                    <Badge color={["cyan","violet","pink","green"][i%4]}>{p.category || p.tag || "General"}</Badge>
+                  </div>
                 </div>
-              </div>
-              {/* Content */}
-              <div className="p-5 flex flex-col flex-1">
-                <h3 className="text-white font-bold text-sm leading-snug mb-3 group-hover:text-cyan-300 transition-colors duration-300" style={{fontFamily:"'Oxanium',sans-serif"}}>
-                  {p.title}
-                </h3>
-                <div className="mt-auto flex items-center justify-between text-white/30 text-xs pt-4 border-t border-white/[0.05]">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center text-[9px] font-bold text-white">
-                      {p.author[0]}
+                {/* Content */}
+                <div className="p-5 flex flex-col flex-1">
+                  <h3 className="text-white font-bold text-sm leading-snug mb-3 group-hover:text-cyan-300 transition-colors duration-300" style={{fontFamily:"'Oxanium',sans-serif"}}>
+                    {p.title}
+                  </h3>
+                  <div className="mt-auto flex items-center justify-between text-white/30 text-xs pt-4 border-t border-white/[0.05]">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center text-[9px] font-bold text-white">
+                        {authorName[0]}
+                      </div>
+                      <span>{authorName}</span>
+                      <span>·</span>
+                      <span>{p.readTime || p.read || "5 min"} read</span>
                     </div>
-                    <span>{p.author}</span>
-                    <span>·</span>
-                    <span>{p.read} read</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="flex items-center gap-1"><Eye size={10}/>{p.views}</span>
-                    <span className="flex items-center gap-1"><Heart size={10}/>{p.likes}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center gap-1"><Eye size={10}/>{displayViews}</span>
+                      <span className="flex items-center gap-1"><Heart size={10}/>{displayLikes}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </GlassCard>
-          </div>
-        ))}
+              </GlassCard>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
@@ -599,6 +640,7 @@ function BlogPreview() {
 function Pricing() {
   const [ref, visible] = useReveal();
   const [annual, setAnnual] = useState(true);
+  const navigate = useNavigate();
 
   const plans = [
     {
@@ -631,7 +673,7 @@ function Pricing() {
   ];
 
   return (
-    <section ref={ref} className="relative py-28 px-4">
+    <section id="pricing" ref={ref} className="relative py-28 px-4">
       <div className="max-w-5xl mx-auto">
         <div className={`text-center mb-12 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
           <Badge color="green"><Award size={10}/> Pricing</Badge>
@@ -691,7 +733,13 @@ function Pricing() {
                   ))}
                 </ul>
                 <div className="mt-8">
-                  <Button variant={p.variant} className="w-full justify-center">
+                  <Button variant={p.variant} className="w-full justify-center" onClick={() => {
+                    if (p.name === "Team") {
+                      window.location.href = "mailto:sales@quillforge.com?subject=QuillForge Enterprise Plan Inquiry";
+                    } else {
+                      navigate("/register");
+                    }
+                  }}>
                     {p.cta}
                   </Button>
                 </div>
@@ -761,6 +809,7 @@ function Testimonials() {
 ───────────────────────────────────────────── */
 function CTABanner() {
   const [ref, visible] = useReveal();
+  const navigate = useNavigate();
 
   return (
     <section ref={ref} className="relative py-20 px-4">
@@ -783,10 +832,10 @@ function CTABanner() {
               Free forever. No credit card required.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button variant="primary" className="text-base px-10 py-4 rounded-2xl">
+              <Button variant="primary" className="text-base px-10 py-4 rounded-2xl" onClick={() => navigate("/register")}>
                 Create your account <ArrowRight size={16}/>
               </Button>
-              <Button variant="secondary" className="text-base px-10 py-4 rounded-2xl">
+              <Button variant="secondary" className="text-base px-10 py-4 rounded-2xl" onClick={() => window.open("https://github.com/unitedtechlab/QUillForge_", "_blank")}>
                 Read the docs <BookOpen size={16}/>
               </Button>
             </div>
@@ -824,7 +873,7 @@ function Footer() {
             </p>
             <div className="flex gap-3">
               {[<X size={14}/>, <Gift size={14}/>, <Rss size={14}/>].map((icon, i) => (
-                <button key={i} className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-white/40 hover:text-white hover:border-white/20 transition-all">
+                <button key={i} className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-white/40 hover:text-white hover:border-white/20 transition-all" onClick={() => window.open("https://github.com/unitedtechlab/QUillForge_", "_blank")}>
                   {icon}
                 </button>
               ))}
@@ -861,6 +910,9 @@ function Footer() {
    ROOT PAGE
 ───────────────────────────────────────────── */
 export default function Home() {
+  const [showDemo, setShowDemo] = useState(false);
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen text-white"
       style={{
@@ -875,7 +927,7 @@ export default function Home() {
       `}</style>
 
       <Navbar />
-      <Hero />
+      <Hero onWatchDemo={() => setShowDemo(true)} />
       <LogoStrip />
       <Features />
       <HowItWorks />
@@ -884,6 +936,31 @@ export default function Home() {
       <Testimonials />
       <CTABanner />
       <Footer />
+
+      {/* Demo Modal */}
+      {showDemo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="relative w-full max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-slate-950 shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06] bg-white/[0.02]">
+              <span className="font-bold text-sm tracking-wide text-white" style={{ fontFamily: "'Oxanium',sans-serif" }}>QuillForge Interactive Demo</span>
+              <button className="text-white/40 hover:text-white p-1 rounded-lg hover:bg-white/[0.05] transition-all" onClick={() => setShowDemo(false)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="relative aspect-video bg-gradient-to-br from-slate-900 to-slate-950 flex flex-col items-center justify-center p-8 text-center">
+              <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.2)_0,transparent_100%)]" />
+              <div className="w-16 h-16 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 flex items-center justify-center mb-4 animate-pulse">
+                <Feather size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2" style={{ fontFamily: "'Oxanium',sans-serif" }}>Interactive Walkthrough Coming Soon</h3>
+              <p className="text-white/40 text-sm max-w-md">Our developer team is cooking up a fully interactive product tour. For now, you can explore the platform by signing up for a free account!</p>
+              <Button variant="primary" className="mt-6 text-xs" onClick={() => { setShowDemo(false); navigate("/register"); }}>
+                Sign Up Now <ArrowRight size={12} />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
