@@ -280,9 +280,10 @@ function WelcomeSection({ visible, user, setActive, setEditingBlog, handleNewBlo
               {user?.username || "Loading..."}<span className="text-cyan-400">.</span>
             </h1>
             <p className="text-white/35 text-sm" style={{ fontFamily: ACCENT.mono }}>
-              @{user?.username || "loading"} · Writer since Jan 2024
+              @{user?.username || "loading"} · forced to lock in , born to write
             </p>
           </div>
+          
 
           <div className="flex flex-col items-start sm:items-end gap-3">
             <button onClick={handleNewBlog} className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-all duration-300 hover:shadow-[0_0_24px_rgba(34,211,238,0.3)] hover:scale-[1.02] active:scale-[0.98]"
@@ -766,6 +767,8 @@ function WritingStreak({ visible, userBlogs }) {
     }
     
     for (let i = 83; i >= 0; i--) {
+      // 83 to 0 = total 84 as 12*7=84 
+      
       const checkDate = new Date();
       checkDate.setDate(checkDate.getDate() - i);
       const count = datesMap[checkDate.toDateString()] || 0;

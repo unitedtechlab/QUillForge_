@@ -470,7 +470,7 @@ function Topbar({ setOpen, setPage, setEditingBlog }) {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search blogs, drafts, users…"
+          placeholder="how you doin'?…"
           className="w-full bg-white/[0.04] border border-white/[0.07] rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-white/18 focus:outline-none focus:border-cyan-400/40 transition-all"
           style={{ fontFamily: T.mono }}
         />
@@ -644,6 +644,9 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
 
   /**
    * Loads all blog posts in the application to calculate admin-wide statistics.
@@ -858,7 +861,7 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
                 className="text-3xl sm:text-4xl font-black text-white tracking-tight"
                 style={{ fontFamily: T.ox }}
               >
-                Good Morning, {user?.username || "Admin"}<span className="text-cyan-400">.</span>
+                {greeting}, {user?.username || "Admin"}<span className="text-cyan-400">.</span>
               </motion.h1>
               <motion.p
                 initial={{ opacity: 0 }}
