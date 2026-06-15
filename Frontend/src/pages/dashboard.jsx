@@ -409,8 +409,8 @@ function StatusBadge({ status }) {
 }
 
 /* ─────────────────── BLOG ROW ─────────────────── */
-function BlogRow({ blog, index, visible, setActive, setEditingBlog, onDelete }) {
-  const [menuOpen, setMenuOpen] = useState(false);
+/* ─────────────────── BLOG ROW ─────────────────── */
+function BlogRow({ blog, index, visible, setActive }) {
   const navigate = useNavigate();
 
   // Support both mock and real database formats
@@ -424,43 +424,11 @@ function BlogRow({ blog, index, visible, setActive, setEditingBlog, onDelete }) 
   const displayReadTime = blog.readTime || "5 min";
   const displayEmoji = blog.emoji || (blog.isPublished ? "⚡" : "📝");
 
-  const handleEdit = async () => {
-    if (blog._id) {
-      try {
-        const res = await api.get(`/blogs/${blog._id}`);
-        setEditingBlog(res.data.data);
-        setActive("create");
-      } catch (err) {
-        console.error("Failed to load blog for editing:", err);
-        alert("Failed to load blog");
-      }
-    } else {
-      setEditingBlog(blog);
-      setActive("create");
-    }
-  };
-
   const handleView = () => {
     if (blog._id) {
       navigate(`/blog/${blog._id}`);
     } else {
       alert("Mock posts cannot be viewed.");
-    }
-  };
-
-  const handleDelete = async () => {
-    if (blog._id) {
-      if (window.confirm("Are you sure you want to delete this blog?")) {
-        try {
-          await api.delete(`/blogs/${blog._id}`);
-          onDelete(blog._id);
-        } catch (err) {
-          console.error("Failed to delete blog:", err);
-          alert("Failed to delete blog");
-        }
-      }
-    } else {
-      onDelete(blog.id);
     }
   };
 
@@ -510,37 +478,20 @@ function BlogRow({ blog, index, visible, setActive, setEditingBlog, onDelete }) 
         </div>
       )}
 
-      {/* Action menu */}
-      <div className="relative flex-shrink-0">
-        <button onClick={() => setMenuOpen(!menuOpen)}
-          className="w-8 h-8 rounded-lg border border-white/[0.06] hover:border-white/20 bg-white/[0.02] hover:bg-white/[0.07] flex items-center justify-center text-white/30 hover:text-white transition-all">
-          <MoreHorizontal size={14}/>
-        </button>
-        {menuOpen && (
-          <>
-            <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-            <div className="absolute right-0 top-full mt-1.5 w-36 rounded-xl border border-white/[0.09] bg-[#0d1220] backdrop-blur-xl shadow-2xl shadow-black/50 z-20 overflow-hidden py-1">
-              {[
-                { icon: <Edit3 size={12}/>, label: "Edit", color: "text-white/60", action: handleEdit },
-                { icon: <ExternalLink size={12}/>, label: "View Post", color: "text-white/60", action: handleView },
-                { icon: <Trash2 size={12}/>, label: "Delete", color: "text-red-400/80", action: handleDelete },
-              ].map((a, i) => (
-                <button key={i} onClick={() => { setMenuOpen(false); a.action(); }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs ${a.color} hover:bg-white/[0.05] transition-all`}
-                  style={{ fontFamily: ACCENT.mono }}>
-                  {a.icon}{a.label}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
+      {/* Direct View Action */}
+      <button 
+        onClick={handleView}
+        title="View Post"
+        className="w-8 h-8 rounded-lg border border-white/[0.06] hover:border-cyan-400/20 bg-white/[0.02] hover:bg-white/[0.07] flex items-center justify-center text-white/35 hover:text-cyan-400 transition-all flex-shrink-0 cursor-pointer"
+      >
+        <ExternalLink size={14}/>
+      </button>
     </div>
   );
 }
 
 /* ─────────────────── RECENT BLOGS ─────────────────── */
-function RecentBlogs({ visible, setActive, setEditingBlog, userBlogs, onDelete }) {
+function RecentBlogs({ visible, setActive, userBlogs }) {
   const [filter, setFilter] = useState("all");
   const filters = ["all", "published", "draft"];
 
@@ -575,7 +526,7 @@ function RecentBlogs({ visible, setActive, setEditingBlog, userBlogs, onDelete }
                 </button>
               ))}
             </div>
-            <button onClick={() => setActive("blogs")} className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/[0.07] hover:border-white/20 text-white/40 hover:text-white text-xs transition-all"
+            <button onClick={() => setActive("read")} className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/[0.07] hover:border-white/20 text-white/40 hover:text-white text-xs transition-all cursor-pointer"
               style={{ fontFamily: ACCENT.ox }}>
               View all <ChevronRight size={12}/>
             </button>
@@ -585,7 +536,7 @@ function RecentBlogs({ visible, setActive, setEditingBlog, userBlogs, onDelete }
         {/* Blog list */}
         <div className="p-4 space-y-2">
           {filtered.map((blog, i) => (
-            <BlogRow key={blog._id || blog.id} blog={blog} index={i} visible={visible} setActive={setActive} setEditingBlog={setEditingBlog} onDelete={onDelete} />
+            <BlogRow key={blog._id || blog.id} blog={blog} index={i} visible={visible} setActive={setActive} />
           ))}
           {filtered.length === 0 && (
             <div className="py-12 text-center">
@@ -938,6 +889,14 @@ export default function Dashboard() {
     return authorId === user._id;
   });
 
+  const availableBlogs = blogs.filter((b) => {
+    const isPub = b.isPublished || b.status === "published";
+    if (isPub) return true;
+    if (!user) return false;
+    const authorId = typeof b.author === "object" ? b.author?._id : b.author;
+    return authorId === user._id;
+  });
+
   const sideW = collapsed ? 0 : 230;
 
   return (
@@ -987,7 +946,7 @@ export default function Dashboard() {
               <div className="grid xl:grid-cols-[1fr_320px] gap-6">
                 {/* Left column */}
                 <div className="space-y-6 min-w-0">
-                  <RecentBlogs visible={visible} setActive={setActive} setEditingBlog={setEditingBlog} userBlogs={userBlogs} onDelete={handleDeleteBlog} />
+                  <RecentBlogs visible={visible} setActive={setActive} userBlogs={availableBlogs} />
                   <WritingStreak visible={visible} userBlogs={userBlogs} />
                 </div>
 
