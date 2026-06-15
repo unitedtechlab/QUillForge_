@@ -470,7 +470,7 @@ const [relatedBlogs] = useState([
   }
 
   // Cover image fallback
-  const coverImage = blog.coverImage || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80";
+  const coverImage = blog.featuredImage || blog.coverImage || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80";
 
   // Auto calculate read time
   const readTime = Math.max(
@@ -842,7 +842,7 @@ const [relatedBlogs] = useState([
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {relatedBlogs.map((item, idx) => {
-                const itemCover = item.coverImage || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80";
+                const itemCover = item.featuredImage || item.coverImage || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80";
                 
                 return (
                   <Link 

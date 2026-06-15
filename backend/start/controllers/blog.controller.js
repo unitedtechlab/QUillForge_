@@ -2,6 +2,7 @@ import Blog from "../models/blog.model.js";
 import { asyncHandler } from "../../utilities/asynchandler.js";
 import { ApiError } from "../../utilities/errors.js";
 import { ApiResponse } from "../../utilities/response.js";
+import { uploadOnCloudinary } from "../../utilities/cloudinary.js";
 
 const createBlog = asyncHandler(async (req, res) => {
 
@@ -9,7 +10,8 @@ const createBlog = asyncHandler(async (req, res) => {
     title,
     excerpt,
     content,
-    isPublished = false
+    isPublished = false,
+    featuredImage = ""
   } = req.body;
 
   if (!title || !content) {
@@ -34,6 +36,7 @@ const createBlog = asyncHandler(async (req, res) => {
     views: 0,
     content,
     isPublished,
+    featuredImage,
     author: req.user._id
   });
 
@@ -192,5 +195,22 @@ const toggleLike = asyncHandler(async (req, res) => {
   );
 });
 
+const uploadBlogImage = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    throw new ApiError(400, "Image file is required");
+  }
 
-export { createBlog, getAllBlogs, deleteBlog, updateBlog, getBlogById, incrementView, toggleLike };
+  const result = await uploadOnCloudinary(req.file.path);
+
+  if (!result) {
+    throw new ApiError(500, "Failed to upload image to Cloudinary");
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, {
+      url: result.secure_url
+    }, "Image uploaded successfully")
+  );
+});
+
+export { createBlog, getAllBlogs, deleteBlog, updateBlog, getBlogById, incrementView, toggleLike, uploadBlogImage };

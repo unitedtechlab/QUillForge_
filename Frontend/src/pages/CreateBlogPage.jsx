@@ -109,6 +109,8 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [recovered, setRecovered] = useState(false);
+  const [featuredImage, setFeaturedImage] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Load draft from localStorage on mount (if we are NOT editing an existing blog)
   useEffect(() => {
@@ -116,13 +118,14 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
       const savedDraft = localStorage.getItem("quillforge_draft");
       if (savedDraft) {
         try {
-          const { title: dTitle, excerpt: dExcerpt, content: dContent, category: dCategory, tags: dTags } = JSON.parse(savedDraft);
-          if (dTitle || dContent || dExcerpt) {
+          const { title: dTitle, excerpt: dExcerpt, content: dContent, category: dCategory, tags: dTags, featuredImage: dImg } = JSON.parse(savedDraft);
+          if (dTitle || dContent || dExcerpt || dImg) {
             setTitle(dTitle || "");
             setExcerpt(dExcerpt || "");
             setContent(dContent || "");
             setCategory(dCategory || "Technology");
             setTags(dTags || "");
+            setFeaturedImage(dImg || "");
             setRecovered(true);
             setTimeout(() => setRecovered(false), 5000);
           }
@@ -136,13 +139,13 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
   // Save draft to localStorage whenever fields change
   useEffect(() => {
     if (editingBlog) return;
-    if (!title && !content && !excerpt && !tags) {
+    if (!title && !content && !excerpt && !tags && !featuredImage) {
       localStorage.removeItem("quillforge_draft");
       return;
     }
-    const draftData = { title, excerpt, content, category, tags };
+    const draftData = { title, excerpt, content, category, tags, featuredImage };
     localStorage.setItem("quillforge_draft", JSON.stringify(draftData));
-  }, [title, excerpt, content, category, tags, editingBlog]);
+  }, [title, excerpt, content, category, tags, featuredImage, editingBlog]);
 
   // Effect to load editingBlog properties into form fields when in edit mode,
   // or clear them when launching a fresh blog creation.
@@ -154,6 +157,7 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
         setExcerpt("");
         setContent("");
         setPub(false);
+        setFeaturedImage("");
       }
       return;
     }
@@ -162,12 +166,48 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
     setExcerpt(editingBlog.excerpt || "");
     setContent(editingBlog.content || "");
     setPub(editingBlog.isPublished);
+    setFeaturedImage(editingBlog.featuredImage || "");
   }, [editingBlog]);
 
   // Effect to automatically synchronize URL Slug field with title changes.
   useEffect(() => {
     setSlug(toSlug(title));
   }, [title]);
+
+  /**
+   * Saves the blog post as either a draft or publishes it.
+   * 
+   * API Calls:
+   * 1. If updating an existing blog (editingBlog is defined):
+   *    - Endpoint: PUT /blogs/:id (in backend start/routes/blog.routes.js)
+   * 2. If creating a new blog:
+   *    - Endpoint: POST /blogs (in backend start/routes/blog.routes.js)
+   */
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setUploadingImage(true);
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const res = await api.post("/blogs/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (res.data?.data?.url) {
+        setFeaturedImage(res.data.data.url);
+      }
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      alert("Failed to upload image. Please try again.");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   /**
    * Saves the blog post as either a draft or publishes it.
@@ -189,6 +229,7 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
           excerpt,
           content,
           isPublished: publish,
+          featuredImage,
         });
 
         if (setEditingBlog) setEditingBlog(null);
@@ -196,12 +237,14 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
         setExcerpt("");
         setContent("");
         setPub(false);
+        setFeaturedImage("");
       } else {
         res = await api.post("/blogs", {
           title,
           excerpt,
           content,
           isPublished: publish,
+          featuredImage,
         });
 
         console.log("BLOG CREATED:", res.data);
@@ -209,6 +252,7 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
         setExcerpt("");
         setContent("");
         setPub(false);
+        setFeaturedImage("");
       }
 
       localStorage.removeItem("quillforge_draft");
@@ -440,6 +484,68 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
                 <Send size={12} /> Publish Blog
               </GradientBtn>
             </div>
+          </GlassCard>
+
+          <GlassCard className="p-5 space-y-3">
+            <h3
+              className="text-xs font-black text-white"
+              style={{ fontFamily: T.ox }}
+            >
+              Featured Image
+            </h3>
+            
+            {featuredImage ? (
+              <div className="space-y-3">
+                <div className="relative rounded-xl overflow-hidden border border-white/[0.08] aspect-video bg-black/40">
+                  <img
+                    src={featuredImage}
+                    alt="Featured preview"
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    onClick={() => setFeaturedImage("")}
+                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white/70 hover:text-white transition-colors border border-white/10"
+                    title="Remove image"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="relative">
+                <label className="flex flex-col items-center justify-center border border-dashed border-white/[0.12] hover:border-cyan-400/40 rounded-xl p-6 cursor-pointer bg-white/[0.01] hover:bg-white/[0.02] transition-all group">
+                  {uploadingImage ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <RefreshCw size={18} className="text-cyan-400 animate-spin" />
+                      <span className="text-[10px] font-medium text-white/40" style={{ fontFamily: T.mono }}>
+                        Uploading...
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <svg className="w-6 h-6 text-white/20 group-hover:text-cyan-400/60 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span className="text-[10px] font-bold text-white/40 group-hover:text-white/60 transition-colors" style={{ fontFamily: T.ox }}>
+                        Upload Image
+                      </span>
+                      <span className="text-[8px] text-white/15" style={{ fontFamily: T.mono }}>
+                        PNG, JPG up to 5MB
+                      </span>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploadingImage}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            )}
           </GlassCard>
 
           <GlassCard className="p-5 space-y-3">

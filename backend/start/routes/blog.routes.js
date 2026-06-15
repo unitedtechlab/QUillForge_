@@ -1,10 +1,12 @@
 import { Router } from "express";
 import { verifyjwt } from "../middlewares/auth.middleware.js";
 import { verifyadmin } from "../middlewares/admin.middleware.js";
-import { createBlog, getAllBlogs, deleteBlog, updateBlog, getBlogById, incrementView, toggleLike } from "../controllers/blog.controller.js";
+import { createBlog, getAllBlogs, deleteBlog, updateBlog, getBlogById, incrementView, toggleLike, uploadBlogImage } from "../controllers/blog.controller.js";
+import { upload } from "../middlewares/multer.middleware.js";
 
 const router = Router();
 
+router.post("/upload", verifyjwt, upload.single("image"), uploadBlogImage);
 router.post("/", verifyjwt, createBlog);
 
 router.get("/", getAllBlogs);

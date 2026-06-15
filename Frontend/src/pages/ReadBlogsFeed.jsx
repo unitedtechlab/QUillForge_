@@ -319,6 +319,15 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
             return (
               <motion.div key={blog._id} variants={fadeUp}>
                 <GlassCard className="p-8 space-y-6">
+                  {(blog.featuredImage || blog.coverImage) && (
+                    <div className="relative h-48 sm:h-56 w-full rounded-xl overflow-hidden border border-white/[0.06] bg-black/40">
+                      <img 
+                        src={blog.featuredImage || blog.coverImage} 
+                        alt={blog.title} 
+                        className="w-full h-full object-cover" 
+                      />
+                    </div>
+                  )}
                   {/* Article Metadata Header */}
                   <div className="flex items-center justify-between text-xs text-white/40">
                     <div className="flex items-center gap-3">

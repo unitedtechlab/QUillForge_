@@ -36,6 +36,11 @@ const blogSchema = new mongoose.Schema(
       default: false
     },
 
+    featuredImage: {
+      type: String,
+      default: ""
+    },
+
     views: {
       type: Number,
       default: 0
