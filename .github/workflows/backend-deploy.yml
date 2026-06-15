@@ -41,13 +41,14 @@ jobs:
           JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          CLOUDINARY_URL: ${{ secrets.CLOUDINARY_URL }}
 
         with:
           host: ${{ vars.EC2_HOST }}
           username: ${{ vars.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
 
-          envs: PORT,MONGODB_URI,JWT_SECRET,JWT_EXPIRES_IN,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET
+          envs: PORT,MONGODB_URI,JWT_SECRET,JWT_EXPIRES_IN,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,CLOUDINARY_URL
 
           script: |
             set -e
@@ -62,6 +63,7 @@ jobs:
             JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
             GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
             GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+            CLOUDINARY_URL=${CLOUDINARY_URL}
             EOF
 
             gunzip -c backend.tar.gz | sudo docker load
