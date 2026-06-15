@@ -1,22 +1,8 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs";
 
-// Ensure temporary upload directory exists
-const tempDir = "./public/temp";
-if (!fs.existsSync(tempDir)) {
-  fs.mkdirSync(tempDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, tempDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Use memory storage to be fully compatible with serverless/containerized deployments (Docker)
+// This avoids filesystem write permission issues in production
+const storage = multer.memoryStorage();
 
 export const upload = multer({ 
   storage,

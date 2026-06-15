@@ -200,7 +200,7 @@ const uploadBlogImage = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Image file is required");
   }
 
-  const result = await uploadOnCloudinary(req.file.path);
+  const result = await uploadOnCloudinary(req.file.buffer);
 
   if (!result) {
     throw new ApiError(500, "Failed to upload image to Cloudinary");

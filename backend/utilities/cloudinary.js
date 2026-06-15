@@ -1,35 +1,37 @@
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
 
 cloudinary.config({
   secure: true
 });
 
-export const uploadOnCloudinary = async (localFilePath) => {
+/**
+ * Uploads a file buffer directly to Cloudinary using upload_stream.
+ * This is 100% safe for containerized/Docker environments as it does not read/write to local disk.
+ */
+export const uploadOnCloudinary = async (fileBuffer) => {
   try {
-    if (!localFilePath) return null;
+    if (!fileBuffer) return null;
     
-    // Upload the file to Cloudinary
-    const response = await cloudinary.uploader.upload(localFilePath, {
-      resource_type: "auto",
-      folder: "quillforge"
+    return new Promise((resolve) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: "quillforge",
+          resource_type: "auto"
+        },
+        (error, result) => {
+          if (error) {
+            console.error("Cloudinary stream upload failed:", error);
+            resolve(null);
+          } else {
+            console.log("Cloudinary stream upload successful:", result.secure_url);
+            resolve(result);
+          }
+        }
+      );
+      uploadStream.end(fileBuffer);
     });
-    
-    // File has been uploaded successfully
-    console.log("File uploaded to Cloudinary:", response.secure_url);
-    
-    // Remove the locally saved temporary file
-    if (fs.existsSync(localFilePath)) {
-      fs.unlinkSync(localFilePath);
-    }
-    
-    return response;
   } catch (error) {
-    console.error("Cloudinary upload failed:", error);
-    // Remove the locally saved temporary file as the upload operation failed
-    if (fs.existsSync(localFilePath)) {
-      fs.unlinkSync(localFilePath);
-    }
+    console.error("Cloudinary helper crash:", error);
     return null;
   }
 };
