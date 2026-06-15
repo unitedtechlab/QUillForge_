@@ -667,19 +667,24 @@ const [relatedBlogs] = useState([
               </div>
             </div>
 
-            {/* Cover Image banner */}
-            <div className="relative w-full h-[250px] sm:h-[380px] md:h-[450px] rounded-3xl overflow-hidden border border-white/[0.08] mb-12 shadow-[0_20px_50px_rgba(0,0,0,0.5)]" style={focusMode ? { display: "none" } : {}}>
-              <img 
-                src={coverImage} 
-                alt={blog.title} 
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#080b14]/50 to-transparent" />
-            </div>
+            {/* Dynamic Layout: Side-by-Side on large screens, stacked on small screens */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 lg:gap-12 items-start mt-6 mb-12">
+              {/* Content Column */}
+              <div className="blog-content min-w-0 order-2 lg:order-1 max-w-[800px] w-full">
+                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(blog.content || "") }} />
+              </div>
 
-            {/* Content Container (DOMPurify Sanitized HTML) */}
-            <div className="blog-content max-w-[800px] mx-auto">
-              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(blog.content || "") }} />
+              {/* Image Column */}
+              <div className="order-1 lg:order-2 w-full lg:sticky lg:top-28" style={focusMode ? { display: "none" } : {}}>
+                <div className="relative w-full rounded-2xl overflow-hidden border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-white/[0.01]">
+                  <img 
+                    src={coverImage} 
+                    alt={blog.title} 
+                    className="w-full h-auto max-h-[500px] object-contain mx-auto block"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#080b14]/30 to-transparent pointer-events-none" />
+                </div>
+              </div>
             </div>
 
             {/* Engagement buttons bottom */}
