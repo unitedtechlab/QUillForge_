@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   Feather, Mail, Lock, Eye, EyeOff, ArrowRight,
   Sparkles, Chrome, BookOpen, Heart, Eye as EyeIcon,
-  Shield, Zap, Star
+  Shield, Zap, Star, CheckCircle2, AlertCircle
 } from "lucide-react";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
@@ -163,7 +163,7 @@ function LeftPanel({ visible }) {
 /* ─────────────────────────────────────────
    INPUT FIELD
 ───────────────────────────────────────── */
-function InputField({ label, type = "text", placeholder, value, onChange, icon, rightElement, error }) {
+function InputField({ label, type = "text", placeholder, value, onChange, icon, rightElement, error, hint }) {
   return (
     <div className="space-y-1.5">
       <label className="block text-xs font-medium text-white/50 tracking-wide uppercase" style={{ fontFamily: "'Oxanium',sans-serif" }}>
@@ -171,10 +171,14 @@ function InputField({ label, type = "text", placeholder, value, onChange, icon, 
       </label>
       <div className={`relative flex items-center rounded-xl border transition-all duration-300 ${
         error
-          ? "border-red-500/40 bg-red-500/5"
+          ? "border-red-500/40 bg-red-500/5 focus-within:border-red-400/60"
+          : hint
+          ? "border-emerald-500/40 bg-emerald-500/[0.03] focus-within:border-emerald-400/50"
           : "border-white/[0.08] bg-white/[0.04] focus-within:border-cyan-400/50 focus-within:bg-white/[0.06]"
       }`}>
-        <div className="absolute left-4 text-white/25">
+        <div className={`absolute left-4 transition-colors duration-300 ${
+          error ? "text-red-400/60" : hint ? "text-emerald-400/60" : "text-white/25"
+        }`}>
           {icon}
         </div>
         <input
@@ -191,7 +195,16 @@ function InputField({ label, type = "text", placeholder, value, onChange, icon, 
           </div>
         )}
       </div>
-      {error && <p className="text-red-400 text-[10px] pl-1">{error}</p>}
+      {error && (
+        <p className="flex items-center gap-1.5 text-red-400 text-[10px] pl-1">
+          <AlertCircle size={9} />{error}
+        </p>
+      )}
+      {hint && !error && (
+        <p className="flex items-center gap-1.5 text-emerald-400 text-[10px] pl-1">
+          <CheckCircle2 size={9} />{hint}
+        </p>
+      )}
     </div>
   );
 }
@@ -206,6 +219,7 @@ function LoginForm({ visible }) {
   const [remember, setRemember]   = useState(false);
   const [loading, setLoading]     = useState(false);
   const [errors, setErrors]       = useState({});
+  const [hints, setHints]         = useState({});
 
   /**
    * Performs client-side validation on the login form inputs.
@@ -215,13 +229,73 @@ function LoginForm({ visible }) {
   const validate = () => {
     const e = {};
     if (!email)                          e.email    = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(email)) e.email   = "Enter a valid email";
+    else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) e.email   = "Enter a valid email";
     if (!password)                       e.password = "Password is required";
     else if (password.length < 6)       e.password = "At least 6 characters";
     return e;
   };
 
   const navigate = useNavigate();
+
+  // Debounced live email existence check on the backend
+  useEffect(() => {
+    if (!email) {
+      setErrors(er => ({ ...er, email: "" }));
+      setHints(h => {
+        const newH = { ...h };
+        delete newH.email;
+        return newH;
+      });
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+      setErrors(er => ({ ...er, email: "Enter a valid email address" }));
+      setHints(h => {
+        const newH = { ...h };
+        delete newH.email;
+        return newH;
+      });
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await api.get(`/users/validate-email?email=${encodeURIComponent(email)}`);
+        const data = res.data.data;
+
+        if (!data.isValid) {
+          setErrors(er => ({ ...er, email: data.reason || "Invalid email format" }));
+          setHints(h => {
+            const newH = { ...h };
+            delete newH.email;
+            return newH;
+          });
+        } else if (!data.isGoogle) {
+          setErrors(er => ({ ...er, email: "Only Google/Gmail accounts are supported" }));
+          setHints(h => {
+            const newH = { ...h };
+            delete newH.email;
+            return newH;
+          });
+        } else if (data.exists === false) {
+          setErrors(er => ({ ...er, email: "This Google account does not exist" }));
+          setHints(h => {
+            const newH = { ...h };
+            delete newH.email;
+            return newH;
+          });
+        } else {
+          setErrors(er => ({ ...er, email: "" }));
+          setHints(h => ({ ...h, email: "Verified Google/Gmail account!" }));
+        }
+      } catch (err) {
+        console.error("Email verification error:", err);
+      }
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [email]);
 
   /**
    * Submits the credentials to the authentication API.
@@ -240,10 +314,32 @@ function LoginForm({ visible }) {
     }
 
     setErrors({});
+    setLoading(true);
 
     try {
-      setLoading(true);
+      // 1. Perform one last server check before submitting
+      const valRes = await api.get(`/users/validate-email?email=${encodeURIComponent(email)}`);
+      const valData = valRes.data.data;
 
+      if (!valData.isValid) {
+        setErrors({ email: valData.reason || "Invalid email" });
+        setLoading(false);
+        return;
+      }
+
+      if (!valData.isGoogle) {
+        setErrors({ email: "Only Google/Gmail accounts are allowed" });
+        setLoading(false);
+        return;
+      }
+
+      if (valData.exists === false) {
+        setErrors({ email: "This Google email address does not exist" });
+        setLoading(false);
+        return;
+      }
+
+      // 2. Submit credentials
       const res = await api.post(
         "/users/login",
         {
@@ -363,6 +459,7 @@ function LoginForm({ visible }) {
           onChange={e => setEmail(e.target.value)}
           icon={<Mail size={15} />}
           error={errors.email}
+          hint={hints.email}
         />
 
         <InputField

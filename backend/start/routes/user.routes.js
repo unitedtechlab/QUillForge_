@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser, loginUser , getCurrentUser, logoutUser} from "../controllers/user.controller.js";
+import { registerUser, loginUser , getCurrentUser, logoutUser, validateEmail} from "../controllers/user.controller.js";
 import {verifyjwt} from "../middlewares/auth.middleware.js";
 import {verifyadmin} from "../middlewares/admin.middleware.js";
 
@@ -10,6 +10,7 @@ const router = Router();
   
 router.route("/register").post(registerUser);
 router.route("/login").post(loginUser);
+router.route("/validate-email").get(validateEmail);
 router.route("/current-user").get(verifyjwt, getCurrentUser);
 router.route("/logout").post(verifyjwt, logoutUser);
 

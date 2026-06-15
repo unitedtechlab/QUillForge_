@@ -106,9 +106,10 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
           if (user) {
             const initialLiked = {};
             published.forEach(b => {
-              initialLiked[b._id] = (b.likes || []).some(
-                uid => uid.toString() === user._id.toString()
-              );
+              initialLiked[b._id] = (b.likes || []).some(uid => {
+                const idStr = (uid && typeof uid === "object" && uid._id) ? uid._id.toString() : (uid ? uid.toString() : "");
+                return idStr === user._id.toString();
+              });
             });
             setLikedBlogs(initialLiked);
           }

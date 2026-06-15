@@ -314,11 +314,75 @@ function RegisterForm({ visible }) {
   useEffect(() => {
     const h = {};
     if (form.username.length >= 3) h.username = "Username looks good!";
-    if (form.email && /\S+@\S+\.\S+/.test(form.email)) h.email = "Valid email address";
     if (form.confirm && form.confirm === form.password && form.password.length >= 6)
       h.confirm = "Passwords match!";
-    setHints(h);
-  }, [form]);
+    setHints(prev => {
+      const updated = { ...prev };
+      if (h.username) updated.username = h.username; else delete updated.username;
+      if (h.confirm) updated.confirm = h.confirm; else delete updated.confirm;
+      return updated;
+    });
+  }, [form.username, form.confirm, form.password]);
+
+  // Debounced live email existence check on the backend
+  useEffect(() => {
+    if (!form.email) {
+      setErrors(er => ({ ...er, email: "" }));
+      setHints(h => {
+        const newH = { ...h };
+        delete newH.email;
+        return newH;
+      });
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.email)) {
+      setErrors(er => ({ ...er, email: "Enter a valid email address" }));
+      setHints(h => {
+        const newH = { ...h };
+        delete newH.email;
+        return newH;
+      });
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await api.get(`/users/validate-email?email=${encodeURIComponent(form.email)}`);
+        const data = res.data.data;
+
+        if (!data.isValid) {
+          setErrors(er => ({ ...er, email: data.reason || "Invalid email format" }));
+          setHints(h => {
+            const newH = { ...h };
+            delete newH.email;
+            return newH;
+          });
+        } else if (!data.isGoogle) {
+          setErrors(er => ({ ...er, email: "Only Google/Gmail accounts are supported" }));
+          setHints(h => {
+            const newH = { ...h };
+            delete newH.email;
+            return newH;
+          });
+        } else if (data.exists === false) {
+          setErrors(er => ({ ...er, email: "This Google account does not exist" }));
+          setHints(h => {
+            const newH = { ...h };
+            delete newH.email;
+            return newH;
+          });
+        } else {
+          setErrors(er => ({ ...er, email: "" }));
+          setHints(h => ({ ...h, email: "Verified Google/Gmail account!" }));
+        }
+      } catch (err) {
+        console.error("Email verification error:", err);
+      }
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [form.email]);
 
   /**
    * Performs client-side validation on the registration form inputs.
@@ -332,7 +396,7 @@ function RegisterForm({ visible }) {
     else if (!/^[a-zA-Z0-9_]+$/.test(form.username)) e.username = "Only letters, numbers & underscores";
 
     if (!form.email)                e.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Enter a valid email";
+    else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.email)) e.email = "Enter a valid email";
 
     if (!form.password)             e.password = "Password is required";
     else if (getStrength(form.password).score < 2) e.password = "Password is too weak";
@@ -360,10 +424,32 @@ function RegisterForm({ visible }) {
     }
 
     setErrors({});
+    setLoading(true);
 
     try {
-      setLoading(true);
+      // 1. Perform one last server check before submitting
+      const valRes = await api.get(`/users/validate-email?email=${encodeURIComponent(form.email)}`);
+      const valData = valRes.data.data;
 
+      if (!valData.isValid) {
+        setErrors({ email: valData.reason || "Invalid email" });
+        setLoading(false);
+        return;
+      }
+
+      if (!valData.isGoogle) {
+        setErrors({ email: "Only Google/Gmail accounts are allowed" });
+        setLoading(false);
+        return;
+      }
+
+      if (valData.exists === false) {
+        setErrors({ email: "This Google email address does not exist" });
+        setLoading(false);
+        return;
+      }
+
+      // 2. Perform actual registration
       const res = await api.post(
         "/users/register",
         {

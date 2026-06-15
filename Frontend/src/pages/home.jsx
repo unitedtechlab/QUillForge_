@@ -7,6 +7,196 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
+// function of usenavigate are  :
+/* --------------------------------------------------
+   1. The basic idea of useNavigate
+-------------------------------------------------- */
+
+// Imagine "useNavigate" is like a smart teleportation device for your website.
+// Instead of the browser reloading the entire page (which takes time and resets everything),
+// it just tells the "router" (which controls the URL and what shows) to swap the content.
+
+// How it works:
+
+// 1. You get a "navigator" function from react-router-dom:
+//    import { useNavigate } from "react-router-dom";
+//    const navigate = useNavigate();
+
+// 2. You call this function with a destination (a "route"):
+//    navigate("/dashboard");  // Teleport to dashboard
+//    navigate("/login");    // Teleport to login
+//    navigate(-1);           // Go back (like a browser back button)
+//    navigate("/blog", { replace: true }); // Replace current page in history (can't go back to it)
+
+
+// 3. "react-router-dom" intercepts this call.
+
+// 4. It doesn't reload the whole page.
+//    Instead, it changes the URL in the address bar (e.g., from "/" to "/dashboard").
+
+// 5. React re-renders only the part of your UI that matches the new URL.
+//    This makes navigation feel instant — like a single-page app.
+
+/* --------------------------------------------------
+   2. "Why do we need this?" (The problem it solves)
+-------------------------------------------------- */
+
+// Without useNavigate (traditional websites):
+
+// <a href="/dashboard">Dashboard</a>
+// When you click this:
+// - Browser loads a completely new HTML page
+// - CSS files reload
+// - JavaScript re-initializes
+// - React state resets
+// - Animations flicker
+// - Everything restarts
+// - It feels slow and clunky
+
+// With useNavigate (Single Page Application - SPA):
+
+// <button onClick={() => navigate("/dashboard")}>Dashboard</button>
+// When you click this:
+// - No page reload
+// - URL changes instantly
+// - React swaps the component (e.g., DashboardComponent mounts)
+// - Everything else stays the same
+// - Feels super fast and smooth
+
+
+/* --------------------------------------------------
+   3. Practical code examples (with your project in mind)
+-------------------------------------------------- */
+
+// 1. Navigating after login:
+
+// function LoginPage() {
+//   const navigate = useNavigate();
+
+//   async function handleLogin(event) {
+//     event.preventDefault();
+//     // Call your login API
+//     const success = await api.login(email, password);
+
+//     if (success) {
+//       navigate("/dashboard");  // << THIS is where useNavigate shines!
+//     } else {
+//       // Show error message
+//     }
+//   }
+
+//   return (
+//     <form onSubmit={handleLogin}>
+//       <input type="email" />
+//       <input type="password" />
+//       <button type="submit">Login</button>
+//     </form>
+//   );
+// }
+
+// Without useNavigate, you'd have to do a full page reload, which would break the SPA feel.
+
+
+// 2. Handling drafts vs. published blogs:
+
+/*
+// Inside CreateBlogPage.jsx:
+
+async function handleSaveDraft() {
+  await api.saveDraft(content);
+  navigate("/dashboard/blogs"); // Go back to My Blogs list
+}
+
+async function handlePublish() {
+  const result = await api.publish(content);
+  navigate("/dashboard/blogs"); // Go back to My Blogs list
+}
+*/
+
+// After creating a blog, you want to show the updated list. useNavigate lets you do this instantly.
+
+
+// 3. "Go back" button:
+
+/*
+// In some components, you might want a back button:
+
+function BlogPostPage({ postId }) {
+  const navigate = useNavigate();
+  const [post, setPost] = useState(null);
+
+  useEffect(() => {
+    api.getPost(postId).then(setPost);
+  }, [postId]);
+
+  return (
+    <div>
+      <h1>{post?.title}</h1>
+      <p>{post?.content}</p>
+      
+      <button onClick={() => navigate(-1)}>  // << Go back to previous page
+        Back
+      </button>
+    </div>
+  );
+}
+*/
+
+// This is much better than: window.history.back()
+// because useNavigate works within React's router context.
+
+
+// 4. Navigation with parameters:
+
+/*
+// If you need to navigate to a specific blog:
+
+function BlogCard({ blog }) {
+  const navigate = useNavigate();
+
+  return (
+    <div>
+      <h2>{blog.title}</h2>
+      <button onClick={() => navigate(`/blog/${blog.id}`)}>  // << Dynamic URL
+        Read More
+      </button>
+    </div>
+  );
+}
+
+// This tells React Router: "Go to the URL /blog/123", and the router
+// will render the BlogPostPage component with postId = 123.
+*/
+
+
+// 5. Replacement navigation:
+
+/*
+// Replace current history entry (can't go back to it):
+
+// If user logs in, we replace the login page in history
+// so they can't click back to the login screen
+navigate("/dashboard", { replace: true });
+*/
+
+
+// 6. Passing state during navigation:
+
+/*
+// You can pass temporary state that's available on the next screen
+
+navigate("/confirmation", {
+  state: {
+    orderId: 12345,
+    total: 99.99
+  }
+});
+
+// In ConfirmationPage.jsx:
+
+const { state } = useLocation();
+const orderId = state.orderId;  // Access the passed state
+*/
 
 
 /* ─────────────────────────────────────────────
@@ -122,6 +312,9 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
+// useeffect function is used to change the style of the navbar when the user scrolls down
+// and change it back when the user scrolls up 
+
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
@@ -745,7 +938,7 @@ function Pricing() {
                 <div className="mt-8">
                   <Button variant={p.variant} className="w-full justify-center" onClick={() => {
                     if (p.name === "Team") {
-                      window.location.href = "mailto:sales@quillforge.com?subject=QuillForge Enterprise Plan Inquiry";
+                      window.location.href = "mailto:kkakani160@gmail.com?subject=QuillForge Enterprise Plan Inquiry";
                     } else {
                       navigate("/register");
                     }
@@ -876,7 +1069,7 @@ function Footer() {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center">
                 <Feather size={14} className="text-white" />
               </div>
-              <span className="text-white font-bold text-lg" style={{fontFamily:"'Oxanium',sans-serif"}}>Quill<span className="text-cyan-400">.</span></span>
+              <span className="text-white font-bold text-lg" style={{fontFamily:"'Oxanium',sans-serif"}}>QuillForge<span className="text-cyan-400">.</span></span>
             </div>
             <p className="text-white/30 text-sm leading-relaxed mb-5">
               The modern platform for writers who care about craft.

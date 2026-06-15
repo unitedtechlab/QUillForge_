@@ -286,8 +286,11 @@ const [relatedBlogs] = useState([
             const user = userRes.value.data.data;
             setCurrentUser(user);
             console.log("Set currentUser successfully:", user);
-            // Seed liked state — check if current user's ID is in the array
-            const isLiked = likesArr.some(uid => uid.toString() === user._id.toString());
+            // Seed liked state — check if current user's ID is in the array (handling both ObjectId strings and populated user objects)
+            const isLiked = likesArr.some(uid => {
+              const idStr = (uid && typeof uid === "object" && uid._id) ? uid._id.toString() : (uid ? uid.toString() : "");
+              return idStr === user._id.toString();
+            });
             setLiked(isLiked);
             console.log("Seeded liked state to:", isLiked);
           } else {
