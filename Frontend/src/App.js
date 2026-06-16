@@ -12,16 +12,20 @@ import BlogDetails from "./pages/BlogDetails";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/blog/:id" element={<BlogDetails />} />
-      </Routes>
-    </BrowserRouter>  
+    <>
+      <div className="crt-overlay" />
+      <div className="noise-overlay" />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/blog/:id" element={<BlogDetails />} />
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 }
 

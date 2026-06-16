@@ -17,14 +17,14 @@ import ReadBlogsPage from "./ReadBlogsFeed";
 
 
 /* ─────────────────── CONSTANTS ─────────────────── */
-const ACCENT = { ox: "'Oxanium',sans-serif", mono: "'Space Mono',monospace" };
+const ACCENT = { ox: "'VT323', monospace", mono: "'Space Mono', monospace", pixel: "'Silkscreen', monospace" };
 
 const BLOGS = [
   { id: 1, title: "Building Scalable APIs with Node.js and Express", category: "Technology", status: "published", views: 8241, likes: 432, comments: 38, date: "Jun 1, 2025", readTime: "8 min", emoji: "⚡" },
   { id: 2, title: "The Art of Minimalist UI Design Systems", category: "Design", status: "published", views: 5712, likes: 289, comments: 24, date: "May 24, 2025", readTime: "6 min", emoji: "🎨" },
   { id: 3, title: "Mastering TypeScript Generics — A Deep Dive", category: "Dev", status: "published", views: 10183, likes: 567, comments: 61, date: "May 18, 2025", readTime: "12 min", emoji: "🔷" },
   { id: 4, title: "My Productivity Stack as a Solo Developer", category: "Lifestyle", status: "draft", views: 0, likes: 0, comments: 0, date: "Jun 3, 2025", readTime: "5 min", emoji: "🛠️" },
-  { id: 5, title: "Why I Left React for Solid.js (And Came Back)", category: "Technology", status: "published", views: 14500, likes: 921, comments: 95, date: "Apr 30, 2025", readTime: "10 min", emoji: "🚀" },
+  { id: 5, title: "Why I Left React for Solo (And Came Back)", category: "Technology", status: "published", views: 14500, likes: 921, comments: 95, date: "Apr 30, 2025", readTime: "10 min", emoji: "🚀" },
 ];
 
 const SPARKLINE_DATA = [18, 32, 27, 45, 38, 60, 52, 78, 65, 82, 70, 94];
@@ -33,17 +33,13 @@ const SPARKLINE_DATA = [18, 32, 27, 45, 38, 60, 52, 78, 65, 82, 70, 94];
 function Background() {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-      <div className="absolute inset-0" style={{
-        backgroundImage: `linear-gradient(rgba(99,102,241,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,0.035) 1px,transparent 1px)`,
-        backgroundSize: "72px 72px",
+      <div className="absolute inset-0 bg-[#252525]" />
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: `linear-gradient(#E8E8C6 1px, transparent 1px), linear-gradient(90deg, #E8E8C6 1px, transparent 1px)`,
+        backgroundSize: "40px 40px",
       }} />
-      <div className="absolute -top-40 right-0 w-[700px] h-[700px] bg-violet-600/8 rounded-full blur-[130px]" />
-      <div className="absolute top-1/2 -left-40 w-[500px] h-[500px] bg-cyan-500/6 rounded-full blur-[110px]" />
-      <div className="absolute -bottom-40 right-1/3 w-[500px] h-[400px] bg-pink-600/5 rounded-full blur-[110px]" />
-      <div className="absolute inset-0 opacity-[0.02]" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        backgroundSize: "200px",
-      }} />
+      <div className="crt-overlay" />
+      <div className="noise-overlay" />
     </div>
   );
 }
@@ -68,7 +64,7 @@ function AnimatedNumber({ target, duration = 1400, suffix = "" }) {
 }
 
 /* ─────────────────── SPARKLINE ─────────────────── */
-function Sparkline({ data, color = "#22d3ee", height = 40 }) {
+function Sparkline({ data, color = "#E8E8C6", height = 40 }) {
   const max = Math.max(...data), min = Math.min(...data);
   const w = 120, h = height;
   const pts = data.map((v, i) => {
@@ -76,17 +72,9 @@ function Sparkline({ data, color = "#22d3ee", height = 40 }) {
     const y = h - ((v - min) / (max - min || 1)) * h * 0.85 - h * 0.075;
     return `${x},${y}`;
   }).join(" ");
-  const area = `M0,${h} L${pts.split(" ").map(p => p).join(" L")} L${w},${h} Z`;
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-10" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id={`sg-${color.replace("#","")}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={area} fill={`url(#sg-${color.replace("#","")})`} />
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -108,54 +96,54 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, h
     <>
       {/* Mobile overlay */}
       {!collapsed && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
+        <div className="fixed inset-0 bg-[#252525]/80 backdrop-blur-xs z-30 lg:hidden"
           onClick={() => setCollapsed(true)} />
       )}
 
       <aside className={`
         fixed top-0 left-0 h-full z-40 flex flex-col
-        border-r border-white/[0.06] bg-[#080b14]/95 backdrop-blur-xl
+        border-r-4 border-retro-accent bg-retro-bg
         transition-all duration-300 ease-in-out
         ${collapsed ? "-translate-x-full lg:translate-x-0 lg:w-[68px]" : "translate-x-0 w-[230px]"}
       `}>
         {/* Logo */}
-        <div className={`flex items-center gap-3 px-4 h-16 border-b border-white/[0.06] flex-shrink-0 ${collapsed ? "lg:justify-center" : ""}`}>
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-cyan-500/20">
-            <Feather size={14} className="text-white" />
+        <div className={`flex items-center gap-3 px-4 h-16 border-b-2 border-retro-border flex-shrink-0 ${collapsed ? "lg:justify-center" : ""}`}>
+          <div className="w-8 h-8 bg-retro-accent border-2 border-retro-accent flex items-center justify-center flex-shrink-0 shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+            <Feather size={14} className="text-retro-bg" />
           </div>
           {!collapsed && (
-            <span className="text-white font-black text-lg tracking-tight whitespace-nowrap" style={{ fontFamily: ACCENT.ox }}>
-              Quill<span className="text-cyan-400">.</span>
+            <span className="text-retro-accent font-black text-2xl tracking-widest uppercase whitespace-nowrap" style={{ fontFamily: ACCENT.ox }}>
+              Quill<span className="text-retro-accent">.</span>
             </span>
           )}
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 p-3 space-y-1 overflow-hidden">
+        <nav className="flex-1 p-3 space-y-1.5 overflow-hidden">
           {nav.map(item => {
             const isActive = active === item.id;
             return (
               <button key={item.id} onClick={() => { if (item.id === "create") { handleNewBlog(); } else { setActive(item.id); } setCollapsed(window.innerWidth < 1024 ? true : collapsed); }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-200 group relative ${
                   isActive
-                    ? "bg-gradient-to-r from-cyan-500/15 to-violet-500/10 border border-cyan-500/25 text-white"
-                    : "text-white/35 hover:text-white/70 hover:bg-white/[0.04] border border-transparent"
+                    ? "bg-retro-surface border-2 border-retro-accent text-retro-accent"
+                    : "text-retro-text/60 hover:text-retro-accent hover:bg-retro-surface/20 border border-transparent"
                 } ${collapsed ? "lg:justify-center lg:px-2" : ""}`}
               >
-                <span className={`flex-shrink-0 transition-colors ${isActive ? "text-cyan-400" : "group-hover:text-cyan-400/70"}`}>
+                <span className={`flex-shrink-0 transition-colors ${isActive ? "text-retro-accent" : "group-hover:text-retro-accent/70"}`}>
                   {item.icon}
                 </span>
                 {!collapsed && (
-                  <span className="text-xs font-medium whitespace-nowrap" style={{ fontFamily: ACCENT.ox }}>
+                  <span className="text-sm font-medium uppercase tracking-wider whitespace-nowrap" style={{ fontFamily: ACCENT.ox }}>
                     {item.label}
                   </span>
                 )}
                 {isActive && !collapsed && (
-                  <div className="ml-auto w-1 h-1 rounded-full bg-cyan-400" />
+                  <div className="ml-auto w-2 h-2 bg-retro-accent" />
                 )}
                 {/* Tooltip for collapsed */}
                 {collapsed && (
-                  <div className="absolute left-full ml-2 px-2.5 py-1.5 rounded-lg bg-slate-800 border border-white/10 text-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 hidden lg:block"
+                  <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-retro-surface border-2 border-retro-accent text-retro-accent text-xs uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 hidden lg:block"
                     style={{ fontFamily: ACCENT.ox }}>
                     {item.label}
                   </div>
@@ -166,7 +154,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, h
         </nav>
 
         {/* Bottom */}
-        <div className="p-3 border-t border-white/[0.06] space-y-1">
+        <div className="p-3 border-t-2 border-retro-border space-y-1">
           {bottom.map(item => (
             <button key={item.id}
               onClick={() => {
@@ -174,12 +162,12 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, h
                   handleLogout();
                 }
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-white/30 hover:text-white/60 hover:bg-white/[0.04] group relative ${collapsed ? "lg:justify-center lg:px-2" : ""}`}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-200 text-retro-text/40 hover:text-retro-accent hover:bg-retro-surface/20 border border-transparent group relative ${collapsed ? "lg:justify-center lg:px-2" : ""}`}
             >
               <span className="flex-shrink-0">{item.icon}</span>
-              {!collapsed && <span className="text-xs font-medium whitespace-nowrap" style={{ fontFamily: ACCENT.ox }}>{item.label}</span>}
+              {!collapsed && <span className="text-sm font-medium uppercase tracking-wider whitespace-nowrap" style={{ fontFamily: ACCENT.ox }}>{item.label}</span>}
               {collapsed && (
-                <div className="absolute left-full ml-2 px-2.5 py-1.5 rounded-lg bg-slate-800 border border-white/10 text-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 hidden lg:block"
+                <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-retro-surface border-2 border-retro-accent text-retro-accent text-xs uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 hidden lg:block"
                   style={{ fontFamily: ACCENT.ox }}>
                   {item.label}
                 </div>
@@ -189,7 +177,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, h
 
           {/* Collapse toggle — desktop only */}
           <button onClick={() => setCollapsed(!collapsed)}
-            className="hidden lg:flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-white/20 hover:text-white/50 hover:bg-white/[0.04] transition-all duration-200 justify-center mt-1">
+            className="hidden lg:flex w-full items-center gap-3 px-3 py-2.5 text-retro-text/30 hover:text-retro-accent hover:bg-retro-surface/20 border border-transparent justify-center mt-1 cursor-pointer">
             <ChevronRight size={14} className={`transition-transform duration-300 ${collapsed ? "" : "rotate-180"}`} />
           </button>
         </div>
@@ -204,45 +192,43 @@ function Topbar({ collapsed, setCollapsed, user, setActive, setEditingBlog, hand
   const [notifs, setNotifs] = useState(3);
 
   return (
-    <header className="fixed top-0 right-0 left-0 h-16 z-20 border-b border-white/[0.06] bg-[#080b14]/80 backdrop-blur-xl flex items-center px-4 gap-4"
+    <header className="fixed top-0 right-0 left-0 h-16 z-20 border-b-2 border-retro-border bg-retro-surface flex items-center px-4 gap-4"
       style={{ paddingLeft: collapsed ? "calc(68px + 16px)" : "calc(230px + 16px)", transition: "padding 300ms ease" }}>
 
       {/* Mobile hamburger */}
-      <button className="lg:hidden text-white/50 hover:text-white p-1.5 rounded-lg hover:bg-white/[0.06] transition-all"
+      <button className="lg:hidden text-retro-text/60 hover:text-retro-accent p-1.5 border-2 border-retro-border bg-retro-bg transition-all"
         onClick={() => setCollapsed(!collapsed)}>
         <Menu size={18} />
       </button>
 
       {/* Search */}
       <div className="relative flex-1 max-w-md">
-        <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
+        <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-retro-text/30" />
         <input
           value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Search blogs, drafts..."
-          className="w-full bg-white/[0.04] border border-white/[0.07] rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-white/20 focus:outline-none focus:border-cyan-400/40 focus:bg-white/[0.06] transition-all"
-          style={{ fontFamily: ACCENT.mono }}
+          className="w-full bg-retro-bg border-2 border-retro-border pl-9 pr-4 py-2 text-sm text-retro-text placeholder-retro-text/25 focus:outline-none focus:border-retro-accent transition-all font-terminal"
         />
       </div>
 
-      <div className="flex items-center gap-2 ml-auto">
+      <div className="flex items-center gap-3 ml-auto">
         {/* New blog shortcut */}
-        <button onClick={handleNewBlog} className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all duration-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.25)] hover:scale-[1.02]"
-          style={{ background: "linear-gradient(135deg,#22d3ee 0%,#7c3aed 100%)", fontFamily: ACCENT.ox }}>
+        <button onClick={handleNewBlog} className="hidden sm:flex items-center gap-2 px-4 py-2 border-2 border-retro-accent bg-[#E8E8C6] text-[#252525] text-sm font-pixel hover:bg-[#E2E2D5] active:translate-y-[1px] shadow-[2px_2px_0px_rgba(0,0,0,1)] cursor-pointer select-none">
           <Plus size={13} /> New Blog
         </button>
 
         {/* Notifications */}
-        <button className="relative w-9 h-9 rounded-xl border border-white/[0.07] bg-white/[0.03] hover:bg-white/[0.07] flex items-center justify-center text-white/40 hover:text-white transition-all">
+        <button className="relative w-9 h-9 border-2 border-retro-border bg-retro-bg hover:bg-retro-surface/30 flex items-center justify-center text-retro-text/40 hover:text-retro-accent transition-all cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px]">
           <Bell size={15} />
           {notifs > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 text-[9px] font-bold text-white flex items-center justify-center">
+            <span className="absolute -top-1.5 -right-1.5 px-1 bg-retro-accent border border-retro-bg text-[9px] font-pixel text-[#252525] flex items-center justify-center">
               {notifs}
             </span>
           )}
         </button>
 
         {/* Avatar */}
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center text-xs font-black text-white cursor-pointer hover:shadow-lg hover:shadow-cyan-500/20 transition-all"
+        <div className="w-9 h-9 border-2 border-retro-accent bg-retro-accent flex items-center justify-center text-sm font-pixel text-[#252525] cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:bg-[#E2E2D5] select-none"
           style={{ fontFamily: ACCENT.ox }}>
           {user?.username?.slice(0,2).toUpperCase() || "U"}
         </div>
@@ -253,7 +239,7 @@ function Topbar({ collapsed, setCollapsed, user, setActive, setEditingBlog, hand
 
 /* ─────────────────── WELCOME ─────────────────── */
 function WelcomeSection({ visible, user, setActive, setEditingBlog, handleNewBlog }) {
-    console.log("WELCOME USER:", user);
+  console.log("WELCOME USER:", user);
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const tips = [
@@ -265,33 +251,31 @@ function WelcomeSection({ visible, user, setActive, setEditingBlog, handleNewBlo
 
   return (
     <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
-      <div className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-gradient-to-br from-cyan-500/8 via-violet-500/6 to-transparent p-6 sm:p-8">
-        {/* Decorative glow */}
-        <div className="absolute -top-10 -right-10 w-48 h-48 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent" />
+      <div className="relative border-4 border-retro-accent bg-retro-surface p-6 sm:p-8 shadow-[6px_6px_0px_rgba(0,0,0,1)]">
+        
+        {/* Title bar decoration */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-retro-accent" />
 
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-5">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-400/25 bg-cyan-400/8 text-cyan-300 text-xs font-medium"
-              style={{ fontFamily: ACCENT.ox }}>
-              <Sparkles size={9} /> {greeting}
+            <div className="inline-flex items-center gap-2 px-3 py-1 border border-retro-border bg-retro-bg text-retro-accent text-sm font-pixel"
+              style={{ fontFamily: ACCENT.pixel }}>
+              <Sparkles size={11} /> {greeting.toUpperCase()}
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight" style={{ fontFamily: ACCENT.ox }}>
-              {user?.username || "Loading..."}<span className="text-cyan-400">.</span>
+            <h1 className="text-4xl sm:text-5xl font-black text-retro-accent tracking-widest uppercase" style={{ fontFamily: ACCENT.ox }}>
+              {user?.username || "Loading..."}<span className="text-retro-accent">.</span>
             </h1>
-            <p className="text-white/35 text-sm" style={{ fontFamily: ACCENT.mono }}>
-              @{user?.username || "loading"} · forced to lock in , born to write
+            <p className="text-retro-text/60 text-sm font-terminal" style={{ fontFamily: ACCENT.mono }}>
+              @{user?.username || "loading"} · forced to lock in, born to write
             </p>
           </div>
-          
 
           <div className="flex flex-col items-start sm:items-end gap-3">
-            <button onClick={handleNewBlog} className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-all duration-300 hover:shadow-[0_0_24px_rgba(34,211,238,0.3)] hover:scale-[1.02] active:scale-[0.98]"
-              style={{ background: "linear-gradient(135deg,#22d3ee 0%,#7c3aed 100%)", fontFamily: ACCENT.ox }}>
-              <Plus size={14} /> Create New Blog
+            <button onClick={handleNewBlog} className="flex items-center gap-2 px-5 py-2.5 border-2 border-retro-accent bg-[#E8E8C6] text-[#252525] text-sm font-pixel hover:bg-[#E2E2D5] active:translate-y-[1px] shadow-[4px_4px_0px_rgba(0,0,0,1)] cursor-pointer select-none">
+              <Plus size={14} /> CREATE NEW BLOG
             </button>
-            <div className="flex items-center gap-2 text-xs text-white/30 max-w-[240px]" style={{ fontFamily: ACCENT.mono }}>
-              <Zap size={10} className="text-amber-400 flex-shrink-0" />
+            <div className="flex items-center gap-2 text-xs text-retro-text/40 max-w-[240px] font-terminal" style={{ fontFamily: ACCENT.mono }}>
+              <Zap size={12} className="text-retro-amber flex-shrink-0" />
               <span>{tip}</span>
             </div>
           </div>
@@ -319,11 +303,10 @@ function StatCards({ visible, userBlogs }) {
       label: "Total Blogs",
       value: totalBlogs,
       icon: <FileText size={18}/>,
-      iconBg: "bg-cyan-400/10 border-cyan-400/20 text-cyan-400",
+      iconBg: "bg-retro-bg border-retro-border text-retro-accent",
       trend: `+${getNewBlogsThisMonth()} this month`,
       up: true,
-      color: "from-cyan-400 to-cyan-300",
-      sparkColor: "#22d3ee",
+      sparkColor: "#E8E8C6",
       data: [1,2,2,3,3,4,4,4,5,5,5,5],
       suffix: "",
     },
@@ -331,11 +314,10 @@ function StatCards({ visible, userBlogs }) {
       label: "Total Views",
       value: totalViews,
       icon: <Eye size={18}/>,
-      iconBg: "bg-violet-400/10 border-violet-400/20 text-violet-400",
+      iconBg: "bg-retro-bg border-retro-border text-retro-accent",
       trend: "+14.2% vs last month",
       up: true,
-      color: "from-violet-400 to-violet-300",
-      sparkColor: "#a78bfa",
+      sparkColor: "#E8E8C6",
       data: SPARKLINE_DATA,
       suffix: "",
     },
@@ -343,11 +325,10 @@ function StatCards({ visible, userBlogs }) {
       label: "Total Likes",
       value: totalLikes,
       icon: <Heart size={18}/>,
-      iconBg: "bg-pink-400/10 border-pink-400/20 text-pink-400",
+      iconBg: "bg-retro-bg border-retro-border text-retro-accent",
       trend: "+8.7% vs last month",
       up: true,
-      color: "from-pink-400 to-pink-300",
-      sparkColor: "#f472b6",
+      sparkColor: "#E8E8C6",
       data: [20,35,28,45,38,55,48,72,60,80,68,90],
       suffix: "",
     },
@@ -359,32 +340,26 @@ function StatCards({ visible, userBlogs }) {
         <div key={i}
           className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
           style={{ transitionDelay: `${i * 100}ms` }}>
-          <div className="relative rounded-2xl border border-white/[0.07] bg-white/[0.02] hover:border-white/[0.13] hover:bg-white/[0.04] transition-all duration-300 p-5 overflow-hidden group">
-            {/* Hover glow */}
-            <div className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}
-              style={{ background: `radial-gradient(circle at 0% 0%, ${c.sparkColor}08, transparent 70%)` }} />
+          <div className="relative border-2 border-retro-border bg-retro-surface hover:border-retro-accent transition-all duration-300 p-5 shadow-[4px_4px_0px_rgba(0,0,0,1)] group">
 
             <div className="flex items-start justify-between mb-4">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${c.iconBg}`}>
+              <div className={`w-10 h-10 border-2 flex items-center justify-center ${c.iconBg}`}>
                 {c.icon}
               </div>
-              <div className={`flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-full ${
-                c.up ? "text-emerald-400 bg-emerald-400/10 border border-emerald-400/20" : "text-red-400 bg-red-400/10 border border-red-400/20"
-              }`} style={{ fontFamily: ACCENT.ox }}>
-                {c.up ? <ChevronUp size={9}/> : <TrendingDown size={9}/>}
-                {c.trend.split(" ")[0]}
+              <div className="flex items-center gap-1 text-xs font-pixel px-2 py-0.5 border border-retro-border bg-retro-bg text-retro-accent uppercase tracking-wider" style={{ fontFamily: ACCENT.pixel }}>
+                {c.up ? "+" : "-"}{c.trend.split(" ")[0].replace("+","").replace("-","")}
               </div>
             </div>
 
-            <div className={`text-3xl font-black bg-gradient-to-r ${c.color} bg-clip-text text-transparent mb-1`}
+            <div className="text-5xl font-black text-retro-accent mb-1"
               style={{ fontFamily: ACCENT.ox }}>
               <AnimatedNumber target={c.value} />
             </div>
-            <p className="text-white/35 text-xs mb-4" style={{ fontFamily: ACCENT.mono }}>{c.label}</p>
+            <p className="text-retro-text/60 text-xs mb-4 uppercase tracking-wider" style={{ fontFamily: ACCENT.mono }}>{c.label}</p>
 
             <Sparkline data={c.data} color={c.sparkColor} />
 
-            <p className="text-white/20 text-[10px] mt-2" style={{ fontFamily: ACCENT.mono }}>{c.trend}</p>
+            <p className="text-retro-text/30 text-xs mt-2 font-terminal uppercase" style={{ fontFamily: ACCENT.mono }}>{c.trend}</p>
           </div>
         </div>
       ))}
@@ -395,15 +370,15 @@ function StatCards({ visible, userBlogs }) {
 /* ─────────────────── STATUS BADGE ─────────────────── */
 function StatusBadge({ status }) {
   const map = {
-    published: "text-emerald-400 bg-emerald-400/10 border-emerald-400/25",
-    draft:     "text-amber-400  bg-amber-400/10  border-amber-400/25",
-    flagged:   "text-red-400    bg-red-400/10    border-red-400/25",
+    published: "text-emerald-400 bg-retro-bg border-emerald-400/30",
+    draft:     "text-retro-amber  bg-retro-bg  border-retro-amber/30",
+    flagged:   "text-red-400    bg-retro-bg    border-red-400/30",
   };
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium border ${map[status]}`}
-      style={{ fontFamily: ACCENT.ox }}>
-      <span className={`w-1.5 h-1.5 rounded-full ${status === "published" ? "bg-emerald-400" : status === "draft" ? "bg-amber-400" : "bg-red-400"}`} />
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-pixel border ${map[status]}`}
+      style={{ fontFamily: ACCENT.pixel }}>
+      <span className={`w-1.5 h-1.5 ${status === "published" ? "bg-emerald-400" : status === "draft" ? "bg-retro-amber" : "bg-red-400"}`} />
+      {status.toUpperCase()}
     </span>
   );
 }
@@ -434,46 +409,46 @@ function BlogRow({ blog, index, visible, setActive }) {
 
   return (
     <div
-      className={`group relative flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl border border-white/[0.05] hover:border-cyan-400/20 hover:bg-white/[0.03] transition-all duration-300 ${visible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-6"}`}
+      className={`group relative flex flex-col sm:flex-row sm:items-center gap-4 p-4 border-2 border-retro-border bg-retro-bg hover:border-retro-accent transition-all duration-200 shadow-[2px_2px_0px_rgba(0,0,0,1)] ${visible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-6"}`}
       style={{ transitionDelay: `${index * 80}ms`, transitionDuration: "600ms" }}>
 
       {/* Emoji thumb */}
-      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/[0.07] flex items-center justify-center text-xl flex-shrink-0">
+      <div className="w-10 h-10 border-2 border-retro-border bg-retro-surface flex items-center justify-center text-xl flex-shrink-0">
         {displayEmoji}
       </div>
 
       {/* Title + meta */}
       <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-center gap-2 mb-1">
-          <p className="text-white/85 text-sm font-semibold truncate group-hover:text-cyan-300 transition-colors"
+        <div className="flex flex-wrap items-center gap-2 mb-1.5">
+          <p className="text-retro-accent text-lg font-bold truncate group-hover:text-retro-accent/80 transition-colors"
             style={{ fontFamily: ACCENT.ox }}>
             {displayTitle}
           </p>
           <StatusBadge status={displayStatus} />
         </div>
-        <div className="flex flex-wrap items-center gap-3 text-[10px] text-white/25" style={{ fontFamily: ACCENT.mono }}>
-          <span className="flex items-center gap-1"><Tag size={9}/>{displayCategory}</span>
-          <span className="flex items-center gap-1"><Clock size={9}/>{displayReadTime}</span>
-          <span className="flex items-center gap-1"><Calendar size={9}/>{displayDate}</span>
+        <div className="flex flex-wrap items-center gap-3 text-xs text-retro-text/40 font-terminal" style={{ fontFamily: ACCENT.mono }}>
+          <span className="flex items-center gap-1"><Tag size={11}/>{displayCategory.toUpperCase()}</span>
+          <span className="flex items-center gap-1"><Clock size={11}/>{displayReadTime.toUpperCase()}</span>
+          <span className="flex items-center gap-1"><Calendar size={11}/>{displayDate.toUpperCase()}</span>
         </div>
       </div>
 
       {/* Stats */}
       {displayStatus === "published" && (
-        <div className="flex items-center gap-4 text-xs flex-shrink-0">
+        <div className="flex items-center gap-4 text-sm flex-shrink-0 font-terminal" style={{ fontFamily: ACCENT.mono }}>
           <div className="text-center">
-            <p className="text-white/60 font-semibold" style={{ fontFamily: ACCENT.ox }}>
+            <p className="text-retro-text/60 font-semibold" style={{ fontFamily: ACCENT.ox }}>
               {displayViews >= 1000 ? `${(displayViews / 1000).toFixed(1)}K` : displayViews}
             </p>
-            <p className="text-white/20 text-[9px] flex items-center gap-1 justify-center" style={{ fontFamily: ACCENT.mono }}><Eye size={8}/>Views</p>
+            <p className="text-retro-text/30 text-[10px] flex items-center gap-1 justify-center"><Eye size={10}/>VIEWS</p>
           </div>
           <div className="text-center">
-            <p className="text-pink-400 font-semibold" style={{ fontFamily: ACCENT.ox }}>{displayLikes}</p>
-            <p className="text-white/20 text-[9px] flex items-center gap-1 justify-center" style={{ fontFamily: ACCENT.mono }}><Heart size={8}/>Likes</p>
+            <p className="text-retro-amber font-semibold" style={{ fontFamily: ACCENT.ox }}>{displayLikes}</p>
+            <p className="text-retro-text/30 text-[10px] flex items-center gap-1 justify-center"><Heart size={10}/>LIKES</p>
           </div>
           <div className="text-center">
-            <p className="text-violet-400 font-semibold" style={{ fontFamily: ACCENT.ox }}>{displayComments}</p>
-            <p className="text-white/20 text-[9px] flex items-center gap-1 justify-center" style={{ fontFamily: ACCENT.mono }}><MessageSquare size={8}/>Comments</p>
+            <p className="text-retro-accent font-semibold" style={{ fontFamily: ACCENT.ox }}>{displayComments}</p>
+            <p className="text-retro-text/30 text-[10px] flex items-center gap-1 justify-center"><MessageSquare size={10}/>COMMENTS</p>
           </div>
         </div>
       )}
@@ -482,7 +457,7 @@ function BlogRow({ blog, index, visible, setActive }) {
       <button 
         onClick={handleView}
         title="View Post"
-        className="w-8 h-8 rounded-lg border border-white/[0.06] hover:border-cyan-400/20 bg-white/[0.02] hover:bg-white/[0.07] flex items-center justify-center text-white/35 hover:text-cyan-400 transition-all flex-shrink-0 cursor-pointer"
+        className="w-8 h-8 border-2 border-retro-border hover:border-retro-accent bg-retro-surface flex items-center justify-center text-retro-text/40 hover:text-retro-accent transition-all flex-shrink-0 cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px]"
       >
         <ExternalLink size={14}/>
       </button>
@@ -505,43 +480,43 @@ function RecentBlogs({ visible, setActive, userBlogs }) {
   return (
     <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       style={{ transitionDelay: "300ms" }}>
-      <div className="rounded-2xl border border-white/[0.07] bg-white/[0.015] overflow-hidden">
+      <div className="border-2 border-retro-border bg-retro-surface shadow-[4px_4px_0px_rgba(0,0,0,1)] overflow-hidden">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-4 border-b border-white/[0.06]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-4 border-b-2 border-retro-border">
           <div>
-            <h2 className="text-base font-black text-white" style={{ fontFamily: ACCENT.ox }}>Recent Blogs</h2>
-            <p className="text-white/25 text-xs mt-0.5" style={{ fontFamily: ACCENT.mono }}>{userBlogs.length} total posts</p>
+            <h2 className="text-2xl font-black text-retro-accent uppercase tracking-wider" style={{ fontFamily: ACCENT.ox }}>Recent Blogs</h2>
+            <p className="text-retro-text/30 text-xs font-terminal uppercase mt-0.5" style={{ fontFamily: ACCENT.mono }}>{userBlogs.length} total posts</p>
           </div>
           <div className="flex items-center gap-2">
             {/* Filter tabs */}
-            <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.06] rounded-xl p-1">
+            <div className="flex items-center gap-1 bg-retro-bg border-2 border-retro-border p-1">
               {filters.map(f => (
                 <button key={f} onClick={() => setFilter(f)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all duration-200 ${
+                  className={`px-3 py-1.5 text-xs font-pixel uppercase tracking-wide transition-all duration-200 ${
                     filter === f
-                      ? "bg-gradient-to-r from-cyan-500/20 to-violet-500/15 border border-cyan-500/25 text-white"
-                      : "text-white/30 hover:text-white/60"
-                  }`} style={{ fontFamily: ACCENT.ox }}>
+                      ? "bg-retro-accent text-retro-bg"
+                      : "text-retro-text/40 hover:text-retro-accent"
+                  }`} style={{ fontFamily: ACCENT.pixel }}>
                   {f}
                 </button>
               ))}
             </div>
-            <button onClick={() => setActive("read")} className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/[0.07] hover:border-white/20 text-white/40 hover:text-white text-xs transition-all cursor-pointer"
-              style={{ fontFamily: ACCENT.ox }}>
+            <button onClick={() => setActive("read")} className="hidden sm:flex items-center gap-1.5 px-3 py-2 border-2 border-retro-border hover:border-retro-accent text-retro-text/40 hover:text-retro-accent text-xs font-pixel uppercase tracking-wide cursor-pointer select-none shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px]"
+              style={{ fontFamily: ACCENT.pixel }}>
               View all <ChevronRight size={12}/>
             </button>
           </div>
         </div>
 
         {/* Blog list */}
-        <div className="p-4 space-y-2">
+        <div className="p-4 space-y-3">
           {filtered.map((blog, i) => (
             <BlogRow key={blog._id || blog.id} blog={blog} index={i} visible={visible} setActive={setActive} />
           ))}
           {filtered.length === 0 && (
             <div className="py-12 text-center">
-              <FileText size={28} className="text-white/10 mx-auto mb-3" />
-              <p className="text-white/25 text-sm" style={{ fontFamily: ACCENT.mono }}>No {filter} blogs yet</p>
+              <FileText size={28} className="text-retro-text/10 mx-auto mb-3" />
+              <p className="text-retro-text/30 text-sm font-terminal uppercase" style={{ fontFamily: ACCENT.mono }}>No {filter} blogs yet</p>
             </div>
           )}
         </div>
@@ -568,7 +543,7 @@ function ActivityFeed({ visible, userBlogs }) {
       if (b.isPublished) {
         acts.push({
           icon: <Globe size={12}/>,
-          color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
+          color: "text-emerald-400 border-emerald-400/40 bg-retro-bg",
           text: `You published '${b.title}'`,
           time: timeStr,
           timestamp: new Date(b.updatedAt || b.createdAt).getTime()
@@ -576,7 +551,7 @@ function ActivityFeed({ visible, userBlogs }) {
       } else {
         acts.push({
           icon: <Save size={12}/>,
-          color: "text-amber-400 bg-amber-400/10 border-amber-400/20",
+          color: "text-retro-amber border-retro-amber/40 bg-retro-bg",
           text: `You saved draft '${b.title}'`,
           time: timeStr,
           timestamp: new Date(b.updatedAt || b.createdAt).getTime()
@@ -586,7 +561,7 @@ function ActivityFeed({ visible, userBlogs }) {
       if (b.views >= 50) {
         acts.push({
           icon: <TrendingUp size={12}/>,
-          color: "text-violet-400 bg-violet-400/10 border-violet-400/20",
+          color: "text-retro-accent border-retro-accent/40 bg-retro-bg",
           text: `'${b.title}' crossed ${b.views} views`,
           time: "Milestone",
           timestamp: new Date(b.updatedAt || b.createdAt).getTime() - 500
@@ -602,34 +577,34 @@ function ActivityFeed({ visible, userBlogs }) {
   return (
     <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       style={{ transitionDelay: "400ms" }}>
-      <div className="rounded-2xl border border-white/[0.07] bg-white/[0.015] overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+      <div className="border-2 border-retro-border bg-retro-surface shadow-[4px_4px_0px_rgba(0,0,0,1)] overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b-2 border-retro-border">
           <div>
-            <h2 className="text-base font-black text-white" style={{ fontFamily: ACCENT.ox }}>Activity</h2>
-            <p className="text-white/25 text-xs mt-0.5" style={{ fontFamily: ACCENT.mono }}>Recent notifications</p>
+            <h2 className="text-2xl font-black text-retro-accent uppercase tracking-wider" style={{ fontFamily: ACCENT.ox }}>Activity</h2>
+            <p className="text-retro-text/30 text-xs font-terminal uppercase mt-0.5" style={{ fontFamily: ACCENT.mono }}>Recent notifications</p>
           </div>
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="w-2.5 h-2.5 bg-retro-accent border border-retro-bg" />
         </div>
         <div className="p-4 space-y-2.5">
           {activitiesList.map((item, i) => (
             <div key={i}
-              className={`flex items-start gap-3 p-3 rounded-xl hover:bg-white/[0.03] transition-all duration-200 cursor-pointer group ${visible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"}`}
+              className={`flex items-start gap-3 p-3 hover:bg-retro-bg/40 border border-transparent hover:border-retro-border transition-all duration-200 cursor-pointer group ${visible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"}`}
               style={{ transitionDelay: `${400 + i * 60}ms`, transitionDuration: "500ms" }}>
-              <div className={`w-7 h-7 rounded-lg flex items-center justify-center border flex-shrink-0 ${item.color}`}>
+              <div className={`w-7 h-7 border flex items-center justify-center flex-shrink-0 ${item.color}`}>
                 {item.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white/70 text-xs group-hover:text-white transition-colors" style={{ fontFamily: ACCENT.mono }}>
-                  {item.text}
+                <p className="text-retro-text/70 text-xs group-hover:text-retro-accent transition-colors font-terminal" style={{ fontFamily: ACCENT.mono }}>
+                  {item.text.toUpperCase()}
                 </p>
               </div>
-              <span className="text-white/20 text-[10px] flex-shrink-0 mt-0.5" style={{ fontFamily: ACCENT.mono }}>
-                {item.time}
+              <span className="text-retro-text/30 text-xs flex-shrink-0 mt-0.5 font-terminal" style={{ fontFamily: ACCENT.mono }}>
+                {item.time.toUpperCase()}
               </span>
             </div>
           ))}
           {activitiesList.length === 0 && (
-            <div className="py-8 text-center text-white/20 text-xs" style={{ fontFamily: ACCENT.mono }}>
+            <div className="py-8 text-center text-retro-text/30 text-xs font-terminal uppercase" style={{ fontFamily: ACCENT.mono }}>
               No recent activities
             </div>
           )}
@@ -644,35 +619,33 @@ function QuickActions({ visible, setActive, setEditingBlog, handleNewBlog, setRe
   const draftCount = userBlogs ? userBlogs.filter(b => !b.isPublished).length : 0;
 
   const actions = [
-    { icon: <PenLine size={16}/>, label: "New Blog", desc: "Start writing", gradient: "from-cyan-500 to-violet-500", shadow: "shadow-cyan-500/20", onClick: handleNewBlog },
+    { icon: <PenLine size={16}/>, label: "New Blog", desc: "Start writing", onClick: handleNewBlog },
     {
       icon: <Star size={16}/>,
-      label: "Featured by Admin",
+      label: "Featured",
       desc: "Admin picks",
-      gradient: "from-amber-500 to-orange-500",
-      shadow: "shadow-amber-500/20",
       onClick: () => { setReadAdminOnly(true); setActive("read"); }
     },
-    { icon: <Globe size={16}/>, label: "Go Live", desc: `${draftCount} drafts pending`, gradient: "from-emerald-500 to-cyan-500", shadow: "shadow-emerald-500/20", onClick: () => setActive("blogs") },
+    { icon: <Globe size={16}/>, label: "Go Live", desc: `${draftCount} drafts`, onClick: () => setActive("blogs") },
   ];
 
   return (
     <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       style={{ transitionDelay: "500ms" }}>
-      <div className="rounded-2xl border border-white/[0.07] bg-white/[0.015] overflow-hidden">
-        <div className="px-5 py-4 border-b border-white/[0.06]">
-          <h2 className="text-base font-black text-white" style={{ fontFamily: ACCENT.ox }}>Quick Actions</h2>
+      <div className="border-2 border-retro-border bg-retro-surface shadow-[4px_4px_0px_rgba(0,0,0,1)] overflow-hidden">
+        <div className="px-5 py-4 border-b-2 border-retro-border">
+          <h2 className="text-2xl font-black text-retro-accent uppercase tracking-wider" style={{ fontFamily: ACCENT.ox }}>Quick Actions</h2>
         </div>
         <div className="p-4 grid grid-cols-3 gap-3">
           {actions.map((a, i) => (
             <button key={i} onClick={a.onClick}
-              className="flex flex-col items-center gap-2 p-4 rounded-xl border border-white/[0.06] hover:border-white/20 hover:bg-white/[0.04] transition-all duration-300 group hover:scale-[1.02] active:scale-[0.98]">
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${a.gradient} flex items-center justify-center text-white shadow-lg ${a.shadow} group-hover:shadow-xl transition-all`}>
+              className="flex flex-col items-center gap-2 p-4 border-2 border-retro-border bg-retro-bg hover:border-retro-accent hover:bg-retro-surface/30 transition-all duration-200 group active:translate-y-[1px] shadow-[2px_2px_0px_rgba(0,0,0,1)] cursor-pointer select-none">
+              <div className="w-10 h-10 border-2 border-retro-accent bg-[#E8E8C6] flex items-center justify-center text-retro-bg shadow-[2px_2px_0px_rgba(0,0,0,1)] transition-all">
                 {a.icon}
               </div>
               <div className="text-center">
-                <p className="text-white/70 text-xs font-semibold group-hover:text-white transition-colors" style={{ fontFamily: ACCENT.ox }}>{a.label}</p>
-                <p className="text-white/25 text-[9px]" style={{ fontFamily: ACCENT.mono }}>{a.desc}</p>
+                <p className="text-retro-text/75 text-xs font-semibold group-hover:text-retro-accent transition-colors font-pixel uppercase tracking-wide" style={{ fontFamily: ACCENT.pixel }}>{a.label}</p>
+                <p className="text-retro-text/30 text-[9px] font-terminal uppercase mt-0.5" style={{ fontFamily: ACCENT.mono }}>{a.desc}</p>
               </div>
             </button>
           ))}
@@ -685,7 +658,7 @@ function QuickActions({ visible, setActive, setEditingBlog, handleNewBlog, setRe
 /* ─────────────────── WRITING STREAK ─────────────────── */
 function WritingStreak({ visible, userBlogs }) {
   const weeks = 12;
-  const levels = ["bg-white/[0.05]", "bg-cyan-900/60", "bg-cyan-700/70", "bg-cyan-500/80", "bg-cyan-400"];
+  const levels = ["bg-retro-bg border border-retro-border/20", "bg-retro-olive", "bg-retro-sepia", "bg-retro-amber", "bg-retro-accent"];
 
   const calculateStreak = () => {
     if (!userBlogs || userBlogs.length === 0) return 0;
@@ -734,35 +707,35 @@ function WritingStreak({ visible, userBlogs }) {
   return (
     <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       style={{ transitionDelay: "600ms" }}>
-      <div className="rounded-2xl border border-white/[0.07] bg-white/[0.015] overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+      <div className="border-2 border-retro-border bg-retro-surface shadow-[4px_4px_0px_rgba(0,0,0,1)] overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b-2 border-retro-border">
           <div>
-            <h2 className="text-base font-black text-white" style={{ fontFamily: ACCENT.ox }}>Writing Streak</h2>
-            <p className="text-white/25 text-xs mt-0.5" style={{ fontFamily: ACCENT.mono }}>12-week activity heatmap</p>
+            <h2 className="text-2xl font-black text-retro-accent uppercase tracking-wider" style={{ fontFamily: ACCENT.ox }}>Writing Streak</h2>
+            <p className="text-retro-text/30 text-xs font-terminal uppercase mt-0.5" style={{ fontFamily: ACCENT.mono }}>12-week activity heatmap</p>
           </div>
-          <div className="flex items-center gap-2 text-xs" style={{ fontFamily: ACCENT.ox }}>
-            <Activity size={12} className="text-cyan-400" />
-            <span className="text-cyan-400 font-bold">{streak} day streak</span>
+          <div className="flex items-center gap-2 text-xs font-pixel tracking-wider border border-retro-accent bg-retro-bg px-2.5 py-1 text-retro-accent" style={{ fontFamily: ACCENT.pixel }}>
+            <Activity size={12} className="text-retro-accent" />
+            <span>{streak} DAY STREAK</span>
           </div>
         </div>
         <div className="p-5">
-          <div className="flex gap-1 overflow-x-auto pb-1">
+          <div className="flex gap-1.5 overflow-x-auto pb-1.5">
             {Array.from({ length: weeks }, (_, w) => (
-              <div key={w} className="flex flex-col gap-1 flex-shrink-0">
+              <div key={w} className="flex flex-col gap-1.5 flex-shrink-0">
                 {Array.from({ length: 7 }, (_, d) => {
                   const cell = heatmapData[w * 7 + d] || { val: 0 };
                   const clampedVal = Math.min(cell.val, levels.length - 1);
                   return (
                     <div key={d} title={`${cell.val} post${cell.val !== 1 ? "s" : ""}`}
-                      className={`w-3 h-3 rounded-sm ${levels[clampedVal]} transition-all hover:scale-125 cursor-pointer`} />
+                      className={`w-3.5 h-3.5 transition-all hover:scale-110 cursor-pointer ${levels[clampedVal]}`} />
                   );
                 })}
               </div>
             ))}
           </div>
-          <div className="flex items-center gap-2 mt-3 text-[10px] text-white/20" style={{ fontFamily: ACCENT.mono }}>
+          <div className="flex items-center gap-2.5 mt-4 text-xs font-terminal uppercase text-retro-text/30" style={{ fontFamily: ACCENT.mono }}>
             <span>Less</span>
-            {levels.map((l, i) => <div key={i} className={`w-3 h-3 rounded-sm ${l}`} />)}
+            {levels.map((l, i) => <div key={i} className={`w-3.5 h-3.5 ${l}`} />)}
             <span>More</span>
           </div>
         </div>
@@ -900,18 +873,15 @@ export default function Dashboard() {
   const sideW = collapsed ? 0 : 230;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#080b14" }}>
+    <div className="min-h-screen bg-retro-bg text-retro-text relative overflow-x-hidden">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.2); border-radius: 99px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(34,211,238,0.3); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #252525; }
+        ::-webkit-scrollbar-thumb { background: #474744; border: 2px solid #252525; }
+        ::-webkit-scrollbar-thumb:hover { background: #E8E8C6; }
         input:-webkit-autofill, input:-webkit-autofill:focus {
-          -webkit-box-shadow: 0 0 0 1000px #0d1220 inset !important;
-          -webkit-text-fill-color: white !important;
+          -webkit-box-shadow: 0 0 0 1000px #252525 inset !important;
+          -webkit-text-fill-color: #E2E2D5 !important;
         }
       `}</style>
 
@@ -977,16 +947,17 @@ export default function Dashboard() {
           {/* Placeholder/Alternative Pages */}
           {active !== "dashboard" && active !== "create" && active !== "blogs" && active !== "read" && (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/15 to-violet-500/15 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-5">
-                {active === "analytics" ? <BarChart3 size={24} /> : <Users size={24} />}
+              <div className="border-4 border-retro-accent bg-retro-surface p-8 shadow-[6px_6px_0px_rgba(0,0,0,1)] text-center max-w-md mx-auto">
+                <div className="w-16 h-16 border-2 border-retro-accent bg-retro-bg flex items-center justify-center text-retro-accent mx-auto mb-5 shadow-[3px_3px_0px_rgba(0,0,0,1)]">
+                  {active === "analytics" ? <BarChart3 size={24} /> : <Users size={24} />}
+                </div>
+                <h2 className="text-3xl font-black text-retro-accent mb-2 uppercase tracking-widest font-heading" style={{ fontFamily: ACCENT.ox }}>
+                  {active.toUpperCase()}
+                </h2>
+                <p className="text-retro-text/60 text-sm font-terminal uppercase" style={{ fontFamily: ACCENT.mono }}>
+                  {active === "analytics" ? "Detailed performance analytics coming soon." : "Connect with the community here."}
+                </p>
               </div>
-              <h2 className="text-2xl font-black text-white mb-2" style={{ fontFamily: ACCENT.ox }}>
-                {active.charAt(0).toUpperCase() + active.slice(1)}
-                <span className="text-cyan-400">.</span>
-              </h2>
-              <p className="text-white/25 text-sm max-w-xs" style={{ fontFamily: ACCENT.mono }}>
-                {active === "analytics" ? "Detailed performance analytics coming soon." : "Connect with the community here."}
-              </p>
             </div>
           )}
 
@@ -996,9 +967,9 @@ export default function Dashboard() {
       {/* Mobile FAB */}
       <button
         onClick={handleNewBlog}
-        className="fixed bottom-6 right-6 lg:hidden flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm text-white shadow-2xl shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:scale-105 active:scale-95 transition-all duration-300 z-30"
-        style={{ background: "linear-gradient(135deg,#22d3ee 0%,#7c3aed 100%)", fontFamily: ACCENT.ox }}>
-        <Plus size={16} /> New Blog
+        className="fixed bottom-6 right-6 lg:hidden flex items-center gap-2 px-5 py-3 border-2 border-retro-accent bg-[#E8E8C6] text-[#252525] text-sm font-pixel shadow-[4px_4px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none z-30"
+        style={{ fontFamily: ACCENT.pixel }}>
+        <Plus size={16} /> NEW BLOG
       </button>
     </div>
   );

@@ -1,267 +1,44 @@
 import { useState, useEffect, useRef } from "react";
 import {
-  ArrowRight, Zap, Shield, Globe, BarChart3, Users, BookOpen,
-  Star, Check, ChevronRight, X, Gift, Menu,
-  Feather, Eye, Heart, TrendingUp, Sparkles,
-  Lock, Rss, Award, Coffee, MousePointer, Play
+  ArrowRight, BookOpen, Star, Check, X, Menu,
+  Lock, Eye, Heart, Coffee, Shield, Globe, Award, Rss,
+  Gamepad2, Compass, Play, ChevronRight, Feather
 } from "lucide-react";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
-// function of usenavigate are  :
-/* --------------------------------------------------
-   1. The basic idea of useNavigate
--------------------------------------------------- */
-
-// Imagine "useNavigate" is like a smart teleportation device for your website.
-// Instead of the browser reloading the entire page (which takes time and resets everything),
-// it just tells the "router" (which controls the URL and what shows) to swap the content.
-
-// How it works:
-
-// 1. You get a "navigator" function from react-router-dom:
-//    import { useNavigate } from "react-router-dom";
-//    const navigate = useNavigate();
-
-// 2. You call this function with a destination (a "route"):
-//    navigate("/dashboard");  // Teleport to dashboard
-//    navigate("/login");    // Teleport to login
-//    navigate(-1);           // Go back (like a browser back button)
-//    navigate("/blog", { replace: true }); // Replace current page in history (can't go back to it)
-
-
-// 3. "react-router-dom" intercepts this call.
-
-// 4. It doesn't reload the whole page.
-//    Instead, it changes the URL in the address bar (e.g., from "/" to "/dashboard").
-
-// 5. React re-renders only the part of your UI that matches the new URL.
-//    This makes navigation feel instant — like a single-page app.
-
-/* --------------------------------------------------
-   2. "Why do we need this?" (The problem it solves)
--------------------------------------------------- */
-
-// Without useNavigate (traditional websites):
-
-// <a href="/dashboard">Dashboard</a>
-// When you click this:
-// - Browser loads a completely new HTML page
-// - CSS files reload
-// - JavaScript re-initializes
-// - React state resets
-// - Animations flicker
-// - Everything restarts
-// - It feels slow and clunky
-
-// With useNavigate (Single Page Application - SPA):
-
-// <button onClick={() => navigate("/dashboard")}>Dashboard</button>
-// When you click this:
-// - No page reload
-// - URL changes instantly
-// - React swaps the component (e.g., DashboardComponent mounts)
-// - Everything else stays the same
-// - Feels super fast and smooth
-
-
-/* --------------------------------------------------
-   3. Practical code examples (with your project in mind)
--------------------------------------------------- */
-
-// 1. Navigating after login:
-
-// function LoginPage() {
-//   const navigate = useNavigate();
-
-//   async function handleLogin(event) {
-//     event.preventDefault();
-//     // Call your login API
-//     const success = await api.login(email, password);
-
-//     if (success) {
-//       navigate("/dashboard");  // << THIS is where useNavigate shines!
-//     } else {
-//       // Show error message
-//     }
-//   }
-
-//   return (
-//     <form onSubmit={handleLogin}>
-//       <input type="email" />
-//       <input type="password" />
-//       <button type="submit">Login</button>
-//     </form>
-//   );
-// }
-
-// Without useNavigate, you'd have to do a full page reload, which would break the SPA feel.
-
-
-// 2. Handling drafts vs. published blogs:
-
-/*
-// Inside CreateBlogPage.jsx:
-
-async function handleSaveDraft() {
-  await api.saveDraft(content);
-  navigate("/dashboard/blogs"); // Go back to My Blogs list
-}
-
-async function handlePublish() {
-  const result = await api.publish(content);
-  navigate("/dashboard/blogs"); // Go back to My Blogs list
-}
-*/
-
-// After creating a blog, you want to show the updated list. useNavigate lets you do this instantly.
-
-
-// 3. "Go back" button:
-
-/*
-// In some components, you might want a back button:
-
-function BlogPostPage({ postId }) {
-  const navigate = useNavigate();
-  const [post, setPost] = useState(null);
-
-  useEffect(() => {
-    api.getPost(postId).then(setPost);
-  }, [postId]);
-
-  return (
-    <div>
-      <h1>{post?.title}</h1>
-      <p>{post?.content}</p>
-      
-      <button onClick={() => navigate(-1)}>  // << Go back to previous page
-        Back
-      </button>
-    </div>
-  );
-}
-*/
-
-// This is much better than: window.history.back()
-// because useNavigate works within React's router context.
-
-
-// 4. Navigation with parameters:
-
-/*
-// If you need to navigate to a specific blog:
-
-function BlogCard({ blog }) {
-  const navigate = useNavigate();
-
-  return (
-    <div>
-      <h2>{blog.title}</h2>
-      <button onClick={() => navigate(`/blog/${blog.id}`)}>  // << Dynamic URL
-        Read More
-      </button>
-    </div>
-  );
-}
-
-// This tells React Router: "Go to the URL /blog/123", and the router
-// will render the BlogPostPage component with postId = 123.
-*/
-
-
-// 5. Replacement navigation:
-
-/*
-// Replace current history entry (can't go back to it):
-
-// If user logs in, we replace the login page in history
-// so they can't click back to the login screen
-navigate("/dashboard", { replace: true });
-*/
-
-
-// 6. Passing state during navigation:
-
-/*
-// You can pass temporary state that's available on the next screen
-
-navigate("/confirmation", {
-  state: {
-    orderId: 12345,
-    total: 99.99
-  }
-});
-
-// In ConfirmationPage.jsx:
-
-const { state } = useLocation();
-const orderId = state.orderId;  // Access the passed state
-*/
-
 
 /* ─────────────────────────────────────────────
-   HOOK – simple IntersectionObserver reveal
+   REUSABLE RETRO COMPONENTS
 ───────────────────────────────────────────── */
-function useReveal(threshold = 0.15) {
-  const ref = useRef(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return [ref, visible];
-}
-
-/* ─────────────────────────────────────────────
-   REUSABLE COMPONENTS
-───────────────────────────────────────────── */
-function GlassCard({ children, className = "", hover = true }) {
+function RetroCard({ children, className = "", hover = true, titleBar }) {
   return (
     <div className={`
-      relative rounded-2xl border border-white/[0.06]
-      bg-white/[0.03] backdrop-blur-md
-      ${hover ? "hover:border-cyan-400/30 hover:bg-white/[0.06] transition-all duration-500" : ""}
+      border-2 border-retro-border bg-retro-surface text-retro-text
+      ${hover ? "hover:border-retro-accent hover:-translate-y-1 transition-all duration-300" : ""}
       ${className}
     `}>
-      {children}
+      {titleBar && (
+        <div className="border-b-2 border-retro-border bg-retro-bg px-4 py-2 flex items-center justify-between text-[10px] font-pixel tracking-wider text-retro-accent">
+          <span>{titleBar}</span>
+          <div className="flex gap-1">
+            <span className="w-1.5 h-1.5 border border-retro-border bg-retro-accent/20" />
+            <span className="w-1.5 h-1.5 border border-retro-border bg-retro-accent/40" />
+          </div>
+        </div>
+      )}
+      <div className="p-5">
+        {children}
+      </div>
     </div>
   );
 }
 
-function GradientText({ children, className = "" }) {
-  return (
-    <span className={`bg-gradient-to-r from-cyan-300 via-violet-300 to-pink-300 bg-clip-text text-transparent ${className}`}>
-      {children}
-    </span>
-  );
-}
-
-function Badge({ children, color = "cyan" }) {
-  const colors = {
-    cyan: "border-cyan-400/30 text-cyan-300 bg-cyan-400/10",
-    violet: "border-violet-400/30 text-violet-300 bg-violet-400/10",
-    pink: "border-pink-400/30 text-pink-300 bg-pink-400/10",
-    green: "border-emerald-400/30 text-emerald-300 bg-emerald-400/10",
-  };
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border tracking-wide ${colors[color]}`}>
-      {children}
-    </span>
-  );
-}
-
-function Button({ children, variant = "primary", className = "", onClick }) {
-  const base = "inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 cursor-pointer select-none";
+function RetroButton({ children, variant = "primary", className = "", onClick }) {
+  const base = "inline-flex items-center gap-2 px-5 py-2.5 font-pixel text-xs tracking-wider uppercase border-2 transition-all duration-200 cursor-pointer select-none active:translate-x-[2px] active:translate-y-[2px] active:shadow-none";
   const variants = {
-    primary: "bg-gradient-to-r from-cyan-500 to-violet-500 text-white hover:shadow-[0_0_32px_rgba(34,211,238,0.35)] hover:scale-[1.02] active:scale-[0.98]",
-    secondary: "border border-white/10 text-white/80 hover:border-white/30 hover:text-white hover:bg-white/[0.05] backdrop-blur-sm",
-    ghost: "text-white/60 hover:text-white hover:bg-white/[0.05] px-4",
+    primary: "bg-[#E8E8C6] text-[#252525] border-[#E8E8C6] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-[#E2E2D5]",
+    secondary: "bg-transparent text-[#E8E8C6] border-[#E8E8C6] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-[#E8E8C6]/10",
+    ghost: "border-transparent text-[#E2E2D5]/70 hover:text-[#E8E8C6]",
   };
   return (
     <button className={`${base} ${variants[variant]} ${className}`} onClick={onClick}>
@@ -270,145 +47,138 @@ function Button({ children, variant = "primary", className = "", onClick }) {
   );
 }
 
+function RetroBadge({ children }) {
+  return (
+    <span className="inline-flex items-center px-2 py-0.5 border border-retro-border text-[9px] font-pixel uppercase bg-retro-bg text-retro-accent tracking-wider">
+      {children}
+    </span>
+  );
+}
+
 /* ─────────────────────────────────────────────
-   ANIMATED GRID BACKGROUND
+   GRID BACKGROUND
 ───────────────────────────────────────────── */
 function GridBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Grid lines */}
       <div className="absolute inset-0"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px)
+            linear-gradient(rgba(232,232,198,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(232,232,198,0.02) 1px, transparent 1px)
           `,
-          backgroundSize: "72px 72px",
-        }}
-      />
-      {/* Glows */}
-      <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-violet-600/10 rounded-full blur-[120px]" />
-      <div className="absolute top-[10%] right-[-15%] w-[55vw] h-[55vw] bg-cyan-500/8 rounded-full blur-[100px]" />
-      <div className="absolute bottom-[-10%] left-[20%] w-[50vw] h-[40vw] bg-pink-600/6 rounded-full blur-[100px]" />
-      {/* Noise grain */}
-      <div className="absolute inset-0 opacity-[0.025]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-          backgroundRepeat: "repeat",
-          backgroundSize: "200px",
+          backgroundSize: "64px 64px",
         }}
       />
     </div>
   );
 }
 
+const scrollToSection = (id) => {
+  const sectionName = id.toLowerCase().replace(/ /g, "-");
+  const element = document.getElementById(sectionName);
+  if (element) {
+    element.scrollIntoView({ behavior: "smooth" });
+  }
+};
+
 /* ─────────────────────────────────────────────
    NAVBAR
 ───────────────────────────────────────────── */
 function Navbar() {
   const navigate = useNavigate();
-
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-// useeffect function is used to change the style of the navbar when the user scrolls down
-// and change it back when the user scrolls up 
-
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const links = ["Features", "Pricing", "Blog", "About"];
-
-  /**
-   * Smoothly scrolls the viewport to a section identified by the lowercase link name.
-   * Why: Enhances landing page navigation without page reloads.
-   */
-  const scrollToSection = (id) => {
-    const element = document.getElementById(id.toLowerCase());
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  const links = ["Features", "How It Works", "Blog", "Pricing"];
 
   return (
-    <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
-      scrolled ? "bg-[#080b14]/90 backdrop-blur-xl border-b border-white/[0.06] shadow-2xl" : ""
+    <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 border-b ${
+      scrolled ? "bg-retro-bg/95 border-retro-border shadow-md" : "bg-transparent border-transparent"
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-              <Feather size={14} className="text-white" />
-            </div>
-            <span className="text-white font-bold text-lg tracking-tight" style={{fontFamily:"'Oxanium',sans-serif"}}>
-              QuillForge<span className="text-cyan-400">.</span>
+          {/* Logo with Rocket Icon */}
+          <div className="flex items-center gap-3">
+            <svg className="w-6 h-6 text-retro-accent fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L9 9H15L12 2ZM9 11H15V19H9V11ZM6 11H8V15H6V11ZM16 11H18V15H16V11ZM12 21H12.01V21.01H12V21Z" />
+            </svg>
+            <span className="text-retro-accent font-pixel text-sm tracking-widest uppercase">
+              QuillForge
             </span>
           </div>
 
           {/* Desktop Links */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-6 font-pixel text-xs">
             {links.map(l => (
-              <Button key={l} variant="ghost" className="text-sm" onClick={() => scrollToSection(l)}>{l}</Button>
+              <button
+                key={l}
+                onClick={() => scrollToSection(l)}
+                className="text-retro-text/70 hover:text-retro-accent uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                {l}
+              </button>
             ))}
           </div>
 
-          {/* CTA */}
-          <div className="hidden md:flex items-center gap-3">
-            <Button
+          {/* Color Swatches and CTA */}
+          <div className="hidden md:flex items-center gap-6">
+            <div className="flex items-center gap-2 text-[9px] font-pixel border border-retro-border/40 p-1 bg-retro-bg/50">
+              <span className="w-3 h-3 bg-[#E8E8C6]" title="Warm Ivory" />
+              <span className="w-3 h-3 bg-[#252525]" title="Deep Charcoal" />
+              <span className="w-3 h-3 bg-[#474744]" title="Muted Graphite" />
+            </div>
+            <RetroButton
               variant="secondary"
-              className="text-sm py-2"
+              className="py-1.5 px-4"
               onClick={() => navigate("/login")}
             >
               Sign in
-            </Button>
-
-            <Button
+            </RetroButton>
+            <RetroButton
               variant="primary"
-              className="text-sm py-2"
+              className="py-1.5 px-4"
               onClick={() => navigate("/register")}
             >
-              Start writing <ArrowRight size={14} />
-            </Button>
+              Write
+            </RetroButton>
           </div>
 
-          {/* Mobile menu */}
+          {/* Mobile menu button */}
           <button
-            className="md:hidden text-white/70 hover:text-white p-2"
+            className="md:hidden text-retro-accent border border-retro-accent p-1.5"
             onClick={() => setMenuOpen(!menuOpen)}
           >
-            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+            {menuOpen ? <X size={16} /> : <Menu size={16} />}
           </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="md:hidden bg-[#080b14]/95 backdrop-blur-xl border-b border-white/[0.06] px-4 py-4 space-y-1">
+        <div className="md:hidden bg-retro-bg border-b border-retro-border px-4 py-4 space-y-3 font-pixel text-xs text-center">
           {links.map(l => (
-            <button key={l} onClick={() => { scrollToSection(l); setMenuOpen(false); }} className="block w-full text-left px-4 py-3 text-white/70 hover:text-white rounded-xl hover:bg-white/[0.05] transition-all text-sm">
+            <button
+              key={l}
+              onClick={() => { scrollToSection(l); setMenuOpen(false); }}
+              className="block w-full py-2 text-retro-text/70 hover:text-retro-accent uppercase"
+            >
               {l}
             </button>
           ))}
-          <div className="pt-3 flex flex-col gap-2">
-            <Button
-              variant="secondary"
-              className="justify-center"
-              onClick={() => navigate("/login")}
-            >
-              Sign in
-            </Button>
-
-            <Button
-              variant="primary"
-              className="justify-center"
-              onClick={() => navigate("/register")}
-            >
-              Start writing <ArrowRight size={14} />
-            </Button>
+          <div className="pt-2 flex flex-col gap-2">
+            <RetroButton variant="secondary" onClick={() => { setMenuOpen(false); navigate("/login"); }}>
+              Sign In
+            </RetroButton>
+            <RetroButton variant="primary" onClick={() => { setMenuOpen(false); navigate("/register"); }}>
+              Write
+            </RetroButton>
           </div>
         </div>
       )}
@@ -420,308 +190,61 @@ function Navbar() {
    HERO
 ───────────────────────────────────────────── */
 function Hero({ onWatchDemo }) {
-  const [ref, visible] = useReveal(0.1);
   const navigate = useNavigate();
 
   return (
-    <section ref={ref} className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 pt-24 pb-16 overflow-hidden">
+    <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 pt-28 pb-16 overflow-hidden">
       <GridBackground />
 
-      {/* Floating badge */}
-      <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
-        style={{ transitionDelay: "100ms" }}>
-        <Badge color="violet">
-          <Sparkles size={10} /> New — Real-time collaboration is here
-        </Badge>
-      </div>
-
-      {/* Headline */}
-      <h1 className={`mt-8 text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[0.9] max-w-5xl transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
-        style={{ fontFamily: "'Oxanium',sans-serif", transitionDelay: "200ms" }}>
-        <span className="text-white">Write.</span>{" "}
-        <GradientText>Share.</GradientText>{" "}
-        <span className="text-white/30">Inspire.</span>
+      {/* Title */}
+      <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-heading text-retro-accent tracking-widest uppercase leading-none mt-8">
+        QUILLFORGE
       </h1>
 
-      {/* Sub */}
-      <p className={`mt-6 text-lg sm:text-xl text-white/50 max-w-2xl leading-relaxed transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
-        style={{ fontFamily: "'Space Mono',monospace", transitionDelay: "350ms" }}>
-        A next-generation blogging platform for developers, designers, and thinkers.
-        Publish beautiful stories. Build your audience.
-      </p>
-
-      {/* CTAs */}
-      <div className={`mt-10 flex flex-col sm:flex-row items-center gap-4 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
-        style={{ transitionDelay: "500ms" }}>
-        <Button variant="primary" className="text-base px-8 py-4 rounded-2xl" onClick={() => navigate("/register")}>
-          Start for free <ArrowRight size={16} />
-        </Button>
-        <Button variant="secondary" className="text-base px-8 py-4 rounded-2xl gap-3" onClick={onWatchDemo}>
-          <Play size={14} className="text-cyan-400" /> Watch demo
-        </Button>
-      </div>
-
-      {/* Social proof */}
-      <div className={`mt-12 flex items-center gap-6 text-sm text-white/30 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
-        style={{ transitionDelay: "650ms" }}>
-        <div className="flex items-center gap-2">
-          <div className="flex -space-x-2">
-            {["bg-cyan-500","bg-violet-500","bg-pink-500","bg-emerald-500","bg-orange-500"].map((c,i)=>(
-              <div key={i} className={`w-7 h-7 rounded-full border-2 border-[#080b14] ${c} flex items-center justify-center text-[9px] font-bold text-white`}>
-                {String.fromCharCode(65+i)}
-              </div>
-            ))}
-          </div>
-          <span>5,000+ writers</span>
-        </div>
-        <div className="h-4 w-px bg-white/10" />
-        <div className="flex items-center gap-1.5">
-          {[1,2,3,4,5].map(i=>(
-            <Star key={i} size={12} className="text-amber-400 fill-amber-400" />
-          ))}
-          <span>4.9/5 rating</span>
-        </div>
-      </div>
-
-      {/* Hero image / Dashboard preview */}
-      <div className={`mt-20 w-full max-w-5xl transition-all duration-1000 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"}`}
-        style={{ transitionDelay: "800ms" }}>
-        <div className="relative">
-          {/* Glow behind card */}
-          <div className="absolute inset-x-20 top-4 h-20 bg-gradient-to-r from-cyan-500/20 via-violet-500/20 to-pink-500/20 blur-3xl rounded-full" />
-          <GlassCard hover={false} className="overflow-hidden border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.6)]">
-            {/* Fake browser bar */}
-            <div className="flex items-center gap-2 px-5 py-3.5 border-b border-white/[0.06] bg-white/[0.02]">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500/60" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
-                <div className="w-3 h-3 rounded-full bg-green-500/60" />
-              </div>
-              <div className="flex-1 mx-4 h-6 rounded-md bg-white/[0.04] border border-white/[0.06] flex items-center px-3 gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                <span className="text-white/30 text-xs">quill.io/dashboard</span>
-              </div>
-            </div>
-            {/* Dashboard content */}
-            <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] min-h-[380px]">
-              {/* Sidebar */}
-              <div className="hidden md:block border-r border-white/[0.06] p-5 space-y-1">
-                {[
-                  { icon: <BarChart3 size={14}/>, label: "Dashboard", active: true },
-                  { icon: <Feather size={14}/>, label: "Create" },
-                  { icon: <BookOpen size={14}/>, label: "My Blogs" },
-                  { icon: <Globe size={14}/>, label: "Browse" },
-                  { icon: <Users size={14}/>, label: "Community" },
-                ].map((item)=>(
-                  <div key={item.label} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs transition-all ${item.active ? "bg-cyan-500/10 text-cyan-300 border border-cyan-500/20" : "text-white/40 hover:text-white/70 hover:bg-white/[0.03]"}`}>
-                    {item.icon} {item.label}
-                  </div>
-                ))}
-              </div>
-              {/* Main content */}
-              <div className="p-6 space-y-5">
-                {/* Stats row */}
-                <div className="grid grid-cols-3 gap-4">
-                  {[
-                    { label: "Total Views", value: "24.5K", icon: <Eye size={14}/>, color: "cyan" },
-                    { label: "Total Likes", value: "1,893", icon: <Heart size={14}/>, color: "pink" },
-                    { label: "Followers", value: "342", icon: <Users size={14}/>, color: "violet" },
-                  ].map((s)=>(
-                    <div key={s.label} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3.5">
-                      <div className={`text-xs mb-2 ${s.color === "cyan" ? "text-cyan-400" : s.color === "pink" ? "text-pink-400" : "text-violet-400"}`}>
-                        {s.icon}
-                      </div>
-                      <div className="text-white font-bold text-lg leading-none">{s.value}</div>
-                      <div className="text-white/30 text-xs mt-1">{s.label}</div>
-                    </div>
-                  ))}
-                </div>
-                {/* Blog cards */}
-                <div className="space-y-2.5">
-                  {[
-                    { title: "Building Scalable APIs with Node.js", views: "8.2K", likes: 432, tag: "Technology" },
-                    { title: "The Art of Minimalist UI Design", views: "5.7K", likes: 289, tag: "Design" },
-                    { title: "Mastering TypeScript in 2024", views: "10.1K", likes: 567, tag: "Dev" },
-                  ].map((b, i)=>(
-                    <div key={i} className="flex items-center justify-between bg-white/[0.02] border border-white/[0.05] rounded-xl px-4 py-3 hover:border-white/10 transition-all">
-                      <div className="flex items-center gap-3">
-                        <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-cyan-400 to-violet-400" />
-                        <div>
-                          <p className="text-white/80 text-xs font-medium">{b.title}</p>
-                          <p className="text-white/30 text-[10px] mt-0.5">{b.tag}</p>
-                        </div>
-                      </div>
-                      <div className="hidden sm:flex items-center gap-4 text-[10px] text-white/30">
-                        <span className="flex items-center gap-1"><Eye size={10}/>{b.views}</span>
-                        <span className="flex items-center gap-1"><Heart size={10}/>{b.likes}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </GlassCard>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────────────────────────────────
-   LOGO STRIP
-───────────────────────────────────────────── */
-function LogoStrip() {
-  const logos = ["Medium", "Hashnode", "Dev.to", "Substack", "Ghost", "WordPress"];
-  return (
-    <section className="relative py-14 border-y border-white/[0.04] overflow-hidden">
-      <p className="text-center text-white/20 text-xs tracking-[0.2em] uppercase mb-8 font-medium">
-        Trusted by writers who left
-      </p>
-      <div className="flex gap-12 animate-[scroll_20s_linear_infinite] whitespace-nowrap">
-        {[...logos,...logos].map((l,i)=>(
-          <span key={i} className="text-white/20 font-bold text-sm tracking-widest uppercase">{l}</span>
-        ))}
-      </div>
-      <style>{`
-        @keyframes scroll {
-          from { transform: translateX(0) }
-          to { transform: translateX(-50%) }
-        }
-      `}</style>
-    </section>
-  );
-}
-
-/* ─────────────────────────────────────────────
-   FEATURES
-───────────────────────────────────────────── */
-function Features() {
-  const [ref, visible] = useReveal();
-
-  const features = [
-    {
-      icon: <Zap size={20}/>,
-      color: "cyan",
-      title: "Blazing Fast Editor",
-      desc: "A distraction-free markdown editor with live preview, syntax highlighting, and zero latency. Focus on writing, not fighting tools.",
-    },
-    {
-      icon: <BarChart3 size={20}/>,
-      color: "violet",
-      title: "Real-Time Analytics",
-      desc: "Beautiful dashboards with live views, likes, read time, and audience demographics. Know your readers deeply.",
-    },
-    {
-      icon: <Shield size={20}/>,
-      color: "pink",
-      title: "Role-Based Access",
-      desc: "Granular permissions with JWT auth, Google OAuth, and admin controls. Enterprise-grade security that just works.",
-    },
-    {
-      icon: <Globe size={20}/>,
-      color: "green",
-      title: "SEO Powerhouse",
-      desc: "Automatic meta tags, Open Graph, sitemaps, and canonical URLs. Built for discoverability from day one.",
-    },
-    {
-      icon: <Users size={20}/>,
-      color: "cyan",
-      title: "Community First",
-      desc: "Follow authors, bookmark blogs, comment threads, and curated feeds. Build a loyal readership over time.",
-    },
-    {
-      icon: <TrendingUp size={20}/>,
-      color: "violet",
-      title: "Monetisation Ready",
-      desc: "Paid subscriptions, tip jars, and sponsor placements. Turn your audience into sustainable income.",
-    },
-  ];
-
-  const colorMap = {
-    cyan: { bg: "bg-cyan-400/10", border: "border-cyan-400/20", text: "text-cyan-400", glow: "shadow-cyan-500/20" },
-    violet: { bg: "bg-violet-400/10", border: "border-violet-400/20", text: "text-violet-400", glow: "shadow-violet-500/20" },
-    pink: { bg: "bg-pink-400/10", border: "border-pink-400/20", text: "text-pink-400", glow: "shadow-pink-500/20" },
-    green: { bg: "bg-emerald-400/10", border: "border-emerald-400/20", text: "text-emerald-400", glow: "shadow-emerald-500/20" },
-  };
-
-  return (
-    <section id="features" ref={ref} className="relative py-28 px-4 max-w-7xl mx-auto">
-      <div className={`text-center mb-16 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-        <Badge color="cyan"><Zap size={10}/> Features</Badge>
-        <h2 className="mt-5 text-4xl sm:text-5xl font-black tracking-tight text-white" style={{fontFamily:"'Oxanium',sans-serif"}}>
-          Everything a writer needs.
-          <br/><GradientText>Nothing they don't.</GradientText>
-        </h2>
-        <p className="mt-4 text-white/40 max-w-xl mx-auto text-base leading-relaxed">
-          Quill is opinionated about what matters: beautiful writing, engaged readers, and real data.
+      {/* Cozy Sub-Header Box */}
+      <div className="mt-6 max-w-xl bg-retro-surface border-2 border-retro-border p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        <p className="text-xs sm:text-sm font-terminal text-retro-text/95 leading-relaxed">
+          A handcrafted digital studio for writers who care about the craft. 
+          No algorithms, no corporate noise, just raw thoughts on a virtual canvas.
         </p>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {features.map((f, i) => {
-          const c = colorMap[f.color];
-          return (
-            <div key={i} className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
-              style={{ transitionDelay: `${i * 80}ms` }}>
-              <GlassCard className="p-6 h-full group">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${c.bg} border ${c.border} ${c.text} mb-5 group-hover:shadow-lg group-hover:${c.glow} transition-all duration-300`}>
-                  {f.icon}
-                </div>
-                <h3 className="text-white font-bold text-base mb-2" style={{fontFamily:"'Oxanium',sans-serif"}}>{f.title}</h3>
-                <p className="text-white/40 text-sm leading-relaxed">{f.desc}</p>
-              </GlassCard>
-            </div>
-          );
-        })}
+      {/* Buttons */}
+      <div className="mt-8 flex flex-col sm:flex-row gap-4 items-center">
+        <RetroButton variant="primary" onClick={() => navigate("/register")}>
+          Become an author <ArrowRight size={12} />
+        </RetroButton>
+        <RetroButton variant="secondary" onClick={() => scrollToSection("blog")}>
+          Go to library
+        </RetroButton>
       </div>
-    </section>
-  );
-}
 
-/* ─────────────────────────────────────────────
-   HOW IT WORKS
-───────────────────────────────────────────── */
-function HowItWorks() {
-  const [ref, visible] = useReveal();
-  const steps = [
-    { n: "01", icon: <MousePointer size={18}/>, title: "Create your account", desc: "Sign up with email or Google in seconds. Your profile is live immediately." },
-    { n: "02", icon: <Feather size={18}/>, title: "Write your first blog", desc: "Use our markdown editor with live preview, image uploads, and tagging." },
-    { n: "03", icon: <Rss size={18}/>, title: "Publish & distribute", desc: "One click publishes to your profile, your followers' feeds, and the explore page." },
-    { n: "04", icon: <TrendingUp size={18}/>, title: "Grow your audience", desc: "Track performance in real-time and iterate with data-driven insights." },
-  ];
-
-  return (
-    <section id="about" ref={ref} className="relative py-28 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className={`text-center mb-16 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-          <Badge color="violet"><Coffee size={10}/> How it works</Badge>
-          <h2 className="mt-5 text-4xl sm:text-5xl font-black tracking-tight text-white" style={{fontFamily:"'Oxanium',sans-serif"}}>
-            From idea to <GradientText>published</GradientText>
-            <br/>in minutes.
-          </h2>
-        </div>
-
-        <div className="relative grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {/* Connector line desktop */}
-          <div className="absolute hidden lg:block top-10 left-[12%] right-[12%] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-          
-          {steps.map((s, i) => (
-            <div key={i}
-              className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
-              style={{ transitionDelay: `${i * 120}ms` }}>
-              <GlassCard className="p-6 text-center relative">
-                {/* Step number */}
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-violet-500/20 border border-cyan-500/20 text-cyan-400 mb-5 relative z-10">
-                  {s.icon}
-                </div>
-                <div className="absolute top-4 right-5 text-white/[0.04] font-black text-5xl" style={{fontFamily:"'Oxanium',sans-serif"}}>
-                  {s.n}
-                </div>
-                <h3 className="text-white font-bold text-sm mb-2" style={{fontFamily:"'Oxanium',sans-serif"}}>{s.title}</h3>
-                <p className="text-white/40 text-xs leading-relaxed">{s.desc}</p>
-              </GlassCard>
+      {/* Main Hero Showcase */}
+      <div className="mt-16 w-full max-w-5xl px-4">
+        {/* Frame container */}
+        <div className="border-4 border-retro-accent bg-retro-surface p-1 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          {/* Header block of frame */}
+          <div className="border-b-2 border-retro-accent bg-[#E8E8C6] px-4 py-2 flex items-center justify-between text-xs font-pixel text-[#252525]">
+            <span>SYSTEM_WORKSPACE_PREVIEW.EXE</span>
+            <div className="flex gap-2">
+              <span className="w-3 h-3 border border-[#252525]" />
+              <span className="w-3 h-3 border border-[#252525]" />
             </div>
-          ))}
+          </div>
+          {/* Hero Image */}
+          <img
+            src="/hero-pixel.png"
+            alt="Cozy Pixel Writer Workspace"
+            className="w-full h-auto object-cover border-t-2 border-retro-accent"
+          />
+          {/* Icon bar at bottom */}
+          <div className="bg-[#E8E8C6] border-t-2 border-retro-accent py-3 px-6 flex justify-around items-center text-[#252525]">
+            <Coffee size={18} className="hover:scale-110 transition-transform cursor-pointer" />
+            <Gamepad2 size={18} className="hover:scale-110 transition-transform cursor-pointer" />
+            <Compass size={18} className="hover:scale-110 transition-transform cursor-pointer" />
+            <Award size={18} className="hover:scale-110 transition-transform cursor-pointer" />
+            <Globe size={18} className="hover:scale-110 transition-transform cursor-pointer" />
+          </div>
         </div>
       </div>
     </section>
@@ -729,34 +252,31 @@ function HowItWorks() {
 }
 
 /* ─────────────────────────────────────────────
-   BLOG PREVIEW GRID
+   BLOG PREVIEW / GALLERY
 ───────────────────────────────────────────── */
 function BlogPreview() {
-  const [ref, visible] = useReveal();
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
 
   const fallbackPosts = [
-    { _id: "mock1", emoji: "⚡", tag: "Technology", title: "The Future of Web Development in 2025", author: "Alex Chen", read: "5 min", views: "12.4K", likesCount: 891, isMock: true },
-    { _id: "mock2", emoji: "🎨", tag: "Design", title: "Designing for Dark Mode: A Complete Guide", author: "Sara Kim", read: "8 min", views: "9.1K", likesCount: 723, isMock: true },
-    { _id: "mock3", emoji: "🚀", tag: "Startup", title: "How We Scaled to 1M Users With Zero Budget", author: "Mike Torres", read: "12 min", views: "31K", likesCount: 2100, isMock: true },
-    { _id: "mock4", emoji: "🧠", tag: "AI", title: "Building LLM-Powered Apps That Actually Work", author: "Priya Nair", read: "10 min", views: "18.2K", likesCount: 1340, isMock: true },
-    { _id: "mock5", emoji: "📐", tag: "Engineering", title: "Clean Architecture in Node.js: A Deep Dive", author: "James Wu", read: "15 min", views: "7.8K", likesCount: 610, isMock: true },
-    { _id: "mock6", emoji: "🌿", tag: "Lifestyle", title: "The Minimalist Developer's Productivity System", author: "Lena Ross", read: "6 min", views: "5.3K", likesCount: 487, isMock: true },
+    { _id: "mock1", emoji: "⚡", tag: "Technology", title: "The Return of Handcrafted Web Interfaces", author: "Keshav Kakani", read: "5 min", views: "12K", likesCount: 891, isMock: true, image: "/stars-pixel.png" },
+    { _id: "mock2", emoji: "🎨", tag: "Design", title: "Why Pixel-Art Evokes Cozy digital Nostalgia", author: "Sara Kim", read: "8 min", views: "9K", likesCount: 723, isMock: true, image: "/typewriter-pixel.png" },
+    { _id: "mock3", emoji: "🚀", tag: "Indie Web", title: "Escaping the Corporate Algorithm Bubbles", author: "Mike Torres", read: "12 min", views: "31K", likesCount: 2100, isMock: true, image: "/hero-pixel.png" },
+    { _id: "mock4", emoji: "🧠", tag: "Tech", title: "Building Lightweight Web Apps in 2026", author: "Priya Nair", read: "10 min", views: "18K", likesCount: 1340, isMock: true, image: "/stars-pixel.png" },
+    { _id: "mock5", emoji: "📐", tag: "Dev", title: "Writing Simple C++ Compilers from Scratch", author: "James Wu", read: "15 min", views: "7K", likesCount: 610, isMock: true, image: "/typewriter-pixel.png" },
   ];
 
-  /**
-   * Fetches published blogs to showcase on the home page's trending section.
-   * API CALL: GET `/blogs` (in backend start/routes/blog.routes.js)
-   * Why: Showcases real user contributions to new site visitors, and automatically
-   * falls back to static mock data if the backend is unreachable or empty.
-   */
   useEffect(() => {
     api.get("/blogs")
       .then(res => {
         const published = (res.data.data || []).filter(b => b.isPublished);
         if (published.length > 0) {
-          setPosts(published.slice(0, 6));
+          // Merge real posts with mock images for consistent retro look
+          const merged = published.map((p, idx) => ({
+            ...p,
+            image: [ "/stars-pixel.png", "/typewriter-pixel.png", "/hero-pixel.png" ][idx % 3]
+          }));
+          setPosts(merged.slice(0, 5));
         } else {
           setPosts(fallbackPosts);
         }
@@ -766,185 +286,89 @@ function BlogPreview() {
       });
   }, []);
 
+  const featuredPost = posts[0] || fallbackPosts[0];
+  const sidePosts = posts.slice(1);
+
   return (
-    <section id="blog" ref={ref} className="relative py-28 px-4 max-w-7xl mx-auto">
-      <div className={`flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-6 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+    <section id="blog" className="py-24 px-4 max-w-7xl mx-auto border-t-2 border-retro-border">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-14 gap-6">
         <div>
-          <Badge color="pink"><BookOpen size={10}/> Explore</Badge>
-          <h2 className="mt-4 text-4xl font-black text-white" style={{fontFamily:"'Oxanium',sans-serif"}}>
-            Trending stories <GradientText>today</GradientText>
+          <RetroBadge>Explore</RetroBadge>
+          <h2 className="text-4xl md:text-5xl font-heading text-retro-accent uppercase mt-3 tracking-widest">
+            the best stories this month
           </h2>
         </div>
-        <Button variant="secondary" className="self-start sm:self-auto" onClick={() => navigate("/login")}>
-          View all posts <ChevronRight size={14}/>
-        </Button>
+        <RetroButton variant="secondary" onClick={() => navigate("/login")}>
+          to the index <ChevronRight size={12} />
+        </RetroButton>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {posts.map((p, i) => {
-          const authorName = p.isMock ? p.author : (p.author?.fullName || p.author?.username || "Writer");
-          const displayLikes = p.isMock ? p.likesCount : (p.likes || []).length;
-          const displayViews = p.isMock ? p.views : (p.views >= 1000 ? `${(p.views / 1000).toFixed(1)}K` : p.views);
-          
-          return (
-            <div key={p._id || i}
-              className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
-              style={{ transitionDelay: `${i * 80}ms` }}>
-              <GlassCard 
-                className="overflow-hidden group cursor-pointer h-full flex flex-col"
-                onClick={() => {
-                  if (p.isMock) {
-                    navigate("/login");
-                  } else {
-                    navigate(`/blog/${p._id}`);
-                  }
-                }}
-              >
-                {/* Thumbnail */}
-                <div className="h-40 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center text-6xl relative overflow-hidden">
-                  <span className="transform group-hover:scale-110 transition-transform duration-500">{p.emoji || "📝"}</span>
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#080b14]/80 to-transparent" />
-                  <div className="absolute bottom-3 left-4">
-                    <Badge color={["cyan","violet","pink","green"][i%4]}>{p.category || p.tag || "General"}</Badge>
-                  </div>
-                </div>
-                {/* Content */}
-                <div className="p-5 flex flex-col flex-1">
-                  <h3 className="text-white font-bold text-sm leading-snug mb-3 group-hover:text-cyan-300 transition-colors duration-300" style={{fontFamily:"'Oxanium',sans-serif"}}>
-                    {p.title}
-                  </h3>
-                  <div className="mt-auto flex items-center justify-between text-white/30 text-xs pt-4 border-t border-white/[0.05]">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center text-[9px] font-bold text-white">
-                        {authorName[0]}
-                      </div>
-                      <span>{authorName}</span>
-                      <span>·</span>
-                      <span>{p.readTime || p.read || "5 min"} read</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="flex items-center gap-1"><Eye size={10}/>{displayViews}</span>
-                      <span className="flex items-center gap-1"><Heart size={10}/>{displayLikes}</span>
-                    </div>
-                  </div>
-                </div>
-              </GlassCard>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────────────────────────────────
-   PRICING
-───────────────────────────────────────────── */
-function Pricing() {
-  const [ref, visible] = useReveal();
-  const [annual, setAnnual] = useState(true);
-  const navigate = useNavigate();
-
-  const plans = [
-    {
-      name: "Free",
-      price: { monthly: 0, annual: 0 },
-      desc: "Perfect for getting started",
-      features: ["5 blog posts/month", "Basic analytics", "Community access", "Markdown editor", "Public profile"],
-      cta: "Start free",
-      variant: "secondary",
-      highlight: false,
-    },
-    {
-      name: "Pro",
-      price: { monthly: 12, annual: 9 },
-      desc: "For serious writers",
-      features: ["Unlimited posts", "Advanced analytics", "Custom domain", "Newsletter tools", "Priority support", "AI writing assistant", "Monetisation"],
-      cta: "Start Pro trial",
-      variant: "primary",
-      highlight: true,
-    },
-    {
-      name: "Team",
-      price: { monthly: 39, annual: 29 },
-      desc: "For publications & teams",
-      features: ["Everything in Pro", "Up to 10 authors", "Team analytics", "Admin dashboard", "Custom branding", "API access", "Dedicated support"],
-      cta: "Contact sales",
-      variant: "secondary",
-      highlight: false,
-    },
-  ];
-
-  return (
-    <section id="pricing" ref={ref} className="relative py-28 px-4">
-      <div className="max-w-5xl mx-auto">
-        <div className={`text-center mb-12 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-          <Badge color="green"><Award size={10}/> Pricing</Badge>
-          <h2 className="mt-5 text-4xl sm:text-5xl font-black text-white" style={{fontFamily:"'Oxanium',sans-serif"}}>
-            Simple, <GradientText>transparent</GradientText> pricing.
-          </h2>
-          <p className="mt-4 text-white/40 text-base">No hidden fees. Cancel anytime.</p>
-
-          {/* Toggle */}
-          <div className="mt-8 inline-flex items-center gap-3 bg-white/[0.04] border border-white/[0.06] rounded-xl p-1">
-            <button
-              onClick={() => setAnnual(false)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${!annual ? "bg-white/10 text-white" : "text-white/40 hover:text-white/60"}`}
-            >Monthly</button>
-            <button
-              onClick={() => setAnnual(true)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${annual ? "bg-white/10 text-white" : "text-white/40 hover:text-white/60"}`}
+      {/* Gallery Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* Left Side: Large Featured Post */}
+        <div className="lg:col-span-7">
+          <RetroCard 
+            titleBar={`FEATURED_STORY // BY ${featuredPost.author?.username || featuredPost.author || "ANONYMOUS"}`}
+            hover={true}
+            className="h-full flex flex-col"
+          >
+            <div 
+              className="w-full aspect-video border-2 border-retro-border mb-4 overflow-hidden cursor-pointer"
+              onClick={() => navigate(featuredPost.isMock ? "/login" : `/blog/${featuredPost._id}`)}
             >
-              Annual <Badge color="green">Save 25%</Badge>
-            </button>
-          </div>
+              <img 
+                src={featuredPost.image || "/stars-pixel.png"} 
+                alt={featuredPost.title}
+                className="w-full h-full object-cover hover:scale-102 transition-transform duration-300"
+              />
+            </div>
+            <RetroBadge>{featuredPost.category || featuredPost.tag || "General"}</RetroBadge>
+            <h3 
+              className="text-2xl font-heading text-retro-accent uppercase tracking-wider mt-3 mb-2 hover:text-[#E2E2D5] cursor-pointer"
+              onClick={() => navigate(featuredPost.isMock ? "/login" : `/blog/${featuredPost._id}`)}
+            >
+              {featuredPost.title}
+            </h3>
+            <p className="text-xs text-retro-text/60 font-terminal leading-relaxed mb-6">
+              {featuredPost.content ? (featuredPost.content.substring(0, 180) + "...") : "Discover high-quality development diaries, engineering breakdowns, and creative essays hosted on QuillForge."}
+            </p>
+            <div className="mt-auto pt-4 border-t border-retro-border/50 flex justify-between items-center text-[10px] font-pixel text-retro-text/40">
+              <span>{featuredPost.readTime || featuredPost.read || "5 MIN"} READ</span>
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1"><Eye size={10}/> {featuredPost.views || 0}</span>
+                <span className="flex items-center gap-1"><Heart size={10}/> {featuredPost.likesCount || (featuredPost.likes || []).length}</span>
+              </div>
+            </div>
+          </RetroCard>
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-5">
-          {plans.map((p, i) => (
-            <div key={i}
-              className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
-              style={{ transitionDelay: `${i * 100}ms` }}>
-              <div className={`relative rounded-2xl border p-6 h-full flex flex-col ${
-                p.highlight
-                  ? "border-cyan-400/40 bg-gradient-to-b from-cyan-500/10 to-violet-500/5 shadow-[0_0_60px_rgba(34,211,238,0.1)]"
-                  : "border-white/[0.06] bg-white/[0.02]"
-              }`}>
-                {p.highlight && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge color="cyan"><Sparkles size={10}/> Most Popular</Badge>
-                  </div>
-                )}
+        {/* Right Side: Grid of 4 Smaller Cards */}
+        <div className="lg:col-span-5 flex flex-col gap-6">
+          {sidePosts.map((p, idx) => (
+            <div 
+              key={p._id || idx}
+              onClick={() => navigate(p.isMock ? "/login" : `/blog/${p._id}`)}
+              className="group border-2 border-retro-border bg-retro-surface hover:border-retro-accent p-3 flex gap-4 transition-all duration-300 cursor-pointer"
+            >
+              <div className="w-24 h-20 border border-retro-border overflow-hidden flex-shrink-0 bg-retro-bg">
+                <img 
+                  src={p.image || "/typewriter-pixel.png"} 
+                  alt={p.title} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="flex flex-col justify-between flex-1 min-w-0">
                 <div>
-                  <h3 className="text-white font-bold text-sm" style={{fontFamily:"'Oxanium',sans-serif"}}>{p.name}</h3>
-                  <p className="text-white/30 text-xs mt-1">{p.desc}</p>
-                  <div className="mt-5 flex items-end gap-1">
-                    <span className="text-4xl font-black text-white" style={{fontFamily:"'Oxanium',sans-serif"}}>
-                      ${annual ? p.price.annual : p.price.monthly}
-                    </span>
-                    {p.price.monthly > 0 && <span className="text-white/30 text-sm mb-1">/mo</span>}
-                  </div>
+                  <span className="text-[9px] font-pixel text-retro-accent uppercase">{p.category || p.tag || "General"}</span>
+                  <h4 className="text-sm font-heading text-retro-text group-hover:text-retro-accent uppercase tracking-wide truncate mt-1">
+                    {p.title}
+                  </h4>
                 </div>
-                <ul className="mt-6 space-y-3 flex-1">
-                  {p.features.map((f, j) => (
-                    <li key={j} className="flex items-center gap-2.5 text-xs text-white/60">
-                      <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${p.highlight ? "bg-cyan-500/20 text-cyan-400" : "bg-white/10 text-white/40"}`}>
-                        <Check size={9}/>
-                      </div>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-8">
-                  <Button variant={p.variant} className="w-full justify-center" onClick={() => {
-                    if (p.name === "Team") {
-                      window.location.href = "mailto:kkakani160@gmail.com?subject=QuillForge Enterprise Plan Inquiry";
-                    } else {
-                      navigate("/register");
-                    }
-                  }}>
-                    {p.cta}
-                  </Button>
+                <div className="flex justify-between items-center text-[9px] font-pixel text-retro-text/40 pt-2 border-t border-retro-border/20">
+                  <span>BY {p.author?.username || p.author || "WRITER"}</span>
+                  <span className="flex items-center gap-1"><Heart size={8}/> {p.likesCount || (p.likes || []).length}</span>
                 </div>
               </div>
             </div>
@@ -956,51 +380,34 @@ function Pricing() {
 }
 
 /* ─────────────────────────────────────────────
-   TESTIMONIALS
+   FEATURES SECTION
 ───────────────────────────────────────────── */
-function Testimonials() {
-  const [ref, visible] = useReveal();
-  const items = [
-    { name: "Aisha Patel", role: "Full-Stack Developer", quote: "Quill replaced Medium for me completely. The editor is silky smooth and the analytics are actually useful.", avatar: "bg-gradient-to-br from-cyan-400 to-blue-500" },
-    { name: "Carlos Ruiz", role: "Design Lead @ Vercel", quote: "The dark theme and typography choices are *chef's kiss*. Finally a blogging platform that looks good on day one.", avatar: "bg-gradient-to-br from-violet-400 to-pink-500" },
-    { name: "Ming-Li Zhang", role: "Indie Hacker", quote: "Monetised my newsletter in week 2. Made more in a month than six months on Substack. No joke.", avatar: "bg-gradient-to-br from-emerald-400 to-cyan-500" },
-    { name: "James Okafor", role: "Software Architect", quote: "Custom domains, SEO out of the box, and zero ads. This is how blogging should work.", avatar: "bg-gradient-to-br from-orange-400 to-pink-500" },
-    { name: "Priya Sharma", role: "Tech Writer", quote: "The AI writing assistant is genuinely helpful – not a gimmick. It helps me write faster without losing my voice.", avatar: "bg-gradient-to-br from-pink-400 to-rose-500" },
-    { name: "Noah Williams", role: "CTO @ BuildFast", quote: "We migrated our company blog in an afternoon. The API is clean, the docs are excellent. Love it.", avatar: "bg-gradient-to-br from-amber-400 to-orange-500" },
+function Features() {
+  const features = [
+    { icon: "⚡", title: "Bitmapped Markdown Editor", desc: "A clean monospace writing pad with instant local storage backups and responsive formatting controllers." },
+    { icon: "📊", title: "Terminal Analytics", desc: "No complex Google tracking. Simple, server-incremented click counters and like logs mapped inside terminal panels." },
+    { icon: "🛡️", title: "Secure Session Locks", desc: "Encrypted JWT session keys and quick Google OAuth bridges providing industry-standard secure user flows." },
+    { icon: "🌐", title: "Built-in Site indexing", desc: "Pre-rendered sitemaps and clean meta headers optimized for direct discoverability across search directories." },
+    { icon: "👥", title: "Cozy community boards", desc: "Granular profile cards, RSS feeds, bookmark hooks, and linear nested response threads." },
+    { icon: "☕", title: "Zero ad monetization", desc: "Implement direct tip hooks or newsletter signups without corporate platform middlemen." },
   ];
 
   return (
-    <section ref={ref} className="relative py-28 px-4 max-w-7xl mx-auto">
-      <div className={`text-center mb-14 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-        <Badge color="violet"><Star size={10}/> Testimonials</Badge>
-        <h2 className="mt-5 text-4xl sm:text-5xl font-black text-white" style={{fontFamily:"'Oxanium',sans-serif"}}>
-          Writers love <GradientText>Quill.</GradientText>
+    <section id="features" className="py-24 px-4 border-t-2 border-retro-border bg-retro-surface/30">
+      <div className="max-w-7xl mx-auto text-center mb-16">
+        <RetroBadge>Capabilities</RetroBadge>
+        <h2 className="text-4xl md:text-5xl font-heading text-retro-accent uppercase mt-3 tracking-widest">
+          EVERYTHING A WRITER NEEDS
         </h2>
       </div>
 
-      <div className="columns-1 sm:columns-2 lg:columns-3 gap-5 space-y-5">
-        {items.map((t, i) => (
-          <div key={i}
-            className={`break-inside-avoid transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
-            style={{ transitionDelay: `${i * 80}ms` }}>
-            <GlassCard className="p-5">
-              <div className="flex gap-1 mb-3">
-                {[1,2,3,4,5].map(s=>(
-                  <Star key={s} size={12} className="text-amber-400 fill-amber-400"/>
-                ))}
-              </div>
-              <p className="text-white/60 text-sm leading-relaxed">"{t.quote}"</p>
-              <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/[0.06]">
-                <div className={`w-8 h-8 rounded-full ${t.avatar} flex items-center justify-center text-xs font-bold text-white`}>
-                  {t.name[0]}
-                </div>
-                <div>
-                  <p className="text-white text-xs font-semibold">{t.name}</p>
-                  <p className="text-white/30 text-[10px]">{t.role}</p>
-                </div>
-              </div>
-            </GlassCard>
-          </div>
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {features.map((f, i) => (
+          <RetroCard key={i} titleBar={`MODULE_0${i + 1}.SYS`} hover={true}>
+            <div className="text-2xl mb-4">{f.icon}</div>
+            <h3 className="text-lg font-heading text-retro-accent uppercase tracking-wider mb-2">{f.title}</h3>
+            <p className="text-xs text-retro-text/60 font-terminal leading-relaxed">{f.desc}</p>
+          </RetroCard>
         ))}
       </div>
     </section>
@@ -1008,40 +415,140 @@ function Testimonials() {
 }
 
 /* ─────────────────────────────────────────────
-   CTA BANNER
+   HOW IT WORKS
+───────────────────────────────────────────── */
+function HowItWorks() {
+  const steps = [
+    { cmd: "quill --register", desc: "Set up your retro publishing profile card in seconds." },
+    { cmd: "quill --create-post", desc: "Draft with clean Markdown in our distraction-free space." },
+    { cmd: "quill --publish", desc: "Deploy your post to the global feed and explore boards." },
+    { cmd: "quill --track-stats", desc: "Monitor view graphs and likes inside your profile terminal." },
+  ];
+
+  return (
+    <section id="how-it-works" className="py-24 px-4 border-t-2 border-retro-border">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <RetroBadge>Terminal workflow</RetroBadge>
+          <h2 className="text-4xl md:text-5xl font-heading text-retro-accent uppercase mt-3 tracking-widest">
+            Simple Command Sequence
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {steps.map((s, i) => (
+            <div key={i} className="border-2 border-retro-border bg-retro-surface p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <div className="font-pixel text-[10px] text-retro-accent mb-3">STEP_0{i + 1}.EXE</div>
+              <div className="font-terminal text-xs text-[#E8E8C6] bg-retro-bg p-2.5 border border-retro-border/50 mb-3 truncate">
+                $ {s.cmd}
+              </div>
+              <p className="text-xs text-retro-text/75 font-terminal leading-relaxed">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   PRICING
+───────────────────────────────────────────── */
+function Pricing() {
+  const plans = [
+    { name: "HOBBYIST", price: "0", desc: "For casual writers", features: ["5 blog posts / mo", "Basic terminal analytics", "Standard markdown pad", "Public card profile"] },
+    { name: "PRO WRITER", price: "9", desc: "For serious creators", features: ["Unlimited posts", "Complete click analytics", "Custom domain binding", "RSS subscriber tools", "Priority support channels"] },
+    { name: "PUBLICATION", price: "29", desc: "For editorial teams", features: ["Everything in Pro", "Up to 10 author profiles", "Team analytics logs", "Admin dashboard panel", "API access hooks"] }
+  ];
+
+  return (
+    <section id="pricing" className="py-24 px-4 border-t-2 border-retro-border bg-retro-surface/30">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-16">
+          <RetroBadge>Monetization</RetroBadge>
+          <h2 className="text-4xl md:text-5xl font-heading text-retro-accent uppercase mt-3 tracking-widest">
+            TRANSPARENT SUBSCRIPTIONS
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {plans.map((p, i) => (
+            <div 
+              key={i} 
+              className={`border-2 border-retro-border p-6 flex flex-col ${
+                i === 1 ? "bg-retro-surface border-retro-accent shadow-[6px_6px_0px_0px_rgba(232,232,198,0.2)]" : "bg-retro-surface/50"
+              }`}
+            >
+              <h3 className="font-heading text-2xl text-retro-accent uppercase tracking-wider">{p.name}</h3>
+              <p className="text-[10px] font-pixel text-retro-text/40 mt-1">{p.desc}</p>
+              
+              <div className="my-6 flex items-baseline gap-1 font-heading text-4xl text-retro-accent">
+                <span>${p.price}</span>
+                {p.price !== "0" && <span className="text-xs font-pixel text-retro-text/30">/MO</span>}
+              </div>
+
+              <ul className="space-y-3 flex-1 mb-8 text-xs font-terminal text-retro-text/75 border-t border-retro-border/20 pt-4">
+                {p.features.map((f, j) => (
+                  <li key={j} className="flex items-center gap-2">
+                    <span className="text-retro-accent">▶</span> {f}
+                  </li>
+                ))}
+              </ul>
+
+              <RetroButton 
+                variant={i === 1 ? "primary" : "secondary"}
+                className="w-full justify-center"
+                onClick={() => {
+                  if (p.name === "PUBLICATION") {
+                    window.location.href = "mailto:kkakani160@gmail.com?subject=QuillForge Enterprise Plan Inquiry";
+                  } else {
+                    window.location.href = "/register";
+                  }
+                }}
+              >
+                SELECT PLAN
+              </RetroButton>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   SYSTEM DIALOG / CTA BANNER
 ───────────────────────────────────────────── */
 function CTABanner() {
-  const [ref, visible] = useReveal();
   const navigate = useNavigate();
 
   return (
-    <section ref={ref} className="relative py-20 px-4">
-      <div className={`max-w-4xl mx-auto transition-all duration-700 ${visible ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}>
-        <div className="relative overflow-hidden rounded-3xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-violet-500/10 to-pink-500/10 p-12 text-center">
-          {/* Inner glow */}
-          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-violet-500/5" />
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent" />
-          
-          <div className="relative">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-400 to-violet-500 mb-6 shadow-2xl shadow-cyan-500/30">
-              <Feather size={24} className="text-white" />
-            </div>
-            <h2 className="text-4xl sm:text-5xl font-black text-white mb-4" style={{fontFamily:"'Oxanium',sans-serif"}}>
-              Your words deserve
-              <br/><GradientText>a better home.</GradientText>
-            </h2>
-            <p className="text-white/50 text-base max-w-xl mx-auto mb-8 leading-relaxed">
-              Join 5,000+ writers already building their audience on Quill.
-              Free forever. No credit card required.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button variant="primary" className="text-base px-10 py-4 rounded-2xl" onClick={() => navigate("/register")}>
-                Create your account <ArrowRight size={16}/>
-              </Button>
-              <Button variant="secondary" className="text-base px-10 py-4 rounded-2xl" onClick={() => window.open("https://github.com/unitedtechlab/QUillForge_", "_blank")}>
-                Read the docs <BookOpen size={16}/>
-              </Button>
-            </div>
+    <section className="py-20 px-4 max-w-4xl mx-auto">
+      <div className="border-4 border-retro-accent bg-retro-surface p-1 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        {/* Title bar */}
+        <div className="border-b-2 border-retro-accent bg-[#E8E8C6] px-4 py-2 flex items-center justify-between text-xs font-pixel text-[#252525]">
+          <span>ALERT_SYSTEM_CONFIRM.EXE</span>
+          <span className="font-bold cursor-pointer">X</span>
+        </div>
+        {/* Dialog body */}
+        <div className="p-8 text-center flex flex-col items-center">
+          <svg className="w-12 h-12 text-retro-accent fill-current mb-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" />
+          </svg>
+          <h3 className="text-3xl font-heading text-retro-accent uppercase tracking-wider mb-2">
+            YOUR WORDS DESERVE A COZY HOME
+          </h3>
+          <p className="text-xs text-retro-text/60 font-terminal max-w-md mb-8 leading-relaxed">
+            Join thousands of writers sharing their journals, code logs, and pixel guides. 
+            Free forever. No credit cards, trackers, or cookies required.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <RetroButton variant="primary" onClick={() => navigate("/register")}>
+              CREATE PROFILE
+            </RetroButton>
+            <RetroButton variant="secondary" onClick={() => window.open("https://github.com/unitedtechlab/QUillForge_", "_blank")}>
+              READ DOCS
+            </RetroButton>
           </div>
         </div>
       </div>
@@ -1054,42 +561,46 @@ function CTABanner() {
 ───────────────────────────────────────────── */
 function Footer() {
   const cols = [
-    { heading: "Product", links: ["Features", "Pricing", "Changelog", "Roadmap"] },
-    { heading: "Company", links: ["About", "Blog", "Careers", "Press"] },
-    { heading: "Resources", links: ["Docs", "API", "Community", "Status"] },
-    { heading: "Legal", links: ["Privacy", "Terms", "Cookies", "Security"] },
+    { heading: "Studio", links: ["Features", "Pricing", "Changelog"] },
+    { heading: "Creators", links: ["Browse", "Profiles", "Activity"] },
+    { heading: "Archives", links: ["Documentation", "API Spec", "Source"] },
+    { heading: "Protocol", links: ["Privacy Log", "Terms.txt", "Security"] }
   ];
 
   return (
-    <footer className="border-t border-white/[0.04] py-16 px-4">
+    <footer className="border-t-2 border-retro-border py-16 px-4 bg-retro-bg">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-10 mb-12">
+          
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center">
-                <Feather size={14} className="text-white" />
-              </div>
-              <span className="text-white font-bold text-lg" style={{fontFamily:"'Oxanium',sans-serif"}}>QuillForge<span className="text-cyan-400">.</span></span>
+            <div className="flex items-center gap-2.5 mb-4 text-retro-accent font-pixel text-xs tracking-wider">
+              <span>QUILLFORGE</span>
             </div>
-            <p className="text-white/30 text-sm leading-relaxed mb-5">
-              The modern platform for writers who care about craft.
+            <p className="text-retro-text/40 text-xs font-terminal leading-relaxed mb-6">
+              A writing studio where thoughts are compiled like beautiful retro software.
             </p>
-            <div className="flex gap-3">
-              {[<X size={14}/>, <Gift size={14}/>, <Rss size={14}/>].map((icon, i) => (
-                <button key={i} className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-white/40 hover:text-white hover:border-white/20 transition-all" onClick={() => window.open("https://github.com/unitedtechlab/QUillForge_", "_blank")}>
-                  {icon}
+            <div className="flex gap-2">
+              {["GH", "RSS", "MAIL"].map((text) => (
+                <button 
+                  key={text} 
+                  className="px-2 py-1 border border-retro-border text-[9px] font-pixel text-retro-text/40 hover:text-retro-accent hover:border-retro-accent transition-colors"
+                  onClick={() => window.open("https://github.com/unitedtechlab/QUillForge_", "_blank")}
+                >
+                  {text}
                 </button>
               ))}
             </div>
           </div>
 
-          {cols.map(col => (
+          {cols.map((col) => (
             <div key={col.heading}>
-              <h4 className="text-white font-semibold text-xs tracking-widest uppercase mb-4" style={{fontFamily:"'Oxanium',sans-serif"}}>{col.heading}</h4>
-              <ul className="space-y-2.5">
-                {col.links.map(l => (
-                  <li key={l}>
-                    <a href="/" className="text-white/30 text-sm hover:text-white/70 transition-colors">{l}</a>
+              <h4 className="text-retro-accent font-pixel text-[10px] uppercase tracking-wider mb-4">{col.heading}</h4>
+              <ul className="space-y-2 font-terminal text-xs text-retro-text/40">
+                {col.links.map((link) => (
+                  <li key={link}>
+                    <a href="/" className="hover:text-retro-accent transition-colors">
+                      {link}
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -1097,11 +608,10 @@ function Footer() {
           ))}
         </div>
 
-        <div className="pt-8 border-t border-white/[0.04] flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-white/20 text-xs">© 2025 Quill. All rights reserved.</p>
-          <div className="flex items-center gap-2 text-white/20 text-xs">
-            <Lock size={10}/>
-            <span>SOC 2 Type II · GDPR Ready · 99.9% Uptime SLA</span>
+        <div className="pt-8 border-t border-retro-border/20 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-pixel text-retro-text/30">
+          <span>© 1998-2026 QUILLFORGE PROTOCOL.</span>
+          <div className="flex items-center gap-2">
+            <span>SOC2 BYPASS · COOKIE-FREE ZONE · uptime: 99.9%</span>
           </div>
         </div>
       </div>
@@ -1110,56 +620,66 @@ function Footer() {
 }
 
 /* ─────────────────────────────────────────────
-   ROOT PAGE
+   MAIN COMPONENT
 ───────────────────────────────────────────── */
 export default function Home() {
   const [showDemo, setShowDemo] = useState(false);
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen text-white"
-      style={{
-        backgroundColor: "#080b14",
-        fontFamily: "'Space Mono', monospace",
-      }}>
-      {/* Load fonts */}
+    <div className="min-h-screen text-retro-text font-terminal selection:bg-retro-accent selection:text-[#252525]">
+      {/* Preamble Reset */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
       `}</style>
 
       <Navbar />
       <Hero onWatchDemo={() => setShowDemo(true)} />
-      <LogoStrip />
+      
+      {/* Logo Strip replaced with pixel terminal ticker */}
+      <section className="relative py-4 border-y-2 border-retro-border bg-retro-surface/20 overflow-hidden font-pixel text-[10px] text-retro-text/40">
+        <div className="flex gap-12 animate-[scroll_25s_linear_infinite] whitespace-nowrap">
+          {Array(8).fill("SYSTEM RUNNING // ZERO COOKIES // HOSTED ON DECENTRALIZED PROTOCOLS // WRITE WITHOUT DISTRACTIONS").map((text, idx) => (
+            <span key={idx} className="uppercase tracking-widest">{text}</span>
+          ))}
+        </div>
+        <style>{`
+          @keyframes scroll {
+            from { transform: translateX(0) }
+            to { transform: translateX(-50%) }
+          }
+        `}</style>
+      </section>
+
       <Features />
       <HowItWorks />
       <BlogPreview />
       <Pricing />
-      <Testimonials />
       <CTABanner />
       <Footer />
 
-      {/* Demo Modal */}
+      {/* Demo Modal Styled as alert system dialog */}
       {showDemo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="relative w-full max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-slate-950 shadow-2xl">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06] bg-white/[0.02]">
-              <span className="font-bold text-sm tracking-wide text-white" style={{ fontFamily: "'Oxanium',sans-serif" }}>QuillForge Interactive Demo</span>
-              <button className="text-white/40 hover:text-white p-1 rounded-lg hover:bg-white/[0.05] transition-all" onClick={() => setShowDemo(false)}>
-                <X size={18} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+          <div className="relative w-full max-w-lg border-4 border-retro-accent bg-retro-surface shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <div className="flex items-center justify-between px-4 py-2 border-b-2 border-retro-accent bg-[#E8E8C6] text-xs font-pixel text-[#252525]">
+              <span>WALKTHROUGH_MODULE.EXE</span>
+              <button className="font-bold hover:scale-110" onClick={() => setShowDemo(false)}>
+                X
               </button>
             </div>
-            <div className="relative aspect-video bg-gradient-to-br from-slate-900 to-slate-950 flex flex-col items-center justify-center p-8 text-center">
-              <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.2)_0,transparent_100%)]" />
-              <div className="w-16 h-16 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 flex items-center justify-center mb-4 animate-pulse">
-                <Feather size={28} />
+            <div className="p-6 text-center flex flex-col items-center">
+              <div className="w-12 h-12 border-2 border-retro-accent flex items-center justify-center text-retro-accent font-pixel text-xl mb-4">
+                !
               </div>
-              <h3 className="text-xl font-bold text-white mb-2" style={{ fontFamily: "'Oxanium',sans-serif" }}>Interactive Walkthrough Coming Soon</h3>
-              <p className="text-white/40 text-sm max-w-md">Our developer team is cooking up a fully interactive product tour. For now, you can explore the platform by signing up for a free account!</p>
-              <Button variant="primary" className="mt-6 text-xs" onClick={() => { setShowDemo(false); navigate("/register"); }}>
-                Sign Up Now <ArrowRight size={12} />
-              </Button>
+              <h3 className="text-xl font-heading text-retro-accent uppercase tracking-wider mb-2">Walkthrough Coming Soon</h3>
+              <p className="text-xs text-retro-text/50 font-terminal mb-6 max-w-sm">
+                Our core systems are compiling this module. Access the studio by registering your card profile now!
+              </p>
+              <RetroButton variant="primary" className="text-xs" onClick={() => { setShowDemo(false); navigate("/register"); }}>
+                SIGN UP NOW <ArrowRight size={10} />
+              </RetroButton>
             </div>
           </div>
         </div>

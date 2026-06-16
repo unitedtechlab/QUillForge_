@@ -12,16 +12,16 @@ import api from "../api/axios";
    DESIGN CONSTANTS & SUB-COMPONENTS
 ───────────────────────────────────────────── */
 const ACCENT = { 
-  ox: "'Oxanium',sans-serif", 
-  mono: "'Space Mono',monospace" 
+  ox: "'VT323', monospace", 
+  mono: "'Space Mono', monospace",
+  pixel: "'Silkscreen', monospace"
 };
 
-function GlassCard({ children, className = "", hover = true }) {
+function RetroCard({ children, className = "" }) {
   return (
     <div className={`
-      relative rounded-2xl border border-white/[0.06]
-      bg-white/[0.03] backdrop-blur-md
-      ${hover ? "hover:border-cyan-400/30 hover:bg-white/[0.06] transition-all duration-500" : ""}
+      border-2 border-retro-border bg-retro-surface p-5
+      shadow-[4px_4px_0px_rgba(0,0,0,1)]
       ${className}
     `}>
       {children}
@@ -29,31 +29,11 @@ function GlassCard({ children, className = "", hover = true }) {
   );
 }
 
-function Badge({ children, color = "cyan" }) {
-  const colors = {
-    cyan: "border-cyan-400/30 text-cyan-300 bg-cyan-400/10",
-    violet: "border-violet-400/30 text-violet-300 bg-violet-400/10",
-    pink: "border-pink-400/30 text-pink-300 bg-pink-400/10",
-    green: "border-emerald-400/30 text-emerald-300 bg-emerald-400/10",
-  };
+function Badge({ children }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border tracking-wide ${colors[color] || colors.cyan}`}>
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 border border-retro-accent text-retro-accent bg-retro-bg text-xs font-pixel uppercase tracking-wider">
       {children}
     </span>
-  );
-}
-
-function Button({ children, variant = "primary", className = "", onClick }) {
-  const base = "inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 cursor-pointer select-none border";
-  const variants = {
-    primary: "bg-gradient-to-r from-cyan-500 to-violet-500 border-transparent text-white hover:shadow-[0_0_32px_rgba(34,211,238,0.35)] hover:scale-[1.02] active:scale-[0.98]",
-    secondary: "border-white/10 text-white/80 hover:border-white/30 hover:text-white hover:bg-white/[0.05] backdrop-blur-sm",
-    ghost: "border-transparent text-white/60 hover:text-white hover:bg-white/[0.05] px-4",
-  };
-  return (
-    <button className={`${base} ${variants[variant] || variants.primary} ${className}`} onClick={onClick}>
-      {children}
-    </button>
   );
 }
 
@@ -63,21 +43,13 @@ function Button({ children, variant = "primary", className = "", onClick }) {
 function Background() {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-      {/* Grid lines */}
-      <div className="absolute inset-0" style={{
-        backgroundImage: `linear-gradient(rgba(99,102,241,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,0.03) 1px,transparent 1px)`,
-        backgroundSize: "72px 72px",
+      <div className="absolute inset-0 bg-[#252525]" />
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: `linear-gradient(#E8E8C6 1px, transparent 1px), linear-gradient(90deg, #E8E8C6 1px, transparent 1px)`,
+        backgroundSize: "40px 40px",
       }} />
-      {/* Dynamic glows */}
-      <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-violet-600/5 rounded-full blur-[130px]" />
-      <div className="absolute top-1/3 left-[-100px] w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px]" />
-      <div className="absolute bottom-10 right-10 w-[400px] h-[400px] bg-pink-600/4 rounded-full blur-[110px]" />
-      
-      {/* Noise grain */}
-      <div className="absolute inset-0 opacity-[0.02]" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        backgroundSize: "200px",
-      }} />
+      <div className="crt-overlay" />
+      <div className="noise-overlay" />
     </div>
   );
 }
@@ -87,27 +59,25 @@ function Background() {
 ───────────────────────────────────────────── */
 function LoadingSkeleton() {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-24 space-y-8 animate-pulse relative z-10">
+    <div className="max-w-4xl mx-auto px-4 py-24 space-y-8 animate-pulse relative z-10 font-terminal">
       <div className="space-y-4">
-        <div className="h-6 w-24 bg-white/10 rounded-full" />
-        <div className="h-12 w-3/4 bg-white/10 rounded-xl" />
+        <div className="h-6 w-24 bg-retro-border/20 rounded" />
+        <div className="h-12 w-3/4 bg-retro-border/20 rounded" />
         <div className="flex items-center gap-4 pt-2">
-          <div className="w-10 h-10 rounded-full bg-white/10" />
+          <div className="w-10 h-10 bg-retro-border/20 rounded" />
           <div className="space-y-2">
-            <div className="h-4 w-32 bg-white/10 rounded" />
-            <div className="h-3 w-24 bg-white/10 rounded" />
+            <div className="h-4 w-32 bg-retro-border/20 rounded" />
+            <div className="h-3 w-24 bg-retro-border/20 rounded" />
           </div>
         </div>
       </div>
       
-      <div className="h-[400px] w-full bg-white/5 rounded-2xl border border-white/[0.06]" />
+      <div className="h-[400px] w-full bg-retro-surface border-2 border-retro-border" />
 
       <div className="space-y-6 max-w-3xl mx-auto pt-6">
-        <div className="h-4 w-full bg-white/10 rounded" />
-        <div className="h-4 w-full bg-white/10 rounded" />
-        <div className="h-4 w-5/6 bg-white/10 rounded" />
-        <div className="h-4 w-full bg-white/10 rounded" />
-        <div className="h-4 w-2/3 bg-white/10 rounded" />
+        <div className="h-4 w-full bg-retro-border/20 rounded" />
+        <div className="h-4 w-full bg-retro-border/20 rounded" />
+        <div className="h-4 w-5/6 bg-retro-border/20 rounded" />
       </div>
     </div>
   );
@@ -122,31 +92,10 @@ export default function BlogDetails() {
   console.log("Current Blog ID:", id);
   const navigate = useNavigate();
 
-const [blog, setBlog] = useState(null);
-
-
+  const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-const [relatedBlogs] = useState([
-  {
-    _id: "2",
-    title: "Mastering React Router",
-    category: "Technology",
-    views: 1200
-  },
-  {
-    _id: "3",
-    title: "Building Admin Dashboards",
-    category: "Development",
-    views: 3200
-  },
-  {
-    _id: "4",
-    title: "Deploying MERN Apps on AWS",
-    category: "Cloud",
-    views: 4500
-  }
-]);
+  const [relatedBlogs, setRelatedBlogs] = useState([]);
 
   // Local interaction state
   const [liked, setLiked] = useState(false);
@@ -178,11 +127,6 @@ const [relatedBlogs] = useState([
     };
   }, []);
 
-  /**
-   * Reads the blog content aloud using the native Speech Synthesis Web API.
-   * Why: Enhances accessibility by narrating text content, stripping out rich HTML tags,
-   * and providing Play/Pause/Resume playback controls.
-   */
   const speakContent = () => {
     if (!synth || !blog) return;
 
@@ -205,7 +149,6 @@ const [relatedBlogs] = useState([
     tempDiv.innerHTML = blog.content || "";
     const plainText = tempDiv.textContent || tempDiv.innerText || "";
     
-    // Add title for better introduction
     const textToRead = `${blog.title}. Written by ${blog.author?.username || "Anonymous"}. ${plainText}`;
 
     const utterance = new SpeechSynthesisUtterance(textToRead);
@@ -226,10 +169,6 @@ const [relatedBlogs] = useState([
     setIsPlayingAudio(true);
   };
 
-  /**
-   * Halts all active speech synthesis playback.
-   * Why: Terminates background narration instantly when requested by the user or when navigating away.
-   */
   const stopSpeech = () => {
     if (!synth) return;
     synth.cancel();
@@ -237,27 +176,6 @@ const [relatedBlogs] = useState([
     setIsPausedAudio(false);
   };
 
-  /**
-   * Triggers a view count update API request for the current blog.
-   * API CALL: PATCH `/blogs/:id/view` (in backend start/routes/blog.routes.js)
-   * Why: Records an article impression in the backend database for statistics.
-   */
-  const incrementView = async () => {
-    try {
-      await api.patch(`/blogs/${id}/view`);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  /**
-   * Fetches the details of the blog post and profile context for the current user in parallel.
-   * API CALLS:
-   * 1. GET `/blogs/:id` (in backend start/routes/blog.routes.js) - loads blog metadata, content, and likes array.
-   * 2. GET `/users/current-user` (in backend start/routes/user.routes.js) - reads session to see if liked status matches.
-   * 3. PATCH `/blogs/:id/view` (in backend start/routes/blog.routes.js) - records a page view.
-   * Why: Displays the full article, configures custom user interaction indicators (likes), and bumps view count.
-   */
   useEffect(() => {
     const fetchBlog = async () => {
       setLoading(true);
@@ -265,39 +183,46 @@ const [relatedBlogs] = useState([
       console.log("fetchBlog started for ID:", id);
 
       try {
-        // Fetch blog and current user in parallel
         const [blogRes, userRes] = await Promise.allSettled([
           api.get(`/blogs/${id}`),
           api.get("/users/current-user")
         ]);
 
-        console.log("blogRes status:", blogRes.status);
-        console.log("userRes status:", userRes.status);
-
         if (blogRes.status === "fulfilled") {
           const blogData = blogRes.value.data.data;
           setBlog(blogData);
-          // likes is now an array of user IDs
           const likesArr = blogData.likes || [];
           setLikeCount(likesArr.length);
-          console.log("Fetched blog data successfully:", blogData);
 
           if (userRes.status === "fulfilled") {
             const user = userRes.value.data.data;
             setCurrentUser(user);
-            console.log("Set currentUser successfully:", user);
-            // Seed liked state — check if current user's ID is in the array (handling both ObjectId strings and populated user objects)
             const isLiked = likesArr.some(uid => {
               const idStr = (uid && typeof uid === "object" && uid._id) ? uid._id.toString() : (uid ? uid.toString() : "");
               return idStr === user._id.toString();
             });
             setLiked(isLiked);
-            console.log("Seeded liked state to:", isLiked);
-          } else {
-            console.log("userRes rejected with reason:", userRes.reason);
+          }
+
+          // Fetch related blogs from backend list
+          try {
+            const listRes = await api.get("/blogs");
+            const allBlogs = listRes.data?.data || [];
+            
+            // Filter out current blog and keep published only
+            const filtered = allBlogs
+              .filter(b => b._id !== blogData._id)
+              .filter(b => b.isPublished);
+            
+            const categoryMatch = filtered.filter(b => b.category === blogData.category);
+            const remaining = filtered.filter(b => b.category !== blogData.category);
+            
+            const related = [...categoryMatch, ...remaining].slice(0, 3);
+            setRelatedBlogs(related);
+          } catch (err) {
+            console.error("Error fetching related blogs:", err);
           }
         } else {
-          console.log("blogRes rejected with reason:", blogRes.reason);
           setError(true);
         }
       } catch (err) {
@@ -309,63 +234,10 @@ const [relatedBlogs] = useState([
     };
 
     fetchBlog();
-    // Increment view count every time this blog page is opened
+    // Increment view count
     api.patch(`/blogs/${id}/view`).catch(() => {});
   }, [id]);
 
-  // // Fetch blog details
-  // useEffect(() => {
-  //   const fetchBlog = async () => {
-  //     setLoading(true);
-  //     setError(false);
-  //     try {
-  //       const res = await api.get(`/blogs/${id}`);
-  //       const blogData = res.data?.data;
-  //       if (blogData) {
-  //         setBlog(blogData);
-  //         setLikeCount(blogData.likes || 0);
-          
-  //         // Fetch related blogs from category or list
-  //         try {
-  //           const listRes = await api.get("/blogs");
-  //           const allBlogs = listRes.data?.data || [];
-            
-  //           // Filter out current blog and keep published only
-  //           const filtered = allBlogs
-  //             .filter(b => b._id !== blogData._id)
-  //             .filter(b => b.status === "published" || !b.status);
-            
-  //           const categoryMatch = filtered.filter(b => b.category === blogData.category);
-  //           const remaining = filtered.filter(b => b.category !== blogData.category);
-            
-  //           const related = [...categoryMatch, ...remaining].slice(0, 3);
-  //           setRelatedBlogs(related);
-  //         } catch (err) {
-  //           console.error("Error fetching related blogs:", err);
-  //           setRelatedBlogs([]);
-  //         }
-  //       } else {
-  //         setError(true);
-  //       }
-  //     } catch (err) {
-  //       console.error(err);
-  //       setError(true);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchBlog();
-  //   // Reset interaction states on ID change
-  //   setLiked(false);
-  //   setBookmarked(false);
-  //   setCopied(false);
-  // }, [id]);
-
-  /**
-   * Event listener callback to track scroll progress.
-   * Why: Powers the visual progress bar at the top of the header.
-   */
   useEffect(() => {
     const handleScroll = () => {
       const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
@@ -378,39 +250,18 @@ const [relatedBlogs] = useState([
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  /**
-   * Likes/unlikes the current blog post.
-   * API CALL: PATCH `/blogs/:id/like` (in backend start/routes/blog.routes.js)
-   * Why: Upvotes or downvotes the post count.
-   * UX Strategy: Updates the UI immediately using optimistic calculations and falls back on error.
-   */
   const handleLike = async () => {
-    console.log("handleLike clicked! Current user state:", currentUser);
-    if (!currentUser) {
-      console.log("handleLike aborted: currentUser is null or undefined!");
-      // Not logged in — could redirect to login, for now just bail
-      return;
-    }
-    if (likeLoading) {
-      console.log("handleLike aborted: already loading like request.");
-      return;
-    }
+    if (!currentUser) return;
+    if (likeLoading) return;
     setLikeLoading(true);
-    // Optimistic update
     const wasLiked = liked;
     setLiked(!wasLiked);
     setLikeCount(prev => wasLiked ? prev - 1 : prev + 1);
-    console.log("Optimistically updated liked state to:", !wasLiked);
     try {
-      console.log("Sending PATCH request to like blog:", id);
       const res = await api.patch(`/blogs/${id}/like`);
-      console.log("PATCH response data:", res.data);
-      // Confirm with server values
       setLikeCount(res.data.data.likes);
       setLiked(res.data.data.liked);
-      console.log("Server confirmed liked state:", res.data.data.liked, "likes count:", res.data.data.likes);
     } catch (err) {
-      // Rollback on failure
       console.error("Like failed:", err);
       setLiked(wasLiked);
       setLikeCount(prev => wasLiked ? prev + 1 : prev - 1);
@@ -419,10 +270,6 @@ const [relatedBlogs] = useState([
     }
   };
 
-  /**
-   * Copies the current web page URL to the user's system clipboard.
-   * Why: Gives the user a quick way to share this article link.
-   */
   const handleCopyUrl = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -433,18 +280,9 @@ const [relatedBlogs] = useState([
     }
   };
 
-  // Safe Category color helper
-  const getCategoryColor = (cat) => {
-    const lower = String(cat || "").toLowerCase();
-    if (lower.includes("tech") || lower.includes("api")) return "cyan";
-    if (lower.includes("design") || lower.includes("ui")) return "pink";
-    if (lower.includes("dev") || lower.includes("code")) return "violet";
-    return "green";
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#080b14] text-white relative overflow-hidden">
+      <div className="min-h-screen bg-[#252525] text-retro-text relative overflow-hidden">
         <Background />
         <LoadingSkeleton />
       </div>
@@ -453,26 +291,28 @@ const [relatedBlogs] = useState([
 
   if (error || !blog) {
     return (
-      <div className="min-h-screen bg-[#080b14] text-white flex flex-col items-center justify-center relative p-6">
+      <div className="min-h-screen bg-[#252525] text-retro-text flex flex-col items-center justify-center relative p-6">
         <Background />
-        <GlassCard hover={false} className="max-w-md w-full p-8 text-center border-red-500/20 bg-red-500/[0.02] relative z-10">
-          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: ACCENT.ox }}>Blog not found</h2>
-          <p className="text-white/40 mb-6 text-sm" style={{ fontFamily: ACCENT.mono }}>
-            The article you are looking for might have been removed or is temporarily unavailable.
+        <RetroCard className="max-w-md w-full p-8 text-center border-red-500 bg-retro-surface relative z-10 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-3xl font-black mb-2 uppercase text-retro-accent" style={{ fontFamily: ACCENT.ox }}>DOCUMENT NOT FOUND</h2>
+          <p className="text-retro-text/40 mb-6 text-sm font-terminal uppercase" style={{ fontFamily: ACCENT.mono }}>
+            The document you are looking for might have been archived or deleted.
           </p>
-          <Button variant="primary" onClick={() => navigate("/")} className="w-full justify-center">
-            <ArrowLeft size={16} /> Return Home
-          </Button>
-        </GlassCard>
+          <button 
+            onClick={() => navigate("/")}
+            className="w-full flex items-center justify-center gap-2 py-3 border-2 border-retro-accent bg-[#E8E8C6] text-[#252525] text-xs font-pixel uppercase tracking-widest hover:bg-[#E2E2D5] transition-all cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px]"
+            style={{ fontFamily: ACCENT.pixel }}
+          >
+            <ArrowLeft size={14} /> RETURN TO TERMINAL
+          </button>
+        </RetroCard>
       </div>
     );
   }
 
-  // Cover image fallback
-  const coverImage = blog.featuredImage || blog.coverImage || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80";
+  const coverImage = blog.featuredImage || blog.coverImage;
 
-  // Auto calculate read time
   const readTime = Math.max(
     1,
     Math.ceil(
@@ -483,98 +323,100 @@ const [relatedBlogs] = useState([
   );
 
   return (
-    <div className={`min-h-screen relative font-sans selection:bg-cyan-500/30 transition-colors duration-500 ${focusMode ? "blog-focus-mode" : "bg-[#080b14] text-white"}`}>
+    <div className={`min-h-screen relative selection:bg-retro-accent/30 transition-colors duration-300 ${focusMode ? "blog-focus-mode" : "bg-[#252525] text-retro-text"}`}>
       {/* Scroll Progress Indicator */}
       <div 
-        className="fixed top-0 left-0 h-[4px] bg-gradient-to-r from-cyan-400 via-violet-500 to-pink-500 z-50 transition-all duration-100"
+        className="fixed top-0 left-0 h-1.5 bg-retro-accent z-50 transition-all duration-100"
         style={{ width: `${scrollProgress}%` }}
       />
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Oxanium:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
-        
         .blog-focus-mode {
-          background-color: #0b0a09 !important;
-          color: #dfd8c9 !important;
+          background-color: #252525 !important;
+          color: #E2E2D5 !important;
         }
         .blog-focus-mode .blog-content p {
-          color: rgba(223, 216, 201, 0.85) !important;
-          font-family: 'Merriweather', Georgia, serif;
-          font-size: 1.25rem !important;
-          line-height: 1.95;
-          max-width: 720px;
+          color: #E2E2D5 !important;
+          font-family: 'Space Mono', monospace;
+          font-size: 1.15rem !important;
+          line-height: 1.85;
+          max-width: 760px;
           margin-left: auto;
           margin-right: auto;
         }
         .blog-focus-mode .blog-content h1,
         .blog-focus-mode .blog-content h2,
         .blog-focus-mode .blog-content h3 {
-          color: #ffffff !important;
+          color: #E8E8C6 !important;
           font-family: ${ACCENT.ox} !important;
         }
 
         .blog-content h1, .blog-content h2, .blog-content h3 {
           font-family: ${ACCENT.ox};
-          color: #ffffff;
+          color: #E8E8C6;
           margin-top: 1.8em;
           margin-bottom: 0.6em;
-          font-weight: 700;
+          font-weight: 900;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
         }
-        .blog-content h1 { font-size: 2.25rem; line-height: 1.25; }
-        .blog-content h2 { font-size: 1.8rem; line-height: 1.3; }
-        .blog-content h3 { font-size: 1.4rem; line-height: 1.4; }
+        .blog-content h1 { font-size: 2.5rem; line-height: 1.2; }
+        .blog-content h2 { font-size: 2rem; line-height: 1.3; }
+        .blog-content h3 { font-size: 1.5rem; line-height: 1.4; }
         
         .blog-content p {
-          color: rgba(255, 255, 255, 0.75);
+          color: #E2E2D5;
           margin-bottom: 1.6em;
-          line-height: 1.9;
-          font-size: 1.125rem; /* 18px */
+          line-height: 1.8;
+          font-size: 1.1rem;
+          font-family: 'Space Mono', monospace;
         }
         
         .blog-content blockquote {
-          border-left: 4px solid #22d3ee;
-          background: rgba(34, 211, 238, 0.04);
+          border-left: 4px solid #E8E8C6;
+          background: rgba(232, 232, 198, 0.05);
           padding: 1.25rem 1.75rem;
           margin: 2rem 0;
-          border-radius: 0 1rem 1rem 0;
           font-style: italic;
-          color: rgba(255, 255, 255, 0.9);
+          color: #E8E8C6;
+          font-family: 'Space Mono', monospace;
         }
         
         .blog-content pre {
-          background: #0d1220;
-          border: 1px solid rgba(255, 255, 255, 0.06);
+          background: #1e1e1d;
+          border: 2px solid #474744;
           padding: 1.25rem;
-          border-radius: 0.75rem;
           overflow-x: auto;
           margin: 2rem 0;
-          font-family: ${ACCENT.mono};
+          font-family: 'Space Mono', monospace;
           font-size: 0.9rem;
-          color: #e2e8f0;
+          color: #E2E2D5;
         }
         
         .blog-content code {
-          background: rgba(255, 255, 255, 0.08);
+          background: #1e1e1d;
+          border: 1px solid #474744;
           padding: 0.2rem 0.45rem;
-          border-radius: 0.25rem;
-          font-family: ${ACCENT.mono};
+          font-family: 'Space Mono', monospace;
           font-size: 0.9em;
+          color: #E8E8C6;
         }
         
         .blog-content pre code {
           background: transparent;
+          border: none;
           padding: 0;
-          border-radius: 0;
         }
         
         .blog-content ul, .blog-content ol {
           margin-bottom: 1.6em;
           padding-left: 1.75rem;
-          color: rgba(255, 255, 255, 0.75);
+          color: #E2E2D5;
           line-height: 1.8;
-          font-size: 1.125rem;
+          font-size: 1.1rem;
+          font-family: 'Space Mono', monospace;
         }
-        .blog-content ul { list-style-type: disc; }
+        .blog-content ul { list-style-type: square; }
         .blog-content ol { list-style-type: decimal; }
         .blog-content li { margin-bottom: 0.6em; }
       `}</style>
@@ -588,10 +430,10 @@ const [relatedBlogs] = useState([
         <div className="flex justify-between items-center mb-8" style={focusMode ? { display: "none" } : {}}>
           <button 
             onClick={() => navigate(-1)}
-            className="group flex items-center gap-2 text-white/50 hover:text-white transition-colors py-2"
+            className="group flex items-center gap-2 text-retro-text/50 hover:text-retro-accent transition-colors py-2 font-pixel text-xs cursor-pointer"
           >
-            <ArrowLeft size={16} className="transform group-hover:-translate-x-1 transition-transform" />
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ fontFamily: ACCENT.mono }}>Back</span>
+            <ArrowLeft size={14} className="transform group-hover:-translate-x-1 transition-transform" />
+            <span>BACK TO DESK</span>
           </button>
         </div>
 
@@ -602,72 +444,72 @@ const [relatedBlogs] = useState([
             {/* Focus Mode Banner */}
             {focusMode && (
               <div 
-                className="flex items-center justify-between px-6 py-3.5 mb-8 rounded-2xl border border-violet-500/20 bg-violet-500/5 text-xs text-white/50 animate-pulse"
+                className="flex items-center justify-between px-6 py-3.5 mb-8 border-2 border-retro-accent bg-retro-surface text-xs text-retro-text/50"
                 style={{ fontFamily: ACCENT.mono }}
               >
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-violet-400 animate-ping" />
-                  <span>Distraction-Free Focus Mode is active.</span>
+                  <span className="w-2.5 h-2.5 bg-retro-accent animate-pulse" />
+                  <span>DISTRACTION-FREE READ MODE ACTIVE.</span>
                 </div>
                 <button 
                   onClick={() => setFocusMode(false)}
-                  className="px-3 py-1 rounded-lg border border-white/10 hover:border-white/30 text-white/80 transition-all cursor-pointer"
+                  className="px-3 py-1 border border-retro-border bg-retro-bg hover:text-retro-accent hover:border-retro-accent transition-all cursor-pointer font-pixel"
                 >
-                  Exit Focus Mode (ESC)
+                  EXIT MODE (ESC)
                 </button>
               </div>
             )}
 
             {/* Category badge */}
             <div className="mb-4" style={focusMode ? { display: "none" } : {}}>
-              <Badge color={getCategoryColor(blog.category)}>
+              <Badge>
                 {blog.category || "General"}
               </Badge>
             </div>
 
             {/* Blog Title */}
             <h1 
-              className={`font-black tracking-tight leading-[1.1] mb-6 transition-all duration-300 ${focusMode ? 'text-3xl sm:text-4xl text-center text-white/90 border-b border-white/[0.04] pb-6' : 'text-4xl sm:text-5xl md:text-6xl text-white'}`}
+              className={`font-black tracking-tight leading-[1.1] mb-6 transition-all duration-300 uppercase font-heading ${focusMode ? 'text-3xl sm:text-4xl text-center text-retro-accent border-b-2 border-retro-border pb-6' : 'text-4xl sm:text-5xl md:text-6xl text-retro-accent'}`}
               style={{ fontFamily: ACCENT.ox }}
             >
               {blog.title}
             </h1>
 
             {/* Author / Date / Stats Meta row */}
-            <div className="flex flex-wrap items-center justify-between gap-6 pb-8 border-b border-white/[0.06] mb-8" style={focusMode ? { display: "none" } : {}}>
+            <div className="flex flex-wrap items-center justify-between gap-6 pb-8 border-b-2 border-retro-border/20 mb-8" style={focusMode ? { display: "none" } : {}}>
               <div className="flex items-center gap-3">
                 {/* Author Avatar */}
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center text-sm font-black text-white border border-white/[0.08]">
+                <div className="w-10 h-10 border-2 border-retro-border bg-retro-bg flex items-center justify-center text-sm font-black text-retro-accent">
                   {blog.author?.username?.slice(0, 2).toUpperCase() || <User size={14} />}
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-white" style={{ fontFamily: ACCENT.ox }}>
+                  <p className="text-base font-bold text-retro-accent uppercase" style={{ fontFamily: ACCENT.ox }}>
                     {blog.author?.username || "Anonymous Author"}
                   </p>
-                  <div className="flex items-center gap-2 text-xs text-white/30" style={{ fontFamily: ACCENT.mono }}>
+                  <div className="flex items-center gap-2 text-xs text-retro-text/30 uppercase font-terminal" style={{ fontFamily: ACCENT.mono }}>
                     <Calendar size={12} />
                     <span>{blog.createdAt ? new Date(blog.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "June 2026"}</span>
                     <span>•</span>
                     <Clock size={12} />
-                    <span>{readTime} min read</span>
+                    <span>{readTime} MIN READ</span>
                   </div>
                 </div>
               </div>
 
               {/* Stats */}
-              <div className="flex items-center gap-4 text-xs text-white/35" style={{ fontFamily: ACCENT.mono }}>
-                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.02] border border-white/[0.05]">
-                  <Eye size={13} className="text-cyan-400" />
-                  <span>{blog.views >= 1000 ? `${(blog.views / 1000).toFixed(1)}k` : blog.views || 0} Views</span>
+              <div className="flex items-center gap-4 text-xs text-retro-text/30 font-terminal uppercase" style={{ fontFamily: ACCENT.mono }}>
+                <span className="flex items-center gap-1.5 px-3 py-1.5 border border-retro-border bg-retro-bg">
+                  <Eye size={13} className="text-retro-accent" />
+                  <span>{blog.views >= 1000 ? `${(blog.views / 1000).toFixed(1)}k` : blog.views || 0} VIEWS</span>
                 </span>
-                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.02] border border-white/[0.05]">
-                  <Heart size={13} className="text-pink-400" />
-                  <span>{likeCount} Likes</span>
+                <span className="flex items-center gap-1.5 px-3 py-1.5 border border-retro-border bg-retro-bg">
+                  <Heart size={13} className="text-retro-amber" />
+                  <span>{likeCount} LIKES</span>
                 </span>
               </div>
             </div>
 
-            {/* Dynamic Layout: Side-by-Side on large screens, stacked on small screens */}
+            {/* Dynamic Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 lg:gap-12 items-start mt-6 mb-12">
               {/* Content Column */}
               <div className="blog-content min-w-0 order-2 lg:order-1 max-w-[800px] w-full">
@@ -675,154 +517,142 @@ const [relatedBlogs] = useState([
               </div>
 
               {/* Image Column */}
-              <div className="order-1 lg:order-2 w-full lg:sticky lg:top-28" style={focusMode ? { display: "none" } : {}}>
-                <div className="relative w-full rounded-2xl overflow-hidden border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-white/[0.01]">
-                  <img 
-                    src={coverImage} 
-                    alt={blog.title} 
-                    className="w-full h-auto max-h-[500px] object-contain mx-auto block"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#080b14]/30 to-transparent pointer-events-none" />
+              {coverImage && (
+                <div className="order-1 lg:order-2 w-full lg:sticky lg:top-28" style={focusMode ? { display: "none" } : {}}>
+                  <div className="relative w-full border-2 border-retro-border bg-retro-bg shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+                    <img 
+                      src={coverImage} 
+                      alt={blog.title} 
+                      className="w-full h-auto max-h-[500px] object-contain mx-auto block"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Engagement buttons bottom */}
-            <div className="flex items-center justify-center gap-4 py-8 border-y border-white/[0.06] my-12 max-w-[800px] mx-auto" style={focusMode ? { display: "none" } : {}}>
-              {/* BUTTON ACTION: Upvotes / downvotes the article's like total */}
-              {/* CALLS FUNCTION: handleLike() */}
+            <div className="flex items-center justify-center gap-4 py-8 border-y-2 border-retro-border/20 my-12 max-w-[800px] mx-auto" style={focusMode ? { display: "none" } : {}}>
               <button 
                 onClick={handleLike}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl border text-sm font-semibold transition-all duration-300 ${
+                className={`flex items-center gap-2 px-6 py-3 border-2 text-sm font-pixel uppercase tracking-widest transition-all cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] ${
                   liked 
-                    ? "bg-pink-500/10 border-pink-500/30 text-pink-400 shadow-[0_0_20px_rgba(244,114,182,0.15)]" 
-                    : "bg-white/[0.02] border-white/[0.08] text-white/75 hover:border-pink-500/30 hover:text-pink-400"
+                    ? "border-retro-accent bg-[#E8E8C6] text-[#252525]" 
+                    : "border-retro-border bg-retro-bg text-retro-text/75 hover:border-retro-accent hover:text-retro-accent"
                 }`}
+                style={{ fontFamily: ACCENT.pixel }}
               >
-                <Heart size={16} className={liked ? "fill-pink-400" : ""} />
-                <span>{liked ? "Liked" : "Like Article"}</span>
+                <Heart size={14} className={liked ? "fill-retro-bg" : ""} />
+                <span>{liked ? "LIKED" : "LIKE"}</span>
               </button>
 
-              {/* BUTTON ACTION: Copies the current URL to system clipboard */}
-              {/* CALLS FUNCTION: handleCopyUrl() */}
               <button 
                 onClick={handleCopyUrl}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl border text-sm font-semibold transition-all duration-300 ${
+                className={`flex items-center gap-2 px-6 py-3 border-2 text-sm font-pixel uppercase tracking-widest transition-all cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] ${
                   copied 
-                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" 
-                    : "bg-white/[0.02] border-white/[0.08] text-white/75 hover:border-emerald-500/30 hover:text-emerald-400"
+                    ? "border-emerald-400 bg-retro-bg text-emerald-400" 
+                    : "border-retro-border bg-retro-bg text-retro-text/75 hover:border-retro-accent hover:text-retro-accent"
                 }`}
+                style={{ fontFamily: ACCENT.pixel }}
               >
-                {copied ? <Check size={16} /> : <Share2 size={16} />}
-                <span>{copied ? "Link Copied" : "Share URL"}</span>
+                {copied ? <Check size={14} /> : <Share2 size={14} />}
+                <span>{copied ? "COPIED" : "SHARE"}</span>
               </button>
             </div>
 
             {/* Author Bio Card */}
             <div className="max-w-[800px] mx-auto mt-12 mb-16" style={focusMode ? { display: "none" } : {}}>
-              <h3 className="text-xs font-bold text-white/35 uppercase tracking-wider mb-4" style={{ fontFamily: ACCENT.mono }}>
-                Written by
+              <h3 className="text-xs font-bold text-retro-text/30 uppercase tracking-widest mb-4 font-terminal" style={{ fontFamily: ACCENT.mono }}>
+                WRITTEN BY
               </h3>
-              <GlassCard hover={false} className="p-6 sm:p-8 flex flex-col sm:flex-row gap-6 items-start">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-cyan-400 via-violet-500 to-pink-500 flex items-center justify-center text-2xl font-black text-white flex-shrink-0 shadow-lg shadow-cyan-500/10">
+              <RetroCard className="flex flex-col sm:flex-row gap-6 items-start">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 border-2 border-retro-border bg-retro-bg flex items-center justify-center text-2xl font-black text-retro-accent flex-shrink-0">
                   {blog.author?.username?.slice(0, 2).toUpperCase() || <User size={24} />}
                 </div>
                 <div className="space-y-3 flex-1">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <h4 className="text-xl font-bold text-white" style={{ fontFamily: ACCENT.ox }}>
+                    <h4 className="text-2xl font-bold text-retro-accent uppercase" style={{ fontFamily: ACCENT.ox }}>
                       {blog.author?.username || "Anonymous Author"}
                     </h4>
-                    <span className="text-[10px] text-cyan-400/80 font-bold uppercase tracking-wider bg-cyan-400/10 px-2 py-0.5 rounded border border-cyan-400/20" style={{ fontFamily: ACCENT.mono }}>
+                    <span className="text-[10px] text-retro-accent font-bold uppercase tracking-wider bg-retro-bg px-2.5 py-0.5 border border-retro-accent" style={{ fontFamily: ACCENT.mono }}>
                       {blog.author?.role || "Publisher"}
                     </span>
                   </div>
-                  <p className="text-sm text-white/50 leading-relaxed">
+                  <p className="text-xs text-retro-text/50 font-terminal uppercase leading-relaxed">
                     Author on QuillForge
                   </p>
-                  <div className="flex items-center gap-2 text-xs text-white/30" style={{ fontFamily: ACCENT.mono }}>
-                    <BookOpen size={12} className="text-violet-400" />
+                  <div className="flex items-center gap-2 text-xs text-retro-text/30 font-terminal uppercase" style={{ fontFamily: ACCENT.mono }}>
+                    <BookOpen size={12} className="text-retro-accent" />
                     <span>QuillForge Contributor</span>
                   </div>
                 </div>
-              </GlassCard>
+              </RetroCard>
             </div>
 
           </article>
 
           {/* Sticky Side Share Actions (Desktop only) */}
           <div className="hidden lg:block">
-            <div className="sticky top-28 flex flex-col gap-3 p-3 bg-white/[0.02] border border-white/[0.06] rounded-2xl backdrop-blur-md">
+            <div className="sticky top-28 flex flex-col gap-3 p-2.5 border-2 border-retro-border bg-retro-surface shadow-[2px_2px_0px_rgba(0,0,0,1)]">
               {/* Audio Narrator */}
-              {/* BUTTON ACTION: Initiates or pauses TTS audio narration of article content */}
-              {/* CALLS FUNCTION: speakContent() */}
               <button 
                 onClick={speakContent}
                 title={isPlayingAudio ? "Pause Narrator" : "Listen to Article"}
-                className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-all duration-300 relative group cursor-pointer ${
+                className={`w-11 h-11 border-2 flex items-center justify-center transition-all cursor-pointer relative group ${
                   isPlayingAudio 
-                    ? "bg-cyan-500/10 border-cyan-400/30 text-cyan-400" 
-                    : "border-transparent text-white/40 hover:text-white hover:bg-white/[0.04]"
+                    ? "border-retro-accent bg-retro-bg text-retro-accent" 
+                    : "border-transparent text-retro-text/40 hover:text-retro-accent hover:border-retro-border hover:bg-retro-bg"
                 }`}
               >
                 {isPlayingAudio ? <Pause size={18} /> : <Volume2 size={18} />}
-                
-                {/* Tooltip */}
-                <div className="absolute right-full mr-3 px-2 py-1 rounded-md bg-slate-900 border border-white/10 text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200">
+                <div className="absolute right-full mr-3 px-2 py-1 bg-[#252525] border border-retro-border text-[10px] text-retro-text whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 uppercase font-terminal">
                   {isPlayingAudio ? "Pause listening" : "Listen to article"}
                 </div>
               </button>
 
-              {/* Stop Audio (Only show if playing or paused) */}
+              {/* Stop Audio */}
               {(isPlayingAudio || isPausedAudio) && (
                 <button 
-                  // BUTTON ACTION: Completely halts active TTS audio playback
-                  // CALLS FUNCTION: stopSpeech()
                   onClick={stopSpeech}
                   title="Stop Narrator"
-                  className="w-11 h-11 rounded-xl flex items-center justify-center border border-transparent text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-all duration-300 relative group cursor-pointer"
+                  className="w-11 h-11 border-2 border-transparent text-red-400 hover:text-red-400 hover:border-red-500 hover:bg-retro-bg flex items-center justify-center transition-all cursor-pointer relative group"
                 >
                   <Square size={16} />
-                  <div className="absolute right-full mr-3 px-2 py-1 rounded-md bg-slate-900 border border-white/10 text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200">
+                  <div className="absolute right-full mr-3 px-2 py-1 bg-[#252525] border border-retro-border text-[10px] text-retro-text whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 uppercase font-terminal">
                     Stop Listening
                   </div>
                 </button>
               )}
 
               {/* Distraction-Free Focus Mode */}
-              {/* BUTTON ACTION: Toggles sepia distraction-free focus mode with large serif font */}
-              {/* CALLS FUNCTION: setFocusMode(prev => !prev) */}
               <button 
                 onClick={() => setFocusMode(prev => !prev)}
                 title="Toggle Focus Mode"
-                className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-all duration-300 relative group cursor-pointer ${
+                className={`w-11 h-11 border-2 flex items-center justify-center transition-all cursor-pointer relative group ${
                   focusMode 
-                    ? "bg-violet-500/10 border-violet-400/30 text-violet-400" 
-                    : "border-transparent text-white/40 hover:text-white hover:bg-white/[0.04]"
+                    ? "border-retro-accent bg-retro-bg text-retro-accent" 
+                    : "border-transparent text-retro-text/40 hover:text-retro-accent hover:border-retro-border hover:bg-retro-bg"
                 }`}
               >
                 {focusMode ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-                <div className="absolute right-full mr-3 px-2 py-1 rounded-md bg-slate-900 border border-white/10 text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200">
+                <div className="absolute right-full mr-3 px-2 py-1 bg-[#252525] border border-retro-border text-[10px] text-retro-text whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 uppercase font-terminal">
                   {focusMode ? "Exit Focus Mode" : "Focus Mode"}
                 </div>
               </button>
 
-              <div className="w-full h-px bg-white/[0.06] my-1" />
+              <div className="w-full h-0.5 bg-retro-border/20 my-1" />
 
-              {/* BUTTON ACTION: Copies the page URL to system clipboard */}
-              {/* CALLS FUNCTION: handleCopyUrl() */}
+              {/* Copy Link */}
               <button 
                 onClick={handleCopyUrl}
                 title="Copy URL"
-                className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-all duration-300 relative group cursor-pointer ${
+                className={`w-11 h-11 border-2 flex items-center justify-center transition-all cursor-pointer relative group ${
                   copied 
-                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" 
-                    : "border-transparent text-white/40 hover:text-white hover:bg-white/[0.04]"
+                    ? "border-emerald-400 bg-retro-bg text-emerald-400" 
+                    : "border-transparent text-retro-text/40 hover:text-retro-accent hover:border-retro-border hover:bg-retro-bg"
                 }`}
               >
                 {copied ? <Check size={18} /> : <Copy size={18} />}
-                
-                {/* Tooltip */}
-                <div className="absolute right-full mr-3 px-2 py-1 rounded-md bg-slate-900 border border-white/10 text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200">
+                <div className="absolute right-full mr-3 px-2 py-1 bg-[#252525] border border-retro-border text-[10px] text-retro-text whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 uppercase font-terminal">
                   {copied ? "Copied!" : "Copy Link"}
                 </div>
               </button>
@@ -833,14 +663,14 @@ const [relatedBlogs] = useState([
 
         {/* Related Blogs Section */}
         {relatedBlogs.length > 0 && !focusMode && (
-          <div className="mt-16 pt-16 border-t border-white/[0.06]">
+          <div className="mt-16 pt-16 border-t-2 border-retro-border/20">
             <div className="flex justify-between items-end mb-8">
               <div>
-                <span className="text-xs font-bold text-violet-400 uppercase tracking-widest" style={{ fontFamily: ACCENT.mono }}>
-                  Read More
+                <span className="text-xs font-bold text-retro-accent uppercase tracking-widest font-terminal" style={{ fontFamily: ACCENT.mono }}>
+                  READ MORE
                 </span>
-                <h3 className="text-3xl font-black text-white mt-1" style={{ fontFamily: ACCENT.ox }}>
-                  Related Articles
+                <h3 className="text-3xl font-black text-retro-accent mt-1 uppercase" style={{ fontFamily: ACCENT.ox }}>
+                  RELATED ARTICLES
                 </h3>
               </div>
             </div>
@@ -855,44 +685,43 @@ const [relatedBlogs] = useState([
                     to={`/blog/${item._id}`}
                     className="flex flex-col h-full group"
                   >
-                    <GlassCard className="overflow-hidden h-full flex flex-col cursor-pointer border-white/[0.05] hover:border-cyan-400/20">
+                    <RetroCard className="overflow-hidden h-full flex flex-col cursor-pointer border-retro-border hover:border-retro-accent transition-all p-0">
                       {/* Cover Thumbnail */}
-                      <div className="h-40 relative overflow-hidden bg-slate-950 flex-shrink-0">
+                      <div className="h-40 relative overflow-hidden bg-retro-bg flex-shrink-0 border-b-2 border-retro-border">
                         <img 
                           src={itemCover} 
                           alt={item.title} 
-                          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                          className="w-full h-full object-cover" 
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#080b14]/90 via-[#080b14]/40 to-transparent" />
                       </div>
 
                       {/* Content details */}
                       <div className="p-5 flex flex-col flex-1">
                         <div className="mb-2">
-                          <Badge color={getCategoryColor(item.category)}>
+                          <Badge>
                             {item.category || "General"}
                           </Badge>
                         </div>
                         
                         <h4 
-                          className="text-base font-bold text-white leading-snug group-hover:text-cyan-300 transition-colors duration-300 mb-4 line-clamp-2"
+                          className="text-lg font-bold text-retro-accent leading-snug group-hover:text-retro-accent/80 transition-colors mb-4 line-clamp-2 uppercase"
                           style={{ fontFamily: ACCENT.ox }}
                         >
                           {item.title}
                         </h4>
 
-                        <div className="mt-auto pt-4 border-t border-white/[0.05] flex items-center justify-between text-[11px] text-white/30" style={{ fontFamily: ACCENT.mono }}>
+                        <div className="mt-auto pt-4 border-t border-retro-border/20 flex items-center justify-between text-[11px] text-retro-text/30 font-terminal uppercase" style={{ fontFamily: ACCENT.mono }}>
                           <span className="flex items-center gap-1">
                             <Eye size={12} />
                             <span>{item.views || 0}</span>
                           </span>
-                          <span className="flex items-center gap-1 hover:text-white transition-colors">
-                            <span>Read Article</span>
+                          <span className="flex items-center gap-1 hover:text-retro-accent transition-colors font-pixel">
+                            <span>READ ARTICLE</span>
                             <ChevronRight size={12} className="transform group-hover:translate-x-0.5 transition-transform" />
                           </span>
                         </div>
                       </div>
-                    </GlassCard>
+                    </RetroCard>
                   </Link>
                 );
               })}

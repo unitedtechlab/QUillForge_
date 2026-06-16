@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   Plus,
@@ -8,7 +7,6 @@ import {
   Trash2,
   SortAsc,
   FileText,
-  ChevronRight,
 } from "lucide-react";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
@@ -17,97 +15,34 @@ import { useNavigate } from "react-router-dom";
    DESIGN TOKENS
 ════════════════════════════════════════════════ */
 const T = {
-  ox: "'Oxanium',sans-serif",
-  mono: "'Space Mono',monospace",
-  bg: "#050816",
+  ox: "'VT323', monospace",
+  mono: "'Space Mono', monospace",
+  pixel: "'Silkscreen', monospace"
 };
-
-/* ════════════════════════════════════════════════
-   ANIMATION VARIANTS
-════════════════════════════════════════════════ */
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] },
-  },
-};
-
-const pageVariants = {
-  initial: { opacity: 0, y: 12 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
-  },
-  exit: { opacity: 0, y: -8, transition: { duration: 0.25 } },
-};
-
-/* ════════════════════════════════════════════════
-   SHARED ATOMS
-════════════════════════════════════════════════ */
-function GlassCard({ children, className = "", glow = "" }) {
-  return (
-    <motion.div
-      whileHover={{
-        borderColor: glow || "rgba(34,211,238,0.25)",
-        boxShadow: glow
-          ? `0 0 40px ${glow}18`
-          : "0 0 40px rgba(34,211,238,0.08)",
-      }}
-      transition={{ duration: 0.25 }}
-      className={`relative rounded-2xl border border-white/[0.07] bg-white/[0.025] backdrop-blur-md overflow-hidden ${className}`}
-    >
-      {children}
-    </motion.div>
-  );
-}
 
 function Badge({ status }) {
   const map = {
     published: {
-      cls: "border-emerald-400/30 text-emerald-300 bg-emerald-400/10",
-      dot: "bg-emerald-400",
-      label: "Published",
+      cls: "border-emerald-400/40 text-emerald-400 bg-retro-bg",
+      label: "PUBLISHED",
     },
     draft: {
-      cls: "border-amber-400/30  text-amber-300  bg-amber-400/10",
-      dot: "bg-amber-400",
-      label: "Draft",
+      cls: "border-retro-amber/40  text-retro-amber  bg-retro-bg",
+      label: "DRAFT",
     },
     flagged: {
-      cls: "border-red-400/30    text-red-300    bg-red-400/10",
-      dot: "bg-red-400",
-      label: "Flagged",
+      cls: "border-red-400/40    text-red-400    bg-retro-bg",
+      label: "FLAGGED",
     },
   };
   const s = map[status] || map.draft;
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border ${s.cls}`}
-      style={{ fontFamily: T.ox }}
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 border text-[10px] font-pixel ${s.cls}`}
+      style={{ fontFamily: T.pixel }}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${s.dot} animate-pulse`} />
       {s.label}
     </span>
-  );
-}
-
-function GradientBtn({ children, onClick, className = "" }) {
-  return (
-    <motion.button
-      onClick={onClick}
-      whileHover={{ scale: 1.02, boxShadow: "0 0 28px rgba(34,211,238,0.35)" }}
-      whileTap={{ scale: 0.97 }}
-      className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white ${className}`}
-      style={{
-        background: "linear-gradient(135deg,#22d3ee 0%,#7c3aed 100%)",
-        fontFamily: T.ox,
-      }}
-    >
-      {children}
-    </motion.button>
   );
 }
 
@@ -126,12 +61,6 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
     fetchBlogs();
   }, []);
 
-  /**
-   * Fetches all blogs from the backend.
-   * 
-   * API Call:
-   * - Endpoint: GET /blogs (in backend start/routes/blog.routes.js)
-   */
   const fetchBlogs = async () => {
     try {
       const res = await api.get("/blogs");
@@ -158,28 +87,16 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
     )
     .filter((b) => b.title.toLowerCase().includes(search.toLowerCase()));
 
-  /**
-   * Toggles selection state of a specific blog in the checkbox list.
-   */
   const toggleSelect = (id) =>
     setSelected((s) =>
       s.includes(id) ? s.filter((x) => x !== id) : [...s, id]
     );
 
-  /**
-   * Selects all filtered blogs or deselects all of them.
-   */
   const toggleAll = () =>
     setSelected((s) =>
       s.length === filtered.length ? [] : filtered.map((b) => b._id)
     );
 
-  /**
-   * Deletes a single blog post.
-   * 
-   * API Call:
-   * - Endpoint: DELETE /blogs/:id (in backend start/routes/blog.routes.js)
-   */
   const deleteB = async (id) => {
     if (window.confirm("Are you sure you want to delete this blog?")) {
       try {
@@ -193,12 +110,6 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
     }
   };
 
-  /**
-   * Performs a bulk deletion on all checked/selected blogs.
-   * 
-   * API Call:
-   * - Endpoint: DELETE /blogs/:id (iterates in parallel via Promise.all)
-   */
   const handleBulkDelete = async () => {
     if (window.confirm(`Are you sure you want to delete ${selected.length} blogs?`)) {
       try {
@@ -212,12 +123,6 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
     }
   };
 
-  /**
-   * Loads a blog by ID to prepare for editing and switches views.
-   * 
-   * API Call:
-   * - Endpoint: GET /blogs/:id (in backend start/routes/blog.routes.js)
-   */
   const startEdit = async (id) => {
     try {
       const res = await api.get(`/blogs/${id}`);
@@ -230,56 +135,48 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
   };
 
   return (
-    <motion.div
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      variants={pageVariants}
-      className="space-y-5"
-    >
+    <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1
-            className="text-2xl sm:text-3xl font-black text-white"
+            className="text-4xl sm:text-5xl font-black text-retro-accent uppercase tracking-widest font-heading"
             style={{ fontFamily: T.ox }}
           >
-            My Blogs<span className="text-cyan-400">.</span>
+            MY FILE MANAGER
           </h1>
           <p
-            className="text-white/25 text-xs mt-1"
+            className="text-retro-text/30 text-xs font-terminal uppercase mt-1"
             style={{ fontFamily: T.mono }}
           >
             {userBlogs.length} total · {userBlogs.filter((b) => b.isPublished).length}{" "}
             published · {userBlogs.filter((b) => !b.isPublished).length} drafts
           </p>
         </div>
-        <GradientBtn
+        <button
           onClick={() => {
             setEditingBlog(null);
             setActive("create");
           }}
-          className="self-start text-xs px-4 py-2.5"
+          className="border-2 border-retro-accent bg-[#E8E8C6] text-[#252525] text-xs font-pixel px-4 py-2.5 shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none cursor-pointer uppercase tracking-wider"
+          style={{ fontFamily: T.pixel }}
         >
-          <Plus size={13} /> New Blog
-        </GradientBtn>
+          <Plus size={13} className="inline mr-1" /> NEW DOCUMENT
+        </button>
       </div>
 
-      <GlassCard className="p-4">
+      <div className="border-2 border-retro-border bg-retro-surface p-4 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
         <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.06] rounded-xl p-1 flex-shrink-0">
+          <div className="flex items-center gap-1 bg-retro-bg border-2 border-retro-border p-1 flex-shrink-0">
             {["all", "published", "draft"].map((f) => (
-              <motion.button
-                // BUTTON ACTION: Filters blogs list by status (all, published, draft)
-                // CALLS FUNCTION: setFilter(f)
+              <button
                 key={f}
                 onClick={() => setFilter(f)}
-                whileTap={{ scale: 0.95 }}
-                className={`px-3.5 py-2 rounded-lg text-xs font-semibold capitalize transition-all duration-200 ${
+                className={`px-3.5 py-1.5 text-xs font-pixel uppercase tracking-wider transition-all duration-200 ${
                   filter === f
-                    ? "bg-gradient-to-r from-cyan-500/20 to-violet-500/15 border border-cyan-500/25 text-white"
-                    : "text-white/30 hover:text-white/60"
+                    ? "bg-retro-accent text-retro-bg"
+                    : "text-retro-text/30 hover:text-retro-accent"
                 }`}
-                style={{ fontFamily: T.ox }}
+                style={{ fontFamily: T.pixel }}
               >
                 {f}{" "}
                 {f !== "all" &&
@@ -290,263 +187,247 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
                         (f === "draft" && !b.isPublished)
                     ).length
                   })`}
-              </motion.button>
+              </button>
             ))}
           </div>
 
           <div className="relative flex-1">
             <Search
               size={13}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20"
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-retro-text/20"
             />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by title or category…"
-              className="w-full bg-white/[0.03] border border-white/[0.07] rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-white/15 focus:outline-none focus:border-cyan-400/40 transition-all"
+              placeholder="SEARCH BY TITLE OR CATEGORY…"
+              className="w-full bg-retro-bg border-2 border-retro-border pl-9 pr-4 py-2 text-xs text-retro-text placeholder-retro-text/25 focus:outline-none focus:border-retro-accent font-terminal uppercase"
               style={{ fontFamily: T.mono }}
             />
           </div>
 
           {selected.length > 0 && (
-            <motion.button
-              // BUTTON ACTION: Performs bulk delete API requests for all checked items
-              // CALLS FUNCTION: handleBulkDelete()
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+            <button
               onClick={handleBulkDelete}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-red-400/30 bg-red-400/8 text-red-400 text-xs font-semibold transition-all hover:bg-red-400/15"
-              style={{ fontFamily: T.ox }}
+              className="flex items-center gap-2 px-4 py-2 border-2 border-red-500 bg-retro-bg text-red-400 text-xs font-pixel uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px]"
+              style={{ fontFamily: T.pixel }}
             >
-              <Trash2 size={12} /> Delete ({selected.length})
-            </motion.button>
+              <Trash2 size={12} /> DELETE ({selected.length})
+            </button>
           )}
         </div>
-      </GlassCard>
+      </div>
 
-      <GlassCard className="overflow-hidden">
-        <div className="grid grid-cols-[24px_1fr_100px_80px_100px_100px_100px] gap-3 px-4 py-3 border-b border-white/[0.06] bg-white/[0.02] max-lg:hidden">
+      <div className="border-2 border-retro-border bg-retro-surface shadow-[4px_4px_0px_rgba(0,0,0,1)] overflow-hidden">
+        <div className="grid grid-cols-[24px_1fr_100px_80px_100px_100px_100px] gap-3 px-4 py-3 border-b-2 border-retro-border bg-retro-bg max-lg:hidden">
           <input
             type="checkbox"
             checked={
               selected.length === filtered.length && filtered.length > 0
             }
             onChange={toggleAll}
-            className="w-4 h-4 rounded accent-cyan-400 mt-0.5"
+            className="w-4 h-4 rounded accent-retro-accent mt-0.5 cursor-pointer"
           />
           {["Title", "Status", "Views", "Created", "Updated", "Actions"].map(
             (h) => (
               <div
                 key={h}
-                className="flex items-center gap-1.5 text-[10px] font-semibold text-white/25 uppercase tracking-wider cursor-pointer hover:text-white/50 transition-colors"
-                style={{ fontFamily: T.ox }}
+                className="flex items-center gap-1.5 text-xs font-pixel text-retro-text/45 uppercase tracking-wider cursor-pointer hover:text-retro-accent transition-colors"
+                style={{ fontFamily: T.pixel }}
               >
                 {h}{" "}
                 {["Title", "Views", "Created"].includes(h) && (
-                  <SortAsc size={9} className="opacity-50" />
+                  <SortAsc size={10} className="opacity-50" />
                 )}
               </div>
             )
           )}
         </div>
 
-        <div className="divide-y divide-white/[0.04]">
-          <AnimatePresence>
-            {filtered.map((b, i) => (
-              <motion.div
-                key={b._id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ delay: i * 0.05 }}
-                className="group hover:bg-white/[0.02] transition-all"
-              >
-                <div className="hidden lg:grid grid-cols-[24px_1fr_100px_80px_100px_100px_100px] gap-3 px-4 py-4 items-center">
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(b._id)}
-                    onChange={() => toggleSelect(b._id)}
-                    className="w-4 h-4 rounded accent-cyan-400"
-                  />
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-800 to-slate-900 border border-white/[0.07] flex items-center justify-center text-base flex-shrink-0">
-                      {b.isPublished ? "⚡" : "📝"}
-                    </div>
-                    <div className="min-w-0">
-                      <p
-                        className="text-white/80 text-xs font-semibold truncate group-hover:text-white transition-colors"
-                        style={{ fontFamily: T.ox }}
-                      >
-                        {b.title}
-                      </p>
-                      <p
-                        className="text-white/20 text-[10px]"
-                        style={{ fontFamily: T.mono }}
-                      >
-                        {b.category || "General"}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge status={b.isPublished ? "published" : "draft"} />
-                  <span
-                    className="text-white/50 text-xs flex items-center gap-1"
-                    style={{ fontFamily: T.mono }}
-                  >
-                    <Eye size={9} className="text-violet-400" />
-                    {b.isPublished
-                      ? b.views >= 1000
-                        ? `${(b.views / 1000).toFixed(1)}K`
-                        : b.views
-                      : "—"}
-                  </span>
-                  <span
-                    className="text-white/30 text-[10px]"
-                    style={{ fontFamily: T.mono }}
-                  >
-                    {new Date(b.createdAt).toLocaleDateString()}
-                  </span>
-                  <span
-                    className="text-white/30 text-[10px]"
-                    style={{ fontFamily: T.mono }}
-                  >
-                    {new Date(b.updatedAt).toLocaleDateString()}
-                  </span>
-                  <div className="relative">
-                    <div className="flex items-center gap-1">
-                      {/* BUTTON ACTIONS: Loops through the operational triggers for each blog row */}
-                      {/* 1. View / Open blog post detail page (triggers router navigation) */}
-                      {/* 2. Edit blog post (calls startEdit API loader & switches view) */}
-                      {/* 3. Delete blog post (calls deleteB API request handler) */}
-                      {[
-                        {
-                          icon: <Eye size={11} />,
-                          title: "Wanna read ? 👀",
-                          cls: "hover:text-emerald-400 hover:bg-emerald-400/10 hover:border-emerald-400/20",
-                          action: () => navigate(`/blog/${b._id}`),
-                        },
-                        {
-                          icon: <Edit3 size={11} />,
-                          title: "Edit",
-                          cls: "hover:text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400/20",
-                          action: () => startEdit(b._id),
-                        },
-                        {
-                          icon: <Trash2 size={11} />,
-                          title: "Delete",
-                          cls: "hover:text-red-400 hover:bg-red-400/10 hover:border-red-400/20",
-                          action: () => deleteB(b._id),
-                        },
-                      ].map((a, j) => (
-                        <motion.button
-                          key={j}
-                          title={a.title}
-                          onClick={a.action}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          className={`w-7 h-7 rounded-lg border border-white/[0.06] bg-white/[0.03] flex items-center justify-center text-white/25 transition-all ${a.cls}`}
-                        >
-                          {a.icon}
-                        </motion.button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="lg:hidden p-4 flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/[0.07] flex items-center justify-center text-xl flex-shrink-0">
+        <div className="divide-y divide-retro-border/20">
+          {filtered.map((b) => (
+            <div
+              key={b._id}
+              className="group hover:bg-retro-bg/40 transition-all border-b border-retro-border/20"
+            >
+              <div className="hidden lg:grid grid-cols-[24px_1fr_100px_80px_100px_100px_100px] gap-3 px-4 py-4 items-center">
+                <input
+                  type="checkbox"
+                  checked={selected.includes(b._id)}
+                  onChange={() => toggleSelect(b._id)}
+                  className="w-4 h-4 accent-retro-accent cursor-pointer"
+                />
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 border border-retro-border bg-retro-bg flex items-center justify-center text-base flex-shrink-0">
                     {b.isPublished ? "⚡" : "📝"}
                   </div>
-                  <div className="flex-1 min-w-0 space-y-2">
+                  <div className="min-w-0">
                     <p
-                      className="text-white/80 text-sm font-semibold"
-                      style={{ fontFamily: T.ox }}
+                      className="text-retro-accent text-sm font-bold truncate group-hover:text-retro-accent/80 transition-colors font-terminal uppercase"
+                      style={{ fontFamily: T.mono }}
                     >
                       {b.title}
                     </p>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge status={b.isPublished ? "published" : "draft"} />
-                      <span
-                        className="text-white/30 text-[10px]"
-                        style={{ fontFamily: T.mono }}
-                      >
-                        {b.category || "General"}
-                      </span>
-                      {b.isPublished && (
-                        <span
-                          className="text-violet-400 text-[10px] flex items-center gap-1"
-                          style={{ fontFamily: T.mono }}
-                        >
-                          <Eye size={9} />
-                          {b.views >= 1000
-                            ? `${(b.views / 1000).toFixed(1)}K`
-                            : b.views}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {[
-                        {
-                          i: <Eye size={11} />,
-                          c: "text-emerald-400",
-                          fn: () => navigate(`/blog/${b._id}`),
-                        },
-                        {
-                          i: <Edit3 size={11} />,
-                          c: "text-cyan-400",
-                          fn: () => startEdit(b._id),
-                        },
-                        {
-                          i: <Trash2 size={11} />,
-                          c: "text-red-400",
-                          fn: () => deleteB(b._id),
-                        },
-                      ].map((a, j) => (
-                        <button
-                          key={j}
-                          onClick={a.fn}
-                          className={`w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.04] flex items-center justify-center ${a.c} transition-all`}
-                        >
-                          {a.i}
-                        </button>
-                      ))}
-                    </div>
+                    <p
+                      className="text-retro-text/30 text-[10px] uppercase font-terminal"
+                      style={{ fontFamily: T.mono }}
+                    >
+                      {b.category || "General"}
+                    </p>
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+                <Badge status={b.isPublished ? "published" : "draft"} />
+                <span
+                  className="text-retro-text/50 text-xs flex items-center gap-1 font-terminal"
+                  style={{ fontFamily: T.mono }}
+                >
+                  <Eye size={11} className="text-retro-accent" />
+                  {b.isPublished
+                    ? b.views >= 1000
+                      ? `${(b.views / 1000).toFixed(1)}K`
+                      : b.views
+                    : "—"}
+                </span>
+                <span
+                  className="text-retro-text/30 text-[11px] font-terminal"
+                  style={{ fontFamily: T.mono }}
+                >
+                  {new Date(b.createdAt).toLocaleDateString()}
+                </span>
+                <span
+                  className="text-retro-text/30 text-[11px] font-terminal"
+                  style={{ fontFamily: T.mono }}
+                >
+                  {new Date(b.updatedAt).toLocaleDateString()}
+                </span>
+                <div className="relative">
+                  <div className="flex items-center gap-1.5">
+                    {[
+                      {
+                        icon: <Eye size={12} />,
+                        title: "View Document",
+                        cls: "hover:text-retro-accent hover:border-retro-accent",
+                        action: () => navigate(`/blog/${b._id}`),
+                      },
+                      {
+                        icon: <Edit3 size={12} />,
+                        title: "Edit Document",
+                        cls: "hover:text-retro-accent hover:border-retro-accent",
+                        action: () => startEdit(b._id),
+                      },
+                      {
+                        icon: <Trash2 size={12} />,
+                        title: "Delete Document",
+                        cls: "hover:text-red-400 hover:border-red-400",
+                        action: () => deleteB(b._id),
+                      },
+                    ].map((a, j) => (
+                      <button
+                        key={j}
+                        title={a.title}
+                        onClick={a.action}
+                        className={`w-8 h-8 border border-retro-border bg-retro-bg flex items-center justify-center text-retro-text/30 transition-all shadow-[1px_1px_0px_rgba(0,0,0,1)] active:translate-y-[1px] cursor-pointer ${a.cls}`}
+                      >
+                        {a.icon}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="lg:hidden p-4 flex items-start gap-3">
+                <div className="w-10 h-10 border border-retro-border bg-retro-bg flex items-center justify-center text-xl flex-shrink-0">
+                  {b.isPublished ? "⚡" : "📝"}
+                </div>
+                <div className="flex-1 min-w-0 space-y-2">
+                  <p
+                    className="text-retro-accent text-sm font-bold uppercase font-terminal"
+                    style={{ fontFamily: T.mono }}
+                  >
+                    {b.title}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge status={b.isPublished ? "published" : "draft"} />
+                    <span
+                      className="text-retro-text/30 text-[10px] uppercase font-terminal"
+                      style={{ fontFamily: T.mono }}
+                    >
+                      {b.category || "General"}
+                    </span>
+                    {b.isPublished && (
+                      <span
+                        className="text-retro-accent text-[10px] flex items-center gap-1 font-terminal"
+                        style={{ fontFamily: T.mono }}
+                      >
+                        <Eye size={10} />
+                        {b.views >= 1000
+                          ? `${(b.views / 1000).toFixed(1)}K`
+                          : b.views}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    {[
+                      {
+                        i: <Eye size={12} />,
+                        c: "text-retro-accent",
+                        fn: () => navigate(`/blog/${b._id}`),
+                      },
+                      {
+                        i: <Edit3 size={12} />,
+                        c: "text-retro-accent",
+                        fn: () => startEdit(b._id),
+                      },
+                      {
+                        i: <Trash2 size={12} />,
+                        c: "text-red-400",
+                        fn: () => deleteB(b._id),
+                      },
+                    ].map((a, j) => (
+                      <button
+                        key={j}
+                        onClick={a.fn}
+                        className={`w-8 h-8 border border-retro-border bg-retro-bg flex items-center justify-center ${a.c} transition-all`}
+                      >
+                        {a.i}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         {filtered.length === 0 && (
           <div className="py-16 text-center">
-            <FileText size={32} className="text-white/10 mx-auto mb-3" />
+            <FileText size={32} className="text-retro-text/10 mx-auto mb-3" />
             <p
-              className="text-white/20 text-sm"
+              className="text-retro-text/30 text-sm font-terminal uppercase"
               style={{ fontFamily: T.mono }}
             >
-              No blogs match your filter
+              No documents match your filter
             </p>
           </div>
         )}
 
         {filtered.length > 0 && (
-          <div className="flex items-center justify-between px-4 py-3.5 border-t border-white/[0.06] bg-white/[0.01]">
+          <div className="flex items-center justify-between px-4 py-3.5 border-t-2 border-retro-border bg-retro-bg">
             <p
-              className="text-white/20 text-[10px]"
+              className="text-retro-text/30 text-xs font-terminal uppercase"
               style={{ fontFamily: T.mono }}
             >
-              Showing {filtered.length} of {userBlogs.length} blogs
+              Showing {filtered.length} of {userBlogs.length} documents
             </p>
             <div className="flex items-center gap-1">
               {[1, 2, 3].map((p) => (
                 <button
                   key={p}
-                  className={`w-7 h-7 rounded-lg text-xs font-semibold transition-all ${
+                  className={`w-7 h-7 border text-xs font-pixel transition-all ${
                     p === 1
-                      ? "bg-cyan-500/15 border border-cyan-500/25 text-cyan-400"
-                      : "text-white/30 hover:text-white/60 hover:bg-white/[0.05]"
+                      ? "border-retro-accent bg-retro-accent text-retro-bg"
+                      : "text-retro-text/40 hover:text-retro-accent bg-retro-bg border-retro-border"
                   }`}
-                  style={{ fontFamily: T.ox }}
+                  style={{ fontFamily: T.pixel }}
                 >
                   {p}
                 </button>
@@ -554,7 +435,7 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
             </div>
           </div>
         )}
-      </GlassCard>
-    </motion.div>
+      </div>
+    </div>
   );
 }
