@@ -258,9 +258,9 @@ function WelcomeSection({ visible, user, setActive, setEditingBlog, handleNewBlo
 
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-5">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 border border-retro-border bg-retro-bg text-retro-accent text-sm font-pixel"
+            <div className="inline-flex items-center gap-2 px-3 py-1 border-2 border-retro-accent bg-retro-accent text-retro-bg text-xs font-pixel"
               style={{ fontFamily: ACCENT.pixel }}>
-              <Sparkles size={11} /> {greeting.toUpperCase()}
+              <Sparkles size={11} className="animate-spin" /> {greeting.toUpperCase()}
             </div>
             <h1 className="text-4xl sm:text-5xl font-black text-retro-accent tracking-widest uppercase" style={{ fontFamily: ACCENT.ox }}>
               {user?.username || "Loading..."}<span className="text-retro-accent">.</span>
@@ -271,11 +271,11 @@ function WelcomeSection({ visible, user, setActive, setEditingBlog, handleNewBlo
           </div>
 
           <div className="flex flex-col items-start sm:items-end gap-3">
-            <button onClick={handleNewBlog} className="flex items-center gap-2 px-5 py-2.5 border-2 border-retro-accent bg-[#E8E8C6] text-[#252525] text-sm font-pixel hover:bg-[#E2E2D5] active:translate-y-[1px] shadow-[4px_4px_0px_rgba(0,0,0,1)] cursor-pointer select-none">
+            <button onClick={handleNewBlog} className="flex items-center gap-2 px-5 py-2.5 border-2 border-retro-accent bg-retro-accent text-retro-bg text-sm font-pixel hover:bg-retro-accent/80 hover:text-retro-bg active:translate-y-[1px] shadow-[4px_4px_0px_rgba(0,0,0,1)] cursor-pointer select-none">
               <Plus size={14} /> CREATE NEW BLOG
             </button>
-            <div className="flex items-center gap-2 text-xs text-retro-text/40 max-w-[240px] font-terminal" style={{ fontFamily: ACCENT.mono }}>
-              <Zap size={12} className="text-retro-amber flex-shrink-0" />
+            <div className="flex items-center gap-2 text-xs text-retro-accent max-w-[240px] font-terminal" style={{ fontFamily: ACCENT.mono }}>
+              <Zap size={12} className="text-retro-amber flex-shrink-0 animate-bounce" />
               <span>{tip}</span>
             </div>
           </div>
@@ -303,7 +303,9 @@ function StatCards({ visible, userBlogs }) {
       label: "Total Blogs",
       value: totalBlogs,
       icon: <FileText size={18}/>,
-      iconBg: "bg-retro-bg border-retro-border text-retro-accent",
+      iconBg: "bg-retro-bg border-retro-accent text-retro-accent",
+      cardBorder: "border-retro-accent",
+      valueColor: "text-retro-accent",
       trend: `+${getNewBlogsThisMonth()} this month`,
       up: true,
       sparkColor: "#E8E8C6",
@@ -314,10 +316,12 @@ function StatCards({ visible, userBlogs }) {
       label: "Total Views",
       value: totalViews,
       icon: <Eye size={18}/>,
-      iconBg: "bg-retro-bg border-retro-border text-retro-accent",
+      iconBg: "bg-retro-bg border-retro-amber text-retro-amber",
+      cardBorder: "border-retro-amber/60 hover:border-retro-amber",
+      valueColor: "text-retro-amber",
       trend: "+14.2% vs last month",
       up: true,
-      sparkColor: "#E8E8C6",
+      sparkColor: "#D4A373",
       data: SPARKLINE_DATA,
       suffix: "",
     },
@@ -325,10 +329,12 @@ function StatCards({ visible, userBlogs }) {
       label: "Total Likes",
       value: totalLikes,
       icon: <Heart size={18}/>,
-      iconBg: "bg-retro-bg border-retro-border text-retro-accent",
+      iconBg: "bg-retro-bg border-retro-sepia text-retro-sepia",
+      cardBorder: "border-retro-sepia/60 hover:border-retro-sepia",
+      valueColor: "text-retro-sepia",
       trend: "+8.7% vs last month",
       up: true,
-      sparkColor: "#E8E8C6",
+      sparkColor: "#A68A64",
       data: [20,35,28,45,38,55,48,72,60,80,68,90],
       suffix: "",
     },
@@ -340,22 +346,22 @@ function StatCards({ visible, userBlogs }) {
         <div key={i}
           className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
           style={{ transitionDelay: `${i * 100}ms` }}>
-          <div className="relative border-2 border-retro-border bg-retro-surface hover:border-retro-accent transition-all duration-300 p-5 shadow-[4px_4px_0px_rgba(0,0,0,1)] group">
+          <div className={`relative border-2 ${c.cardBorder} bg-retro-surface transition-all duration-300 p-5 shadow-[4px_4px_0px_rgba(0,0,0,1)] group`}>
 
             <div className="flex items-start justify-between mb-4">
               <div className={`w-10 h-10 border-2 flex items-center justify-center ${c.iconBg}`}>
                 {c.icon}
               </div>
-              <div className="flex items-center gap-1 text-xs font-pixel px-2 py-0.5 border border-retro-border bg-retro-bg text-retro-accent uppercase tracking-wider" style={{ fontFamily: ACCENT.pixel }}>
+              <div className="flex items-center gap-1 text-[10px] font-pixel px-2 py-0.5 border border-retro-border bg-retro-bg text-retro-accent uppercase tracking-wider" style={{ fontFamily: ACCENT.pixel }}>
                 {c.up ? "+" : "-"}{c.trend.split(" ")[0].replace("+","").replace("-","")}
               </div>
             </div>
 
-            <div className="text-5xl font-black text-retro-accent mb-1"
+            <div className={`text-5xl font-black ${c.valueColor} mb-1`}
               style={{ fontFamily: ACCENT.ox }}>
               <AnimatedNumber target={c.value} />
             </div>
-            <p className="text-retro-text/60 text-xs mb-4 uppercase tracking-wider" style={{ fontFamily: ACCENT.mono }}>{c.label}</p>
+            <p className="text-retro-text/60 text-xs mb-4 uppercase tracking-wider font-terminal" style={{ fontFamily: ACCENT.mono }}>{c.label}</p>
 
             <Sparkline data={c.data} color={c.sparkColor} />
 
@@ -543,7 +549,7 @@ function ActivityFeed({ visible, userBlogs }) {
       if (b.isPublished) {
         acts.push({
           icon: <Globe size={12}/>,
-          color: "text-emerald-400 border-emerald-400/40 bg-retro-bg",
+          color: "text-emerald-400 border-emerald-500/30 bg-[#242f27]",
           text: `You published '${b.title}'`,
           time: timeStr,
           timestamp: new Date(b.updatedAt || b.createdAt).getTime()
@@ -551,7 +557,7 @@ function ActivityFeed({ visible, userBlogs }) {
       } else {
         acts.push({
           icon: <Save size={12}/>,
-          color: "text-retro-amber border-retro-amber/40 bg-retro-bg",
+          color: "text-retro-amber border-retro-amber/30 bg-[#352c20]",
           text: `You saved draft '${b.title}'`,
           time: timeStr,
           timestamp: new Date(b.updatedAt || b.createdAt).getTime()
@@ -561,7 +567,7 @@ function ActivityFeed({ visible, userBlogs }) {
       if (b.views >= 50) {
         acts.push({
           icon: <TrendingUp size={12}/>,
-          color: "text-retro-accent border-retro-accent/40 bg-retro-bg",
+          color: "text-retro-accent border-retro-accent/30 bg-[#2b3a32]",
           text: `'${b.title}' crossed ${b.views} views`,
           time: "Milestone",
           timestamp: new Date(b.updatedAt || b.createdAt).getTime() - 500
@@ -583,22 +589,22 @@ function ActivityFeed({ visible, userBlogs }) {
             <h2 className="text-2xl font-black text-retro-accent uppercase tracking-wider" style={{ fontFamily: ACCENT.ox }}>Activity</h2>
             <p className="text-retro-text/30 text-xs font-terminal uppercase mt-0.5" style={{ fontFamily: ACCENT.mono }}>Recent notifications</p>
           </div>
-          <div className="w-2.5 h-2.5 bg-retro-accent border border-retro-bg" />
+          <div className="w-2.5 h-2.5 bg-retro-accent border border-retro-bg animate-pulse" />
         </div>
         <div className="p-4 space-y-2.5">
           {activitiesList.map((item, i) => (
             <div key={i}
-              className={`flex items-start gap-3 p-3 hover:bg-retro-bg/40 border border-transparent hover:border-retro-border transition-all duration-200 cursor-pointer group ${visible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"}`}
+              className={`flex items-start gap-3 p-3 border-2 border-retro-border/40 hover:border-retro-accent transition-all duration-200 cursor-pointer group ${visible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"} ${item.color.split(" ").slice(-1)[0]}`}
               style={{ transitionDelay: `${400 + i * 60}ms`, transitionDuration: "500ms" }}>
               <div className={`w-7 h-7 border flex items-center justify-center flex-shrink-0 ${item.color}`}>
                 {item.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-retro-text/70 text-xs group-hover:text-retro-accent transition-colors font-terminal" style={{ fontFamily: ACCENT.mono }}>
+                <p className="text-retro-text/75 text-xs group-hover:text-retro-accent transition-colors font-terminal" style={{ fontFamily: ACCENT.mono }}>
                   {item.text.toUpperCase()}
                 </p>
               </div>
-              <span className="text-retro-text/30 text-xs flex-shrink-0 mt-0.5 font-terminal" style={{ fontFamily: ACCENT.mono }}>
+              <span className="text-retro-text/40 text-xs flex-shrink-0 mt-0.5 font-terminal" style={{ fontFamily: ACCENT.mono }}>
                 {item.time.toUpperCase()}
               </span>
             </div>
@@ -619,14 +625,17 @@ function QuickActions({ visible, setActive, setEditingBlog, handleNewBlog, setRe
   const draftCount = userBlogs ? userBlogs.filter(b => !b.isPublished).length : 0;
 
   const actions = [
-    { icon: <PenLine size={16}/>, label: "New Blog", desc: "Start writing", onClick: handleNewBlog },
+    { icon: <PenLine size={16}/>, label: "New Blog", desc: "Start writing", border: "border-retro-olive", bg: "bg-[#343e2f]/50 hover:bg-[#343e2f]", iconColor: "text-retro-olive", onClick: handleNewBlog },
     {
       icon: <Star size={16}/>,
       label: "Featured",
       desc: "Admin picks",
+      border: "border-retro-sepia",
+      bg: "bg-[#3e3428]/50 hover:bg-[#3e3428]",
+      iconColor: "text-retro-sepia",
       onClick: () => { setReadAdminOnly(true); setActive("read"); }
     },
-    { icon: <Globe size={16}/>, label: "Go Live", desc: `${draftCount} drafts`, onClick: () => setActive("blogs") },
+    { icon: <Globe size={16}/>, label: "Go Live", desc: `${draftCount} drafts`, border: "border-retro-amber", bg: "bg-[#44382c]/50 hover:bg-[#44382c]", iconColor: "text-retro-amber", onClick: () => setActive("blogs") },
   ];
 
   return (
@@ -639,13 +648,13 @@ function QuickActions({ visible, setActive, setEditingBlog, handleNewBlog, setRe
         <div className="p-4 grid grid-cols-3 gap-3">
           {actions.map((a, i) => (
             <button key={i} onClick={a.onClick}
-              className="flex flex-col items-center gap-2 p-4 border-2 border-retro-border bg-retro-bg hover:border-retro-accent hover:bg-retro-surface/30 transition-all duration-200 group active:translate-y-[1px] shadow-[2px_2px_0px_rgba(0,0,0,1)] cursor-pointer select-none">
-              <div className="w-10 h-10 border-2 border-retro-accent bg-[#E8E8C6] flex items-center justify-center text-retro-bg shadow-[2px_2px_0px_rgba(0,0,0,1)] transition-all">
+              className={`flex flex-col items-center gap-2 p-4 border-2 ${a.border} ${a.bg} hover:border-retro-accent text-retro-text transition-all duration-200 group active:translate-y-[1px] shadow-[2px_2px_0px_rgba(0,0,0,1)] cursor-pointer select-none`}>
+              <div className={`w-10 h-10 border-2 border-retro-border bg-retro-bg flex items-center justify-center ${a.iconColor} shadow-[2px_2px_0px_rgba(0,0,0,1)] transition-all`}>
                 {a.icon}
               </div>
               <div className="text-center">
                 <p className="text-retro-text/75 text-xs font-semibold group-hover:text-retro-accent transition-colors font-pixel uppercase tracking-wide" style={{ fontFamily: ACCENT.pixel }}>{a.label}</p>
-                <p className="text-retro-text/30 text-[9px] font-terminal uppercase mt-0.5" style={{ fontFamily: ACCENT.mono }}>{a.desc}</p>
+                <p className="text-retro-text/40 text-[9px] font-terminal uppercase mt-0.5" style={{ fontFamily: ACCENT.mono }}>{a.desc}</p>
               </div>
             </button>
           ))}

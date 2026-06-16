@@ -55,14 +55,14 @@ import { useNavigate } from "react-router-dom";
 import CreateBlogPage from "./CreateBlogPage";
 import ReadBlogsPage from "./ReadBlogsFeed";
 
-
 /* ════════════════════════════════════════════════
    DESIGN TOKENS
 ════════════════════════════════════════════════ */
 const T = {
-  ox: "'Oxanium',sans-serif",
-  mono: "'Space Mono',monospace",
-  bg: "#050816",
+  ox: "'VT323', monospace",
+  mono: "'Space Mono', monospace",
+  pixel: "'Silkscreen', monospace",
+  bg: "#252525",
 };
 
 /* ════════════════════════════════════════════════
@@ -157,68 +157,42 @@ const ACTIVITY = [
   {
     type: "publish",
     icon: <Globe size={12} />,
-    color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
+    color: "text-emerald-400 border-emerald-500/30 bg-[#242f27]",
     text: "Published 'Building Scalable APIs'",
     time: "2h ago",
   },
   {
     type: "edit",
     icon: <Edit3 size={12} />,
-    color: "text-cyan-400    bg-cyan-400/10    border-cyan-400/20",
+    color: "text-retro-accent border-retro-accent/30 bg-[#2b3a32]",
     text: "Edited 'Mastering TypeScript Generics'",
     time: "5h ago",
   },
   {
     type: "draft",
     icon: <Save size={12} />,
-    color: "text-amber-400   bg-amber-400/10   border-amber-400/20",
+    color: "text-retro-amber border-retro-amber/30 bg-[#352c20]",
     text: "Saved draft 'Productivity Stack'",
     time: "1d ago",
-  },
-  {
-    type: "views",
-    icon: <TrendingUp size={12} />,
-    color: "text-violet-400  bg-violet-400/10  border-violet-400/20",
-    text: "Post crossed 10K views milestone",
-    time: "2d ago",
-  },
-  {
-    type: "comment",
-    icon: <MessageSquare size={12} />,
-    color: "text-pink-400    bg-pink-400/10    border-pink-400/20",
-    text: "New comment on 'Minimalist UI Design'",
-    time: "3d ago",
   },
 ];
 
 /* ════════════════════════════════════════════════
-   ANIMATION VARIANTS
+   ANIMATION VARIANTS (kept minimal / flat)
 ════════════════════════════════════════════════ */
 const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] },
-  },
+  hidden: { opacity: 1, y: 0 },
+  show: { opacity: 1, y: 0 },
 };
 const fadeLeft = {
-  hidden: { opacity: 0, x: 24 },
-  show: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] },
-  },
+  hidden: { opacity: 1, x: 0 },
+  show: { opacity: 1, x: 0 },
 };
-const stagger = { show: { transition: { staggerChildren: 0.07 } } };
+const stagger = { show: { transition: { staggerChildren: 0.02 } } };
 const pageVariants = {
-  initial: { opacity: 0, y: 12 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
-  },
-  exit: { opacity: 0, y: -8, transition: { duration: 0.25 } },
+  initial: { opacity: 1, y: 0 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 1, y: 0 },
 };
 
 /* ════════════════════════════════════════════════
@@ -227,64 +201,65 @@ const pageVariants = {
 function Background() {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `linear-gradient(rgba(99,102,241,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,0.035) 1px,transparent 1px)`,
-          backgroundSize: "72px 72px",
-        }}
-      />
-      <div className="absolute -top-40 right-0       w-[700px] h-[700px] bg-violet-600/10  rounded-full blur-[150px]" />
-      <div className="absolute top-1/2  -left-40      w-[500px] h-[500px] bg-cyan-500/7     rounded-full blur-[120px]" />
-      <div className="absolute -bottom-40 right-1/4  w-[500px] h-[400px] bg-pink-600/6     rounded-full blur-[120px]" />
-      <div
-        className="absolute inset-0 opacity-[0.018]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-          backgroundSize: "200px",
-        }}
-      />
+      <div className="absolute inset-0 bg-[#252525]" />
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: `linear-gradient(#E8E8C6 1px, transparent 1px), linear-gradient(90deg, #E8E8C6 1px, transparent 1px)`,
+        backgroundSize: "40px 40px",
+      }} />
+      <div className="crt-overlay" />
+      <div className="noise-overlay" />
     </div>
   );
 }
 
 /* ════════════════════════════════════════════════
-   SHARED ATOMS
-   FIX: GlassCard no longer uses variants={fadeUp} which was
-   causing Framer Motion to re-animate and steal focus on every
-   parent re-render. It now only animates on hover.
+   SPARKLINE
 ════════════════════════════════════════════════ */
-function GlassCard({ children, className = "", glow = "" }) {
+function Sparkline({ data, color = "#E8E8C6", height = 40 }) {
+  const max = Math.max(...data), min = Math.min(...data);
+  const w = 120, h = height;
+  const pts = data.map((v, i) => {
+    const x = (i / (data.length - 1)) * w;
+    const y = h - ((v - min) / (max - min || 1)) * h * 0.85 - h * 0.075;
+    return `${x},${y}`;
+  }).join(" ");
   return (
-    <motion.div
-      whileHover={{
-        borderColor: glow || "rgba(34,211,238,0.25)",
-        boxShadow: glow
-          ? `0 0 40px ${glow}18`
-          : "0 0 40px rgba(34,211,238,0.08)",
-      }}
-      transition={{ duration: 0.25 }}
-      className={`relative rounded-2xl border border-white/[0.07] bg-white/[0.025] backdrop-blur-md overflow-hidden ${className}`}
-    >
-      {children}
-    </motion.div>
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-10" preserveAspectRatio="none">
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
+/* ════════════════════════════════════════════════
+   GLASS CARD -> RETRO PANEL CARD
+════════════════════════════════════════════════ */
+function GlassCard({ children, className = "", borderClass = "border-retro-border" }) {
+  return (
+    <div
+      className={`border-2 ${borderClass} bg-retro-surface shadow-[4px_4px_0px_rgba(0,0,0,1)] overflow-hidden ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════
+   BADGE
+════════════════════════════════════════════════ */
 function Badge({ status }) {
   const map = {
     published: {
-      cls: "border-emerald-400/30 text-emerald-300 bg-emerald-400/10",
+      cls: "border-emerald-400/30 text-emerald-400 bg-retro-bg",
       dot: "bg-emerald-400",
       label: "Published",
     },
     draft: {
-      cls: "border-amber-400/30  text-amber-300  bg-amber-400/10",
-      dot: "bg-amber-400",
+      cls: "border-retro-amber/30  text-retro-amber  bg-retro-bg",
+      dot: "bg-retro-amber",
       label: "Draft",
     },
     flagged: {
-      cls: "border-red-400/30    text-red-300    bg-red-400/10",
+      cls: "border-red-400/30    text-red-400    bg-retro-bg",
       dot: "bg-red-400",
       label: "Flagged",
     },
@@ -292,29 +267,26 @@ function Badge({ status }) {
   const s = map[status] || map.draft;
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border ${s.cls}`}
-      style={{ fontFamily: T.ox }}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-pixel border ${s.cls}`}
+      style={{ fontFamily: T.pixel }}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${s.dot} animate-pulse`} />
-      {s.label}
+      <span className={`w-1.5 h-1.5 ${s.dot}`} />
+      {s.label.toUpperCase()}
     </span>
   );
 }
 
 function GradientBtn({ children, onClick, className = "" }) {
   return (
-    <motion.button
+    <button
       onClick={onClick}
-      whileHover={{ scale: 1.02, boxShadow: "0 0 28px rgba(34,211,238,0.35)" }}
-      whileTap={{ scale: 0.97 }}
-      className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white ${className}`}
+      className={`flex items-center justify-center gap-2 px-5 py-2.5 border-2 border-retro-accent bg-retro-accent text-retro-bg font-pixel hover:bg-retro-accent/80 active:translate-y-[1px] shadow-[4px_4px_0px_rgba(0,0,0,1)] cursor-pointer select-none ${className}`}
       style={{
-        background: "linear-gradient(135deg,#22d3ee 0%,#7c3aed 100%)",
-        fontFamily: T.ox,
+        fontFamily: T.pixel,
       }}
     >
       {children}
-    </motion.button>
+    </button>
   );
 }
 
@@ -333,34 +305,27 @@ function Sidebar({ page, setPage, open, setOpen, handleLogout }) {
     <>
       {open && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
+          className="fixed inset-0 bg-[#252525]/85 backdrop-blur-xs z-30 lg:hidden"
           onClick={() => setOpen(false)}
         />
       )}
-      <motion.aside
-        initial={false}
-        animate={{
-          x: open
-            ? 0
-            : typeof window !== "undefined" && window.innerWidth < 1024
-              ? -240
-              : 0,
-        }}
-        className="fixed top-0 left-0 h-full w-[220px] z-40 flex flex-col border-r border-white/[0.06] backdrop-blur-xl"
-        style={{ backgroundColor: "rgba(5,8,22,0.97)" }}
+      <aside
+        className={`fixed top-0 left-0 h-full w-[220px] z-40 flex flex-col border-r-4 border-retro-accent bg-retro-bg transition-all duration-300 ${
+          open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
       >
-        <div className="flex items-center gap-3 px-5 h-16 border-b border-white/[0.06] flex-shrink-0">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center shadow-lg shadow-cyan-500/30 flex-shrink-0">
-            <Feather size={14} className="text-white" />
+        <div className="flex items-center gap-3 px-5 h-16 border-b-2 border-retro-border flex-shrink-0">
+          <div className="w-8 h-8 bg-retro-accent border-2 border-retro-accent flex items-center justify-center flex-shrink-0 shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+            <Feather size={14} className="text-retro-bg" />
           </div>
           <span
-            className="text-white font-black text-lg tracking-tight"
+            className="text-retro-accent font-black text-2xl tracking-widest uppercase"
             style={{ fontFamily: T.ox }}
           >
-            Quill<span className="text-cyan-400">.</span>
+            Quill<span className="text-retro-accent">.</span>
           </span>
           <button
-            className="ml-auto lg:hidden text-white/40 hover:text-white"
+            className="ml-auto lg:hidden text-retro-text/60 hover:text-retro-accent border-2 border-retro-border p-1 bg-retro-surface"
             onClick={() => setOpen(false)}
           >
             <X size={15} />
@@ -369,75 +334,67 @@ function Sidebar({ page, setPage, open, setOpen, handleLogout }) {
 
         <div className="px-5 pt-5 pb-2">
           <p
-            className="text-white/20 text-[9px] tracking-[0.2em] uppercase font-medium"
-            style={{ fontFamily: T.mono }}
+            className="text-retro-text/45 text-[10px] tracking-[0.2em] uppercase font-bold"
+            style={{ fontFamily: T.pixel }}
           >
             Navigation
           </p>
         </div>
 
-        <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 px-3 space-y-1.5 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
             const active = page === item.id;
             return (
-              <motion.button
+              <button
                 key={item.id}
                 onClick={() => {
                   setPage(item.id);
                   if (window.innerWidth < 1024) setOpen(false);
                 }}
-                whileHover={{ x: active ? 0 : 3 }}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 group relative text-left ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-200 group relative text-left ${
                   active
-                    ? "bg-gradient-to-r from-cyan-500/15 to-violet-500/10 border border-cyan-500/25 text-white"
-                    : "text-white/30 hover:text-white/70 hover:bg-white/[0.04] border border-transparent"
+                    ? "bg-retro-surface border-2 border-retro-accent text-retro-accent"
+                    : "text-retro-text/60 hover:text-retro-accent hover:bg-retro-surface/20 border border-transparent"
                 }`}
               >
-                {active && (
-                  <motion.div
-                    layoutId="activeGlow"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]"
-                  />
-                )}
                 <span
                   className={
                     active
-                      ? "text-cyan-400"
-                      : "group-hover:text-cyan-400/60 transition-colors"
+                      ? "text-retro-accent"
+                      : "group-hover:text-retro-accent/70 transition-colors"
                   }
                 >
                   {item.icon}
                 </span>
                 <span
-                  className="text-xs font-semibold"
+                  className="text-sm font-medium uppercase tracking-wider"
                   style={{ fontFamily: T.ox }}
                 >
                   {item.label}
                 </span>
                 {active && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.9)]" />
+                  <div className="ml-auto w-2 h-2 bg-retro-accent" />
                 )}
-              </motion.button>
+              </button>
             );
           })}
         </nav>
 
-        <div className="p-3 border-t border-white/[0.06] space-y-0.5">
-          <motion.button
-            whileHover={{ x: 3 }}
+        <div className="p-3 border-t-2 border-retro-border space-y-1">
+          <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-white/25 hover:text-white/60 hover:bg-white/[0.04] transition-all border border-transparent text-left"
+            className="w-full flex items-center gap-3 px-3 py-2.5 text-retro-text/40 hover:text-retro-accent hover:bg-retro-surface/20 border border-transparent group relative text-left"
           >
             <LogOut size={15} />
             <span
-              className="text-xs font-semibold"
+              className="text-sm font-medium uppercase tracking-wider"
               style={{ fontFamily: T.ox }}
             >
               Logout
             </span>
-          </motion.button>
+          </button>
         </div>
-      </motion.aside>
+      </aside>
     </>
   );
 }
@@ -449,14 +406,10 @@ function Topbar({ setOpen, setPage, setEditingBlog }) {
   const [search, setSearch] = useState("");
   return (
     <div
-      className="fixed top-0 right-0 left-[220px] max-lg:left-0 h-16 z-20 flex items-center px-5 gap-4 border-b border-white/[0.06]"
-      style={{
-        backgroundColor: "rgba(5,8,22,0.85)",
-        backdropFilter: "blur(20px)",
-      }}
+      className="fixed top-0 right-0 left-[220px] max-lg:left-0 h-16 z-20 flex items-center px-5 gap-4 border-b-2 border-retro-border bg-retro-surface"
     >
       <button
-        className="lg:hidden text-white/40 hover:text-white p-1.5 rounded-lg hover:bg-white/[0.05] transition-all"
+        className="lg:hidden text-retro-text/60 hover:text-retro-accent p-1.5 border-2 border-retro-border bg-retro-bg transition-all"
         onClick={() => setOpen(true)}
       >
         <Menu size={17} />
@@ -465,14 +418,13 @@ function Topbar({ setOpen, setPage, setEditingBlog }) {
       <div className="relative flex-1 max-w-sm">
         <Search
           size={13}
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20"
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-retro-text/30"
         />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="how you doin'?…"
-          className="w-full bg-white/[0.04] border border-white/[0.07] rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-white/18 focus:outline-none focus:border-cyan-400/40 transition-all"
-          style={{ fontFamily: T.mono }}
+          className="w-full bg-retro-bg border-2 border-retro-border pl-9 pr-4 py-2 text-xs text-retro-text placeholder-retro-text/25 focus:outline-none focus:border-retro-accent transition-all font-terminal"
         />
       </div>
 
@@ -487,23 +439,21 @@ function Topbar({ setOpen, setPage, setEditingBlog }) {
           <Plus size={13} /> New Blog
         </GradientBtn>
 
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          className="relative w-9 h-9 rounded-xl border border-white/[0.07] bg-white/[0.03] flex items-center justify-center text-white/35 hover:text-white transition-all"
+        <button
+          className="relative w-9 h-9 border-2 border-retro-border bg-retro-bg hover:bg-retro-surface/30 flex items-center justify-center text-retro-text/40 hover:text-retro-accent transition-all cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px]"
         >
           <Bell size={15} />
-          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 text-[9px] font-bold text-white flex items-center justify-center">
+          <span className="absolute -top-1.5 -right-1.5 px-1 bg-retro-accent border border-retro-bg text-[9px] font-pixel text-[#252525] flex items-center justify-center">
             3
           </span>
-        </motion.button>
+        </button>
 
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center text-xs font-black text-white cursor-pointer shadow-lg shadow-cyan-500/20"
+        <div
+          className="w-9 h-9 border-2 border-retro-accent bg-retro-accent flex items-center justify-center text-sm font-pixel text-retro-bg cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:bg-[#E2E2D5] select-none"
           style={{ fontFamily: T.ox }}
         >
           KX
-        </motion.div>
+        </div>
       </div>
     </div>
   );
@@ -543,97 +493,71 @@ function StatCard({
   data,
   delay = 0,
 }) {
+  let borderClass = "border-retro-border";
+  let textClass = "text-retro-accent";
+  let sparkColor = "#E8E8C6";
+  let iconCls = "bg-retro-bg border-retro-accent text-retro-accent";
+
+  if (label === "Total Blogs") {
+    borderClass = "border-retro-accent";
+    textClass = "text-retro-accent";
+    sparkColor = "#E8E8C6";
+    iconCls = "bg-retro-bg border-retro-accent text-retro-accent";
+  } else if (label === "Published Blogs") {
+    borderClass = "border-emerald-500/60 hover:border-emerald-500";
+    textClass = "text-emerald-400";
+    sparkColor = "#34d399";
+    iconCls = "bg-retro-bg border-emerald-500 text-emerald-400";
+  } else if (label === "Draft Blogs") {
+    borderClass = "border-retro-amber/60 hover:border-retro-amber";
+    textClass = "text-retro-amber";
+    sparkColor = "#D4A373";
+    iconCls = "bg-retro-bg border-retro-amber text-retro-amber";
+  } else {
+    borderClass = "border-retro-sepia/60 hover:border-retro-sepia";
+    textClass = "text-retro-sepia";
+    sparkColor = "#A68A64";
+    iconCls = "bg-retro-bg border-retro-sepia text-retro-sepia";
+  }
+
   return (
-    <motion.div variants={fadeUp} transition={{ delay }}>
-      <motion.div
-        whileHover={{ y: -4, boxShadow: `0 20px 60px ${glowColor}20` }}
-        transition={{ duration: 0.25 }}
-        className="relative rounded-2xl border border-white/[0.07] p-5 overflow-hidden group cursor-default"
-        style={{
-          background: "rgba(255,255,255,0.025)",
-          backdropFilter: "blur(12px)",
-        }}
-      >
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileHover={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          className="absolute -top-12 -right-12 w-32 h-32 rounded-full blur-2xl pointer-events-none"
-          style={{
-            background: `radial-gradient(circle,${glowColor}30,transparent 70%)`,
-          }}
-        />
-        <div
-          className="absolute top-0 left-0 right-0 h-px"
-          style={{
-            background: `linear-gradient(90deg,transparent,${glowColor}60,transparent)`,
-          }}
-        />
-
-        <div className="flex items-start justify-between mb-4 relative">
-          <div
-            className={`w-10 h-10 rounded-xl flex items-center justify-center border`}
-            style={{
-              background: `${glowColor}12`,
-              borderColor: `${glowColor}30`,
-              color: glowColor,
-            }}
-          >
-            {icon}
-          </div>
-          <span
-            className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full border text-emerald-300 bg-emerald-400/10 border-emerald-400/20"
-            style={{ fontFamily: T.ox }}
-          >
-            <TrendingUp size={8} />
-            {trend}
-          </span>
+    <div className={`relative border-2 ${borderClass} bg-retro-surface p-5 shadow-[4px_4px_0px_rgba(0,0,0,1)] group`}>
+      <div className="flex items-start justify-between mb-4 relative">
+        <div className={`w-10 h-10 border-2 flex items-center justify-center ${iconCls}`}>
+          {icon}
         </div>
+        <span
+          className="flex items-center gap-1 text-[10px] font-pixel px-2 py-0.5 border border-retro-border bg-retro-bg text-retro-accent uppercase tracking-wider"
+          style={{ fontFamily: T.pixel }}
+        >
+          {trend}
+        </span>
+      </div>
 
-        <div className="relative">
-          <p
-            className="text-3xl font-black mb-0.5"
-            style={{
-              fontFamily: T.ox,
-              background: `linear-gradient(135deg,${gradFrom},${gradTo})`,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            <Counter target={value} />
-          </p>
-          <p className="text-white/30 text-xs" style={{ fontFamily: T.mono }}>
-            {label}
-          </p>
+      <div className="relative">
+        <p
+          className={`text-5xl font-black ${textClass} mb-1`}
+          style={{
+            fontFamily: T.ox,
+          }}
+        >
+          <Counter target={value} />
+        </p>
+        <p className="text-retro-text/60 text-xs mb-4 uppercase tracking-wider font-terminal" style={{ fontFamily: T.mono }}>
+          {label}
+        </p>
+      </div>
+
+      {data && (
+        <div className="mt-4 h-10">
+          <Sparkline data={Array.isArray(data) && data.length ? data.map(d => typeof d === 'object' ? d.views || 0 : d) : [10, 15, 12, 22, 18, 25]} color={sparkColor} />
         </div>
+      )}
 
-        {data && (
-          <div className="mt-4 h-10">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={data}
-                margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
-              >
-                <defs>
-                  <linearGradient id={`g-${label}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={glowColor} stopOpacity={0.3} />
-                    <stop offset="95%" stopColor={glowColor} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <Area
-                  type="monotone"
-                  dataKey="views"
-                  stroke={glowColor}
-                  strokeWidth={1.5}
-                  fill={`url(#g-${label})`}
-                  dot={false}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </motion.div>
-    </motion.div>
+      <p className="text-retro-text/30 text-xs mt-2 font-terminal uppercase" style={{ fontFamily: T.mono }}>
+        {trend}
+      </p>
+    </div>
   );
 }
 
@@ -648,11 +572,6 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
 
-  /**
-   * Loads all blog posts in the application to calculate admin-wide statistics.
-   * API CALL: GET `/blogs` (in backend start/routes/blog.routes.js)
-   * Why: Computes totals for views, publication statuses, monthly streaks, and recent entries.
-   */
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
@@ -667,11 +586,6 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
     fetchBlogs();
   }, []);
 
-  /**
-   * Retrieves a blog post's details by ID and redirects the administrator to the create/edit view.
-   * API CALL: GET `/blogs/:id` (in backend start/routes/blog.routes.js)
-   * Why: Populates the blog editor with the document's content for updates.
-   */
   const startEdit = async (id) => {
     try {
       const res = await api.get(`/blogs/${id}`);
@@ -683,11 +597,6 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
     }
   };
 
-  /**
-   * Requests the permanent deletion of a blog post by ID.
-   * API CALL: DELETE `/blogs/:id` (in backend start/routes/blog.routes.js)
-   * Why: Purges spam or outdated content from the platform database.
-   */
   const deleteBlog = async (id) => {
     if (!window.confirm("Are you sure you want to delete this blog?")) return;
     try {
@@ -767,11 +676,8 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5);
 
-  // Generate activities dynamically from fetched blogs
   const dynamicActivities = () => {
     const acts = [];
-
-    // Map recent edits/publications
     const sortedByUpdate = [...blogs]
       .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
       .slice(0, 5);
@@ -789,7 +695,7 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
       if (b.isPublished) {
         acts.push({
           icon: <Globe size={12} />,
-          color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
+          color: "text-emerald-400 border-emerald-500/30 bg-[#242f27]",
           text: `Published '${b.title}'`,
           time: timeStr,
           timestamp: new Date(b.updatedAt || b.createdAt).getTime()
@@ -797,7 +703,7 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
       } else {
         acts.push({
           icon: <Save size={12} />,
-          color: "text-amber-400 bg-amber-400/10 border-amber-400/20",
+          color: "text-retro-amber border-retro-amber/30 bg-[#352c20]",
           text: `Saved draft '${b.title}'`,
           time: timeStr,
           timestamp: new Date(b.updatedAt || b.createdAt).getTime()
@@ -805,122 +711,85 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
       }
     });
 
-    // Add view milestone activities if applicable
     blogs.forEach((b) => {
       if (b.views >= 100) {
         acts.push({
           icon: <TrendingUp size={12} />,
-          color: "text-violet-400 bg-violet-400/10 border-violet-400/20",
+          color: "text-retro-accent border-retro-accent/30 bg-[#2b3a32]",
           text: `'${b.title}' crossed ${b.views >= 1000 ? `${(b.views / 1000).toFixed(0)}k` : b.views} views`,
           time: "Milestone",
-          timestamp: new Date(b.updatedAt || b.createdAt).getTime() - 1000 // slightly older
+          timestamp: new Date(b.updatedAt || b.createdAt).getTime() - 1000
         });
       }
     });
 
-    // Sort by timestamp desc and limit to 5
     return acts.sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
   };
 
   const activitiesList = dynamicActivities();
 
   return (
-    <motion.div
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      variants={pageVariants}
-      className="space-y-6"
-    >
-      <motion.div variants={fadeUp} initial="hidden" animate="show">
-        <div
-          className="relative overflow-hidden rounded-2xl border border-white/[0.07] p-6 sm:p-8"
-          style={{
-            background:
-              "linear-gradient(135deg,rgba(34,211,238,0.07),rgba(124,58,237,0.06),transparent)",
-          }}
-        >
-          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" />
-          <div className="absolute -top-16 -right-16 w-48 h-48 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="space-y-6">
+      <div>
+        <div className="relative border-4 border-retro-accent bg-retro-surface p-6 sm:p-8 shadow-[6px_6px_0px_rgba(0,0,0,1)]">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-retro-accent" />
 
           <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div className="space-y-2">
-              <motion.div
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 }}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-cyan-400/25 bg-cyan-400/8 text-cyan-300 text-xs font-medium"
+              <div
+                className="inline-flex items-center gap-2 px-3 py-1 border-2 border-retro-accent bg-retro-accent text-retro-bg text-xs font-pixel"
+                style={{ fontFamily: T.pixel }}
+              >
+                <Sparkles size={10} className="animate-spin" /> Admin Dashboard
+              </div>
+              <h1
+                className="text-4xl font-black text-retro-accent tracking-widest uppercase"
                 style={{ fontFamily: T.ox }}
               >
-                <Sparkles size={10} /> Admin Dashboard
-              </motion.div>
-              <motion.h1
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.18 }}
-                className="text-3xl sm:text-4xl font-black text-white tracking-tight"
-                style={{ fontFamily: T.ox }}
-              >
-                {greeting}, {user?.username || "Admin"}<span className="text-cyan-400">.</span>
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.26 }}
-                className="text-white/30 text-sm"
+                {greeting.toUpperCase()}, {user?.username || "Admin"}<span className="text-retro-accent">.</span>
+              </h1>
+              <p
+                className="text-retro-text/60 text-sm font-terminal"
                 style={{ fontFamily: T.mono }}
               >
                 @{user?.username || "admin"} · Writer since {user?.createdAt ? new Date(user.createdAt).getFullYear() : "2026"} · Admin
-              </motion.p>
+              </p>
             </div>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.32 }}
-            >
-              <GradientBtn
+            <div>
+              <button
                 onClick={() => {
                   setEditingBlog(null);
                   setPage("create");
                 }}
-                className="px-6 py-3 text-sm"
+                className="flex items-center gap-2 px-5 py-2.5 border-2 border-retro-accent bg-retro-accent text-retro-bg text-sm font-pixel hover:bg-retro-accent/80 active:translate-y-[1px] shadow-[4px_4px_0px_rgba(0,0,0,1)] cursor-pointer select-none"
+                style={{ fontFamily: T.pixel }}
               >
-                <Plus size={15} /> Create New Blog
-              </GradientBtn>
-            </motion.div>
+                <Plus size={15} /> CREATE NEW BLOG
+              </button>
+            </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
-      <motion.div
-        variants={stagger}
-        initial="hidden"
-        animate="show"
-        className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4"
-      >
+      <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {stats.map((s, i) => (
           <StatCard key={i} {...s} />
         ))}
-      </motion.div>
+      </div>
 
       <div className="grid xl:grid-cols-[1fr_300px] gap-5">
-        <motion.div
-          variants={fadeUp}
-          initial="hidden"
-          animate="show"
-          transition={{ delay: 0.25 }}
-        >
+        <div>
           <GlassCard>
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+            <div className="flex items-center justify-between px-5 py-4 border-b-2 border-retro-border">
               <div>
                 <h2
-                  className="text-sm font-black text-white"
+                  className="text-2xl font-black text-retro-accent uppercase tracking-wider"
                   style={{ fontFamily: T.ox }}
                 >
                   Recent Blogs
                 </h2>
                 <p
-                  className="text-white/20 text-[10px] mt-0.5"
+                  className="text-retro-text/30 text-xs font-terminal uppercase mt-0.5"
                   style={{ fontFamily: T.mono }}
                 >
                   {totalBlogs} total posts
@@ -928,30 +797,27 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
               </div>
               <button
                 onClick={() => setPage("manage")}
-                className="flex items-center gap-1.5 text-xs text-cyan-400/70 hover:text-cyan-400 transition-colors border border-cyan-400/20 hover:border-cyan-400/40 px-3 py-1.5 rounded-lg"
-                style={{ fontFamily: T.ox }}
+                className="flex items-center gap-1.5 px-3 py-1.5 border-2 border-retro-border hover:border-retro-accent text-retro-text/40 hover:text-retro-accent text-xs font-pixel uppercase tracking-wide cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px]"
+                style={{ fontFamily: T.pixel }}
               >
                 Manage all <ChevronRight size={11} />
               </button>
             </div>
-            <div className="p-4 space-y-1.5">
+            <div className="p-4 space-y-3">
               {recentBlogs.map((b, i) => (
-                <motion.div
+                <div
                   key={b._id}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + i * 0.06 }}
-                  className="group flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.04] border border-transparent hover:border-white/[0.07] transition-all cursor-pointer"
+                  className="group flex items-center gap-3 p-3 border-2 border-retro-border/40 hover:border-retro-accent hover:bg-retro-surface/30 transition-all duration-200 cursor-pointer"
                 >
                   <div className="flex-1 min-w-0" onClick={() => navigate(`/blog/${b._id}`)}>
                     <p
-                      className="text-white/75 text-xs font-medium truncate group-hover:text-cyan-300 transition-colors"
-                      style={{ fontFamily: T.ox }}
+                      className="text-retro-text/75 text-sm font-semibold group-hover:text-retro-accent transition-colors uppercase tracking-wider font-pixel"
+                      style={{ fontFamily: T.pixel }}
                     >
                       {b.title}
                     </p>
                     <p
-                      className="text-white/20 text-[10px] mt-0.5"
+                      className="text-retro-text/40 text-[10px] font-terminal uppercase mt-0.5"
                       style={{ fontFamily: T.mono }}
                     >
                       {b.category || "General"} · {b.createdAt ? new Date(b.createdAt).toLocaleDateString() : "June 2026"}
@@ -960,175 +826,162 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
                   <Badge status={b.isPublished ? "published" : "draft"} />
                   {b.isPublished && (
                     <span
-                      className="text-white/25 text-[10px] flex items-center gap-1 flex-shrink-0"
+                      className="text-retro-text/40 text-xs flex items-center gap-1 flex-shrink-0 font-terminal uppercase"
                       style={{ fontFamily: T.mono }}
                     >
-                      <Eye size={9} />
+                      <Eye size={10} />
                       {b.views >= 1000 ? `${(b.views / 1000).toFixed(1)}K` : b.views || 0}
                     </span>
                   )}
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                  <div className="flex gap-1.5 flex-shrink-0">
                     <button 
                       onClick={(e) => { e.stopPropagation(); startEdit(b._id); }}
-                      className="w-6 h-6 rounded-lg bg-white/[0.05] hover:bg-cyan-400/10 hover:text-cyan-400 text-white/30 flex items-center justify-center transition-all"
+                      className="w-8 h-8 border-2 border-retro-border hover:border-retro-accent bg-retro-surface flex items-center justify-center text-retro-text/40 hover:text-retro-accent cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px]"
                     >
-                      <Edit3 size={10} />
+                      <Edit3 size={12} />
                     </button>
                     <button 
                       onClick={(e) => { e.stopPropagation(); deleteBlog(b._id); }}
-                      className="w-6 h-6 rounded-lg bg-white/[0.05] hover:bg-red-400/10 hover:text-red-400 text-white/30 flex items-center justify-center transition-all"
+                      className="w-8 h-8 border-2 border-retro-border hover:border-red-400 bg-retro-surface flex items-center justify-center text-retro-text/40 hover:text-red-400 cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px]"
                     >
-                      <Trash2 size={10} />
+                      <Trash2 size={12} />
                     </button>
                   </div>
-                </motion.div>
+                </div>
               ))}
               {recentBlogs.length === 0 && (
-                <div className="text-center py-8 text-white/20 text-xs" style={{ fontFamily: T.mono }}>
+                <div className="text-center py-8 text-retro-text/30 text-xs font-terminal uppercase" style={{ fontFamily: T.mono }}>
                   No blogs found.
                 </div>
               )}
             </div>
           </GlassCard>
-        </motion.div>
+        </div>
 
         <div className="space-y-4">
-          <motion.div
-            variants={fadeLeft}
-            initial="hidden"
-            animate="show"
-            transition={{ delay: 0.3 }}
-          >
-            <GlassCard className="p-5">
-              <h2
-                className="text-sm font-black text-white mb-4"
-                style={{ fontFamily: T.ox }}
-              >
-                Quick Actions
-              </h2>
-              <div className="space-y-2.5">
-                {[
-                  {
-                    icon: <PenLine size={14} />,
-                    label: "Create Blog",
-                    desc: "Start writing",
-                    grad: "from-cyan-500 to-violet-500",
-                    action: () => { setEditingBlog(null); setPage("create"); },
-                  },
-                  {
-                    icon: <Star size={14} />,
-                    label: "Featured by Admin",
-                    desc: "Admin picks",
-                    grad: "from-amber-500 to-orange-500",
-                    action: () => { setReadAdminOnly(true); setPage("read"); },
-                  },
-                  {
-                    icon: <Send size={14} />,
-                    label: "Publish Drafts",
-                    desc: `${draftBlogsCount} drafts pending`,
-                    grad: "from-amber-500 to-orange-500",
-                    action: () => setPage("manage"),
-                  },
-                ].map((a, i) => (
-                  <motion.button
-                    key={i}
-                    onClick={a.action}
-                    whileHover={{ x: 4, scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] hover:border-white/[0.14] hover:bg-white/[0.04] transition-all text-left group"
-                  >
-                    <div
-                      className={`w-8 h-8 rounded-lg bg-gradient-to-br ${a.grad} flex items-center justify-center text-white flex-shrink-0 shadow-md`}
-                    >
-                      {a.icon}
-                    </div>
-                    <div>
-                      <p
-                        className="text-white/75 text-xs font-semibold group-hover:text-white transition-colors"
-                        style={{ fontFamily: T.ox }}
-                      >
-                        {a.label}
-                      </p>
-                      <p
-                        className="text-white/25 text-[10px]"
-                        style={{ fontFamily: T.mono }}
-                      >
-                        {a.desc}
-                      </p>
-                    </div>
-                    <ArrowRight
-                      size={12}
-                      className="ml-auto text-white/15 group-hover:text-white/40 transition-colors"
-                    />
-                  </motion.button>
-                ))}
-              </div>
-            </GlassCard>
-          </motion.div>
-
-          <motion.div
-            variants={fadeLeft}
-            initial="hidden"
-            animate="show"
-            transition={{ delay: 0.38 }}
-          >
-            <GlassCard className="overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
-                <h2
-                  className="text-sm font-black text-white"
-                  style={{ fontFamily: T.ox }}
+          <GlassCard className="p-5">
+            <h2
+              className="text-2xl font-black text-retro-accent uppercase tracking-wider mb-4"
+              style={{ fontFamily: T.ox }}
+            >
+              Quick Actions
+            </h2>
+            <div className="space-y-2.5">
+              {[
+                {
+                  icon: <PenLine size={14} />,
+                  label: "Create Blog",
+                  desc: "Start writing",
+                  border: "border-retro-olive",
+                  bg: "bg-[#343e2f]/50 hover:bg-[#343e2f]",
+                  iconColor: "text-retro-olive",
+                  action: () => { setEditingBlog(null); setPage("create"); },
+                },
+                {
+                  icon: <Star size={14} />,
+                  label: "Featured by Admin",
+                  desc: "Admin picks",
+                  border: "border-retro-sepia",
+                  bg: "bg-[#3e3428]/50 hover:bg-[#3e3428]",
+                  iconColor: "text-retro-sepia",
+                  action: () => { setReadAdminOnly(true); setPage("read"); },
+                },
+                {
+                  icon: <Send size={14} />,
+                  label: "Publish Drafts",
+                  desc: `${draftBlogsCount} drafts pending`,
+                  border: "border-retro-amber",
+                  bg: "bg-[#44382c]/50 hover:bg-[#44382c]",
+                  iconColor: "text-retro-amber",
+                  action: () => setPage("manage"),
+                },
+              ].map((a, i) => (
+                <button
+                  key={i}
+                  onClick={a.action}
+                  className={`w-full flex items-center gap-3 p-3 border-2 ${a.border} ${a.bg} hover:border-retro-accent text-retro-text transition-all duration-200 group active:translate-y-[1px] shadow-[2px_2px_0px_rgba(0,0,0,1)] cursor-pointer`}
                 >
-                  Activity
-                </h2>
-                <div
-                  className="flex items-center gap-1.5 text-[10px] text-emerald-400"
-                  style={{ fontFamily: T.mono }}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Live
-                </div>
-              </div>
-              <div className="p-4 space-y-2">
-                {activitiesList.map((a, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: 12 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 + i * 0.07 }}
-                    className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/[0.03] transition-all cursor-pointer group"
+                  <div
+                    className={`w-8 h-8 border-2 border-retro-border bg-retro-bg flex items-center justify-center ${a.iconColor} flex-shrink-0 shadow-[2px_2px_0px_rgba(0,0,0,1)]`}
                   >
-                    <div
-                      className={`w-6 h-6 rounded-lg flex items-center justify-center border flex-shrink-0 ${a.color}`}
+                    {a.icon}
+                  </div>
+                  <div>
+                    <p
+                      className="text-retro-text/75 text-xs font-semibold group-hover:text-retro-accent transition-colors font-pixel uppercase tracking-wide"
+                      style={{ fontFamily: T.pixel }}
                     >
-                      {a.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="text-white/60 text-[11px] group-hover:text-white/80 transition-colors leading-snug"
-                        style={{ fontFamily: T.mono }}
-                      >
-                        {a.text}
-                      </p>
-                    </div>
-                    <span
-                      className="text-white/20 text-[9px] flex-shrink-0 mt-0.5"
+                      {a.label}
+                    </p>
+                    <p
+                      className="text-retro-text/40 text-[10px] font-terminal uppercase mt-0.5"
                       style={{ fontFamily: T.mono }}
                     >
-                      {a.time}
-                    </span>
-                  </motion.div>
-                ))}
-                {activitiesList.length === 0 && (
-                  <div className="text-center py-8 text-white/20 text-xs" style={{ fontFamily: T.mono }}>
-                    No recent activity.
+                      {a.desc}
+                    </p>
                   </div>
-                )}
+                  <ArrowRight
+                    size={12}
+                    className="ml-auto text-retro-text/20 group-hover:text-retro-accent transition-colors"
+                  />
+                </button>
+              ))}
+            </div>
+          </GlassCard>
+
+          <GlassCard className="overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b-2 border-retro-border">
+              <h2
+                className="text-2xl font-black text-retro-accent uppercase tracking-wider"
+                style={{ fontFamily: T.ox }}
+              >
+                Activity
+              </h2>
+              <div
+                className="flex items-center gap-1.5 text-xs font-terminal uppercase text-emerald-400"
+                style={{ fontFamily: T.mono }}
+              >
+                <span className="w-1.5 h-1.5 bg-emerald-400 animate-pulse" />
+                Live
               </div>
-            </GlassCard>
-          </motion.div>
+            </div>
+            <div className="p-4 space-y-2.5">
+              {activitiesList.map((a, i) => (
+                <div
+                  key={i}
+                  className={`flex items-start gap-3 p-2.5 border-2 border-retro-border/40 hover:border-retro-accent transition-all duration-200 cursor-pointer group ${a.color.split(" ").slice(-1)[0]}`}
+                >
+                  <div
+                    className={`w-6 h-6 border flex items-center justify-center flex-shrink-0 ${a.color}`}
+                  >
+                    {a.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-retro-text/75 text-xs group-hover:text-retro-accent transition-colors leading-snug font-terminal uppercase"
+                      style={{ fontFamily: T.mono }}
+                    >
+                      {a.text}
+                    </p>
+                  </div>
+                  <span
+                    className="text-retro-text/40 text-[10px] flex-shrink-0 mt-0.5 font-terminal uppercase"
+                    style={{ fontFamily: T.mono }}
+                  >
+                    {a.time}
+                  </span>
+                </div>
+              ))}
+              {activitiesList.length === 0 && (
+                <div className="text-center py-8 text-retro-text/30 text-xs font-terminal uppercase" style={{ fontFamily: T.mono }}>
+                  No recent activity.
+                </div>
+              )}
+            </div>
+          </GlassCard>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -1193,10 +1046,7 @@ function ManageBlogsPage({ setPage, setEditingBlog }) {
   const fetchBlogs = async () => {
     try {
       const res = await api.get("/blogs");
-
       setBlogs(res.data.data);
-      // in const[blogs,setblogs]= usestate([]) initially blogs are null, but after fetching , setblogs gets all blogs data and so blogs variable changes
-      // to all available blogs.
     } catch (error) {
       console.error(error);
     }
@@ -1211,34 +1061,20 @@ function ManageBlogsPage({ setPage, setEditingBlog }) {
     )
     .filter((b) => b.title.toLowerCase().includes(search.toLowerCase()));
 
-  /**
-   * Toggles the selection status of a single blog item.
-   */
   const toggleSelect = (id) =>
     setSelected((s) =>
       s.includes(id) ? s.filter((x) => x !== id) : [...s, id],
     );
 
-  /**
-   * Toggles selection for all filtered blogs.
-   */
   const toggleAll = () =>
     setSelected((s) =>
       s.length === filtered.length ? [] : filtered.map((b) => b._id),
     );
 
-  /**
-   * Deletes a blog post by its ID.
-   * 
-   * API Call:
-   * - Endpoint: DELETE /blogs/:id (in backend start/routes/blog.routes.js)
-   */
   const deleteB = async (id) => {
     try {
       await api.delete(`/blogs/${id}`);
-
       setBlogs((b) => b.filter((x) => x._id !== id));
-
       setOpenMenu(null);
     } catch (error) {
       console.error(error);
@@ -1246,279 +1082,204 @@ function ManageBlogsPage({ setPage, setEditingBlog }) {
     }
   };
 
-  /**
-   * Loads a blog post details by ID and prepares it inside the editor component.
-   * 
-   * API Call:
-   * - Endpoint: GET /blogs/:id (in backend start/routes/blog.routes.js)
-   */
   const startEdit = async (id) => {
     try {
       const res = await api.get(`/blogs/${id}`);
-
       setEditingBlog(res.data.data);
-
       setPage("create");
     } catch (error) {
       console.error(error);
-      alert("Failed to load blog");
     }
   };
 
   return (
-    <motion.div
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      variants={pageVariants}
-      className="space-y-5"
-    >
-      <motion.div variants={fadeUp} initial="hidden" animate="show">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1
-              className="text-2xl sm:text-3xl font-black text-white"
-              style={{ fontFamily: T.ox }}
-            >
-              Manage Blogs<span className="text-cyan-400">.</span>
-            </h1>
-            <p
-              className="text-white/25 text-xs mt-1"
-              style={{ fontFamily: T.mono }}
-            >
-              {blogs.length} total · {blogs.filter((b) => b.isPublished).length}{" "}
-              published · {blogs.filter((b) => !b.isPublished).length} drafts
-            </p>
-          </div>
-          <GradientBtn className="self-start text-xs px-4 py-2.5">
-            <Plus size={13} /> New Blog
-          </GradientBtn>
-        </div>
-      </motion.div>
-
-      <motion.div
-        variants={fadeUp}
-        initial="hidden"
-        animate="show"
-        transition={{ delay: 0.08 }}
-      >
-        <GlassCard className="p-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.06] rounded-xl p-1 flex-shrink-0">
+    <div className="space-y-5">
+      <div>
+        <GlassCard>
+          <div className="flex flex-col md:flex-row gap-4 p-4 items-center justify-between border-b-2 border-retro-border">
+            <div className="flex items-center gap-1 bg-retro-bg border-2 border-retro-border p-1">
               {["all", "published", "draft"].map((f) => (
-                <motion.button
+                <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  whileTap={{ scale: 0.95 }}
-                  className={`px-3.5 py-2 rounded-lg text-xs font-semibold capitalize transition-all duration-200 ${
+                  className={`px-3 py-1.5 text-xs font-pixel uppercase tracking-wide transition-all duration-200 ${
                     filter === f
-                      ? "bg-gradient-to-r from-cyan-500/20 to-violet-500/15 border border-cyan-500/25 text-white"
-                      : "text-white/30 hover:text-white/60"
+                      ? "bg-retro-accent text-retro-bg"
+                      : "text-retro-text/40 hover:text-retro-accent"
                   }`}
-                  style={{ fontFamily: T.ox }}
+                  style={{ fontFamily: T.pixel }}
                 >
-                  {f}{" "}
-                  {f !== "all" &&
-                    `(${
-                      blogs.filter(
-                        (b) =>
-                          (f === "published" && b.isPublished) ||
-                          (f === "draft" && !b.isPublished),
-                      ).length
-                    })`}
-                </motion.button>
+                  {f}
+                </button>
               ))}
             </div>
 
-            <div className="relative flex-1">
+            <div className="relative flex-1 w-full max-w-sm">
               <Search
                 size={13}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-retro-text/30"
               />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by title or category…"
-                className="w-full bg-white/[0.03] border border-white/[0.07] rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-white/15 focus:outline-none focus:border-cyan-400/40 transition-all"
-                style={{ fontFamily: T.mono }}
+                className="w-full bg-retro-bg border-2 border-retro-border pl-9 pr-4 py-2 text-xs text-retro-text placeholder-retro-text/25 focus:outline-none focus:border-retro-accent transition-all font-terminal"
               />
             </div>
 
             {selected.length > 0 && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-red-400/30 bg-red-400/8 text-red-400 text-xs font-semibold transition-all hover:bg-red-400/15"
-                style={{ fontFamily: T.ox }}
+              <button
+                className="flex items-center gap-2 px-4 py-2 border-2 border-red-500 bg-red-950/20 text-red-400 text-xs font-pixel hover:bg-red-950/40 shadow-[2px_2px_0px_#000] active:translate-y-[1px] cursor-pointer"
+                style={{ fontFamily: T.pixel }}
               >
                 <Trash2 size={12} /> Delete ({selected.length})
-              </motion.button>
+              </button>
             )}
           </div>
         </GlassCard>
-      </motion.div>
+      </div>
 
-      <motion.div
-        variants={fadeUp}
-        initial="hidden"
-        animate="show"
-        transition={{ delay: 0.14 }}
-      >
+      <div>
         <GlassCard className="overflow-hidden">
-          <div className="grid grid-cols-[24px_1fr_100px_80px_100px_100px_100px] gap-3 px-4 py-3 border-b border-white/[0.06] bg-white/[0.02] max-lg:hidden">
+          <div className="grid grid-cols-[24px_1fr_120px_90px_100px_100px_100px] gap-3 px-4 py-3 border-b-2 border-retro-border bg-retro-bg/40 max-lg:hidden items-center">
             <input
               type="checkbox"
               checked={
                 selected.length === filtered.length && filtered.length > 0
               }
               onChange={toggleAll}
-              className="w-4 h-4 rounded accent-cyan-400 mt-0.5"
+              className="w-4 h-4 border-2 border-retro-border bg-retro-bg accent-retro-accent"
             />
             {["Title", "Status", "Views", "Created", "Updated", "Actions"].map(
               (h) => (
                 <div
                   key={h}
-                  className="flex items-center gap-1.5 text-[10px] font-semibold text-white/25 uppercase tracking-wider cursor-pointer hover:text-white/50 transition-colors"
-                  style={{ fontFamily: T.ox }}
+                  className="text-[10px] font-pixel text-retro-text/30 uppercase tracking-wider"
+                  style={{ fontFamily: T.pixel }}
                 >
-                  {h}{" "}
-                  {["Title", "Views", "Created"].includes(h) && (
-                    <SortAsc size={9} className="opacity-50" />
-                  )}
+                  {h}
                 </div>
               ),
             )}
           </div>
 
-          <div className="divide-y divide-white/[0.04]">
-            <AnimatePresence>
-              {filtered.map((b, i) => (
-                <motion.div
-                  key={b._id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="group hover:bg-white/[0.02] transition-all"
-                >
-                  <div className="hidden lg:grid grid-cols-[24px_1fr_100px_80px_100px_100px_100px] gap-3 px-4 py-4 items-center">
-                    <input
-                      type="checkbox"
-                      checked={selected.includes(b._id)}
-                      onChange={() => toggleSelect(b._id)}
-                      className="w-4 h-4 rounded accent-cyan-400"
-                    />
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-800 to-slate-900 border border-white/[0.07] flex items-center justify-center text-base flex-shrink-0">
-                        {b.isPublished ? "⚡" : "📝"}
-                      </div>
-                      <div className="min-w-0">
-                        <p
-                          className="text-white/80 text-xs font-semibold truncate group-hover:text-white transition-colors"
-                          style={{ fontFamily: T.ox }}
-                        >
-                          {b.title}
-                        </p>
-                        <p
-                          className="text-white/20 text-[10px]"
-                          style={{ fontFamily: T.mono }}
-                        >
-                          {"General"}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge status={b.isPublished ? "published" : "draft"} />
-                    <span
-                      className="text-white/50 text-xs flex items-center gap-1"
-                      style={{ fontFamily: T.mono }}
-                    >
-                      <Eye size={9} className="text-violet-400" />
-                      {b.isPublished
-                        ? b.views >= 1000
-                          ? `${(b.views / 1000).toFixed(1)}K`
-                          : b.views
-                        : "—"}
-                    </span>
-                    <span
-                      className="text-white/30 text-[10px]"
-                      style={{ fontFamily: T.mono }}
-                    >
-                      {new Date(b.createdAt).toLocaleDateString()}
-                    </span>
-                    <span
-                      className="text-white/30 text-[10px]"
-                      style={{ fontFamily: T.mono }}
-                    >
-                      {new Date(b.updatedAt).toLocaleDateString()}
-                    </span>
-                    <div className="relative">
-                      <div className="flex items-center gap-1">
-                        {[
-                          {
-                            icon: <Eye size={11} />,
-                            title: "Wanna read ? 👀",
-                            cls: "hover:text-emerald-400 hover:bg-emerald-400/10 hover:border-emerald-400/20",
-                            action: () => navigate(`/blog/${b._id}`),
-                          },
-
-                          {
-                            icon: <Edit3 size={11} />,
-                            title: "Edit",
-                            cls: "hover:text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400/20",
-                            action: () => startEdit(b._id),
-                          },
-
-                          {
-                            icon: <Trash2 size={11} />,
-                            title: "Delete",
-                            cls: "hover:text-red-400 hover:bg-red-400/10 hover:border-red-400/20",
-                            action: () => deleteB(b._id),
-                          },
-                        ].map((a, j) => (
-                          <motion.button
-                            key={j}
-                            title={a.title}
-                            onClick={a.action}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            className={`w-7 h-7 rounded-lg border border-white/[0.06] bg-white/[0.03] flex items-center justify-center text-white/25 transition-all ${a.cls}`}
-                          >
-                            {a.icon}
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="lg:hidden p-4 flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/[0.07] flex items-center justify-center text-xl flex-shrink-0">
+          <div className="divide-y-2 divide-retro-border">
+            {filtered.map((b, i) => (
+              <div
+                key={b._id}
+                className="group hover:bg-retro-bg/30 transition-all duration-200"
+              >
+                <div className="hidden lg:grid grid-cols-[24px_1fr_120px_90px_100px_100px_100px] gap-3 px-4 py-4 items-center">
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(b._id)}
+                    onChange={() => toggleSelect(b._id)}
+                    className="w-4 h-4 border-2 border-retro-border bg-retro-bg accent-retro-accent"
+                  />
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 border-2 border-retro-border bg-retro-bg flex items-center justify-center text-sm flex-shrink-0">
                       {b.isPublished ? "⚡" : "📝"}
                     </div>
-                    <div className="flex-1 min-w-0 space-y-2">
+                    <div className="min-w-0">
                       <p
-                        className="text-white/80 text-sm font-semibold"
-                        style={{ fontFamily: T.ox }}
+                        className="text-retro-text/75 text-xs font-semibold group-hover:text-retro-accent transition-colors truncate uppercase font-pixel tracking-wide"
+                        style={{ fontFamily: T.pixel }}
                       >
                         {b.title}
                       </p>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge status={b.isPublished ? "published" : "draft"} />
+                      <p
+                        className="text-retro-text/30 text-[10px] font-terminal uppercase mt-0.5"
+                        style={{ fontFamily: T.mono }}
+                      >
+                        {b.category || "General"}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge status={b.isPublished ? "published" : "draft"} />
+                  <span
+                    className="text-retro-text/40 text-xs flex items-center gap-1 font-terminal uppercase"
+                    style={{ fontFamily: T.mono }}
+                  >
+                    <Eye size={10} className="text-retro-accent" />
+                    {b.isPublished
+                      ? b.views >= 1000
+                        ? `${(b.views / 1000).toFixed(1)}K`
+                        : b.views
+                      : "—"}
+                  </span>
+                  <span
+                    className="text-retro-text/30 text-[10px] font-terminal uppercase"
+                    style={{ fontFamily: T.mono }}
+                  >
+                    {new Date(b.createdAt).toLocaleDateString()}
+                  </span>
+                  <span
+                    className="text-retro-text/30 text-[10px] font-terminal uppercase"
+                    style={{ fontFamily: T.mono }}
+                  >
+                    {new Date(b.updatedAt).toLocaleDateString()}
+                  </span>
+                  <div className="relative">
+                    <div className="flex items-center gap-1.5">
+                      {[
+                        {
+                          icon: <Eye size={12} />,
+                          title: "View",
+                          action: () => navigate(`/blog/${b._id}`),
+                        },
+                        {
+                          icon: <Edit3 size={12} />,
+                          title: "Edit",
+                          action: () => startEdit(b._id),
+                        },
+                        {
+                          icon: <Trash2 size={12} />,
+                          title: "Delete",
+                          action: () => deleteB(b._id),
+                        },
+                      ].map((a, j) => (
+                        <button
+                          key={j}
+                          title={a.title}
+                          onClick={a.action}
+                          className="w-7 h-7 border-2 border-retro-border hover:border-retro-accent bg-retro-surface flex items-center justify-center text-retro-text/40 hover:text-retro-accent cursor-pointer shadow-[1px_1px_0px_#000] active:translate-y-[1px]"
+                        >
+                          {a.icon}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="lg:hidden p-4 flex items-start gap-3">
+                  <div className="w-10 h-10 border-2 border-retro-border bg-retro-bg flex items-center justify-center text-xl flex-shrink-0">
+                    {b.isPublished ? "⚡" : "📝"}
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <p
+                      className="text-retro-text/75 text-sm font-semibold uppercase font-pixel tracking-wide"
+                      style={{ fontFamily: T.pixel }}
+                    >
+                      {b.title}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge status={b.isPublished ? "published" : "draft"} />
+                      <span
+                        className="text-retro-text/30 text-[10px] font-terminal uppercase"
+                        style={{ fontFamily: T.mono }}
+                      >
+                        {b.category || "General"}
+                      </span>
+                      {b.isPublished && (
                         <span
-                          className="text-white/30 text-[10px]"
+                          className="text-retro-accent text-[10px] flex items-center gap-1 font-terminal uppercase"
                           style={{ fontFamily: T.mono }}
                         >
-                          {"General"}
+                          <Eye size={10} />
+                          {b.views >= 1000
+                            ? `${(b.views / 1000).toFixed(1)}K`
+                            : b.views}
                         </span>
-                        {b.isPublished && (
-                          <span
-                            className="text-violet-400 text-[10px] flex items-center gap-1"
-                            style={{ fontFamily: T.mono }}
-                          >
-                            <Eye size={9} />
-                            {b.views >= 1000
-                              ? `${(b.views / 1000).toFixed(1)}K`
-                              : b.views}
-                          </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
@@ -1545,16 +1306,15 @@ function ManageBlogsPage({ setPage, setEditingBlog }) {
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
-            </AnimatePresence>
-          </div>
+            </div>
 
           {filtered.length === 0 && (
             <div className="py-16 text-center">
-              <FileText size={32} className="text-white/10 mx-auto mb-3" />
+              <FileText size={32} className="text-retro-text/10 mx-auto mb-3" />
               <p
-                className="text-white/20 text-sm"
+                className="text-retro-text/30 text-sm font-terminal uppercase"
                 style={{ fontFamily: T.mono }}
               >
                 No blogs match your filter
@@ -1563,9 +1323,9 @@ function ManageBlogsPage({ setPage, setEditingBlog }) {
           )}
 
           {filtered.length > 0 && (
-            <div className="flex items-center justify-between px-4 py-3.5 border-t border-white/[0.06] bg-white/[0.01]">
+            <div className="flex items-center justify-between px-4 py-3.5 border-t-2 border-retro-border bg-retro-bg/10">
               <p
-                className="text-white/20 text-[10px]"
+                className="text-retro-text/30 text-[10px] font-terminal uppercase"
                 style={{ fontFamily: T.mono }}
               >
                 Showing {filtered.length} of {blogs.length} blogs
@@ -1574,8 +1334,12 @@ function ManageBlogsPage({ setPage, setEditingBlog }) {
                 {[1, 2, 3].map((p) => (
                   <button
                     key={p}
-                    className={`w-7 h-7 rounded-lg text-xs font-semibold transition-all ${p === 1 ? "bg-cyan-500/15 border border-cyan-500/25 text-cyan-400" : "text-white/30 hover:text-white/60 hover:bg-white/[0.05]"}`}
-                    style={{ fontFamily: T.ox }}
+                    className={`w-7 h-7 border-2 text-xs font-pixel uppercase tracking-wide transition-all ${
+                      p === 1
+                        ? "bg-retro-accent text-retro-bg border-retro-accent"
+                        : "border-retro-border text-retro-text/40 hover:text-retro-accent hover:border-retro-accent bg-retro-surface"
+                    }`}
+                    style={{ fontFamily: T.pixel }}
                   >
                     {p}
                   </button>
@@ -1584,8 +1348,8 @@ function ManageBlogsPage({ setPage, setEditingBlog }) {
             </div>
           )}
         </GlassCard>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
 
@@ -1594,30 +1358,26 @@ function ManageBlogsPage({ setPage, setEditingBlog }) {
 ════════════════════════════════════════════════ */
 function PlaceholderPage({ title, icon, desc }) {
   return (
-    <motion.div
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      variants={pageVariants}
+    <div
       className="flex flex-col items-center justify-center min-h-[60vh] text-center"
     >
-      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/15 to-violet-500/15 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-5">
+      <div className="w-16 h-16 border-4 border-retro-accent bg-retro-surface flex items-center justify-center text-retro-accent mb-5 shadow-[4px_4px_0px_#000]">
         {icon}
       </div>
       <h2
-        className="text-2xl font-black text-white mb-2"
+        className="text-3xl font-black text-retro-accent uppercase tracking-widest mb-2"
         style={{ fontFamily: T.ox }}
       >
         {title}
-        <span className="text-cyan-400">.</span>
+        <span className="text-retro-accent">.</span>
       </h2>
       <p
-        className="text-white/25 text-sm max-w-xs"
+        className="text-retro-text/40 text-sm max-w-xs font-terminal uppercase"
         style={{ fontFamily: T.mono }}
       >
         {desc}
       </p>
-    </motion.div>
+    </div>
   );
 }
 
@@ -1626,21 +1386,11 @@ function PlaceholderPage({ title, icon, desc }) {
 ════════════════════════════════════════════════ */
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  // usenavigate function is used to navigate to another page ,,
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
 
   const [editingBlog, setEditingBlog] = useState(null);
 
-  /**
-   * Effect to verify admin authentication.
-   * 
-   * API Call:
-   * - Endpoint: GET /users/current-user (in backend start/routes/user.routes.js)
-   *   Validates that the logged-in user exists and has the "admin" role.
-   *   If they are not an admin, redirects to the regular user dashboard (/dashboard).
-   *   If request fails (not logged in), redirects to home page (/).
-   */
   useEffect(() => {
     api
       .get("/users/current-user")
@@ -1660,13 +1410,6 @@ export default function AdminDashboard() {
   const [sideOpen, setSideOpen] = useState(false);
   const [readAdminOnly, setReadAdminOnly] = useState(false);
 
-  /**
-   * Logs out the administrator.
-   * 
-   * API Call:
-   * - Endpoint: POST /users/logout (in backend start/routes/user.routes.js)
-   *   Clears cookies containing JWT tokens and redirects to the landing page (/).
-   */
   const handleLogout = async () => {
     try {
       await api.post("/users/logout");
@@ -1694,18 +1437,18 @@ export default function AdminDashboard() {
       style={{ backgroundColor: T.bg, fontFamily: T.mono }}
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         html{scroll-behavior:smooth}
-        ::-webkit-scrollbar{width:4px;height:4px}
-        ::-webkit-scrollbar-track{background:transparent}
-        ::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.2);border-radius:99px}
-        ::-webkit-scrollbar-thumb:hover{background:rgba(34,211,238,0.3)}
+        ::-webkit-scrollbar{width:8px;height:8px}
+        ::-webkit-scrollbar-track{background:#252525}
+        ::-webkit-scrollbar-thumb{background:#474744;border:2px solid #252525}
+        ::-webkit-scrollbar-thumb:hover{background:#E8E8C6}
         input:-webkit-autofill,input:-webkit-autofill:focus{
-          -webkit-box-shadow:0 0 0 1000px #070a18 inset!important;
-          -webkit-text-fill-color:white!important
+          -webkit-box-shadow:0 0 0 1000px #252525 inset!important;
+          -webkit-text-fill-color:#E8E8C6!important
         }
-        select option{background:#050816;color:white}
+        select option{background:#474744;color:#E8E8C6}
       `}</style>
 
       <Background />
@@ -1737,7 +1480,6 @@ export default function AdminDashboard() {
             <ReadBlogsPage adminOnly={readAdminOnly} />
           )}
 
-
           {/* Always mounted so state is never lost, hidden when not active */}
           <div style={{ display: page === "create" ? "block" : "none" }}>
             <CreateBlogPage
@@ -1748,22 +1490,18 @@ export default function AdminDashboard() {
         </div>
       </main>
 
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+      <button
         onClick={() => {
           setEditingBlog(null);
-
           setPage("create");
         }}
-        className="fixed bottom-6 right-6 lg:hidden flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm text-white z-30 shadow-2xl shadow-cyan-500/30"
+        className="fixed bottom-6 right-6 lg:hidden flex items-center gap-2 px-5 py-3 border-2 border-retro-accent bg-retro-accent text-retro-bg font-pixel text-sm z-30 shadow-[4px_4px_0px_#000] active:translate-y-[1px] cursor-pointer"
         style={{
-          background: "linear-gradient(135deg,#22d3ee 0%,#7c3aed 100%)",
-          fontFamily: T.ox,
+          fontFamily: T.pixel,
         }}
       >
-        <Plus size={16} /> New Blog
-      </motion.button>
+        <Plus size={16} /> NEW BLOG
+      </button>
     </div>
   );
 }
