@@ -24,24 +24,12 @@ const BLOGS = [
   { id: 2, title: "The Art of Minimalist UI Design Systems", category: "Design", status: "published", views: 5712, likes: 289, comments: 24, date: "May 24, 2025", readTime: "6 min", emoji: "🎨" },
   { id: 3, title: "Mastering TypeScript Generics — A Deep Dive", category: "Dev", status: "published", views: 10183, likes: 567, comments: 61, date: "May 18, 2025", readTime: "12 min", emoji: "🔷" },
   { id: 4, title: "My Productivity Stack as a Solo Developer", category: "Lifestyle", status: "draft", views: 0, likes: 0, comments: 0, date: "Jun 3, 2025", readTime: "5 min", emoji: "🛠️" },
-  { id: 5, title: "Why I Left React for Solo (And Came Back)", category: "Technology", status: "published", views: 14500, likes: 921, comments: 95, date: "Apr 30, 2025", readTime: "10 min", emoji: "🚀" },
+  { id: 5, title: "Why I Left React for Solo (And Came Back)", category: "Technology", status: "published", views: 14500, likes: 921, comments: 95, date: "Apr 30, 2025", readTime: "10 min", emoji: "🔄" }
 ];
-
-const SPARKLINE_DATA = [18, 32, 27, 45, 38, 60, 52, 78, 65, 82, 70, 94];
 
 /* ─────────────────── BACKGROUND ─────────────────── */
 function Background() {
-  return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-      <div className="absolute inset-0 bg-[#252525]" />
-      <div className="absolute inset-0 opacity-[0.03]" style={{
-        backgroundImage: `linear-gradient(#E8E8C6 1px, transparent 1px), linear-gradient(90deg, #E8E8C6 1px, transparent 1px)`,
-        backgroundSize: "40px 40px",
-      }} />
-      <div className="crt-overlay" />
-      <div className="noise-overlay" />
-    </div>
-  );
+  return null; // The background grid is now handled globally in index.css body style
 }
 
 /* ─────────────────── ANIMATED COUNTER ─────────────────── */
@@ -64,7 +52,7 @@ function AnimatedNumber({ target, duration = 1400, suffix = "" }) {
 }
 
 /* ─────────────────── SPARKLINE ─────────────────── */
-function Sparkline({ data, color = "#E8E8C6", height = 40 }) {
+function Sparkline({ data, color = "#8F72FF", height = 40 }) {
   const max = Math.max(...data), min = Math.min(...data);
   const w = 120, h = height;
   const pts = data.map((v, i) => {
@@ -96,55 +84,51 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, h
     <>
       {/* Mobile overlay */}
       {!collapsed && (
-        <div className="fixed inset-0 bg-[#252525]/80 backdrop-blur-xs z-30 lg:hidden"
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-30 lg:hidden"
           onClick={() => setCollapsed(true)} />
       )}
 
       <aside className={`
-        fixed top-0 left-0 h-full z-40 flex flex-col
-        border-r-4 border-retro-accent bg-retro-bg
-        transition-all duration-300 ease-in-out
+        fixed top-4 left-4 h-[calc(100vh-32px)] z-40 flex flex-col
+        border-2 border-retro-border bg-retro-surface rounded-2xl
+        transition-all duration-300 ease-in-out shadow-[4px_4px_0px_0px_#1C1D2E]
         ${collapsed ? "-translate-x-full lg:translate-x-0 lg:w-[68px]" : "translate-x-0 w-[230px]"}
       `}>
         {/* Logo */}
-        <div className={`flex items-center gap-3 px-4 h-16 border-b-2 border-retro-border flex-shrink-0 ${collapsed ? "lg:justify-center" : ""}`}>
-          <div className="w-8 h-8 bg-retro-accent border-2 border-retro-accent flex items-center justify-center flex-shrink-0 shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-            <Feather size={14} className="text-retro-bg" />
+        <div className={`flex items-center gap-3 px-4 h-16 border-b border-retro-border/40 flex-shrink-0 ${collapsed ? "lg:justify-center" : ""}`}>
+          <div className="w-8 h-8 bg-[#13141f] border border-retro-border flex items-center justify-center flex-shrink-0 rounded-lg shadow-[2px_2px_0px_0px_#1C1D2E]">
+            <Feather size={14} className="text-retro-accent" />
           </div>
           {!collapsed && (
-            <span className="text-retro-accent font-black text-2xl tracking-widest uppercase whitespace-nowrap" style={{ fontFamily: ACCENT.ox }}>
-              Quill<span className="text-retro-accent">.</span>
+            <span className="text-retro-accent font-black text-lg tracking-widest uppercase whitespace-nowrap">
+              QuillForge
             </span>
           )}
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 p-3 space-y-1.5 overflow-hidden">
+        <nav className="flex-grow p-3 space-y-1.5 overflow-hidden">
           {nav.map(item => {
             const isActive = active === item.id;
             return (
               <button key={item.id} onClick={() => { if (item.id === "create") { handleNewBlog(); } else { setActive(item.id); } setCollapsed(window.innerWidth < 1024 ? true : collapsed); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-200 group relative ${
                   isActive
-                    ? "bg-retro-surface border-2 border-retro-accent text-retro-accent"
-                    : "text-retro-text/60 hover:text-retro-accent hover:bg-retro-surface/20 border border-transparent"
+                    ? "bg-retro-accent text-[#1C1D2E] border border-retro-accent rounded-xl shadow-[2px_2px_0px_0px_#1c1d2e]"
+                    : "text-retro-text/60 hover:text-retro-accent hover:bg-[#13141f] rounded-xl border border-transparent"
                 } ${collapsed ? "lg:justify-center lg:px-2" : ""}`}
               >
-                <span className={`flex-shrink-0 transition-colors ${isActive ? "text-retro-accent" : "group-hover:text-retro-accent/70"}`}>
+                <span className="flex-shrink-0">
                   {item.icon}
                 </span>
                 {!collapsed && (
-                  <span className="text-sm font-medium uppercase tracking-wider whitespace-nowrap" style={{ fontFamily: ACCENT.ox }}>
+                  <span className="text-xs font-pixel tracking-wider uppercase whitespace-nowrap">
                     {item.label}
                   </span>
                 )}
-                {isActive && !collapsed && (
-                  <div className="ml-auto w-2 h-2 bg-retro-accent" />
-                )}
                 {/* Tooltip for collapsed */}
                 {collapsed && (
-                  <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-retro-surface border-2 border-retro-accent text-retro-accent text-xs uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 hidden lg:block"
-                    style={{ fontFamily: ACCENT.ox }}>
+                  <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-retro-surface border border-retro-border text-retro-accent text-[10px] rounded-lg uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 hidden lg:block shadow-[2px_2px_0px_0px_#1C1D2E]">
                     {item.label}
                   </div>
                 )}
@@ -154,7 +138,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, h
         </nav>
 
         {/* Bottom */}
-        <div className="p-3 border-t-2 border-retro-border space-y-1">
+        <div className="p-3 border-t border-retro-border/40 space-y-1">
           {bottom.map(item => (
             <button key={item.id}
               onClick={() => {
@@ -162,13 +146,12 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, h
                   handleLogout();
                 }
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-200 text-retro-text/40 hover:text-retro-accent hover:bg-retro-surface/20 border border-transparent group relative ${collapsed ? "lg:justify-center lg:px-2" : ""}`}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-200 text-retro-text/40 hover:text-retro-accent hover:bg-[#13141f] rounded-xl border border-transparent group relative ${collapsed ? "lg:justify-center lg:px-2" : ""}`}
             >
               <span className="flex-shrink-0">{item.icon}</span>
-              {!collapsed && <span className="text-sm font-medium uppercase tracking-wider whitespace-nowrap" style={{ fontFamily: ACCENT.ox }}>{item.label}</span>}
+              {!collapsed && <span className="text-xs font-pixel tracking-wider uppercase whitespace-nowrap">{item.label}</span>}
               {collapsed && (
-                <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-retro-surface border-2 border-retro-accent text-retro-accent text-xs uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 hidden lg:block"
-                  style={{ fontFamily: ACCENT.ox }}>
+                <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-retro-surface border border-retro-border text-retro-accent text-[10px] rounded-lg uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 hidden lg:block shadow-[2px_2px_0px_0px_#1C1D2E]">
                   {item.label}
                 </div>
               )}
@@ -177,7 +160,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, h
 
           {/* Collapse toggle — desktop only */}
           <button onClick={() => setCollapsed(!collapsed)}
-            className="hidden lg:flex w-full items-center gap-3 px-3 py-2.5 text-retro-text/30 hover:text-retro-accent hover:bg-retro-surface/20 border border-transparent justify-center mt-1 cursor-pointer">
+            className="hidden lg:flex w-full items-center gap-3 px-3 py-2.5 text-retro-text/30 hover:text-retro-accent hover:bg-[#13141f] rounded-xl border border-transparent justify-center mt-1 cursor-pointer">
             <ChevronRight size={14} className={`transition-transform duration-300 ${collapsed ? "" : "rotate-180"}`} />
           </button>
         </div>
@@ -192,11 +175,11 @@ function Topbar({ collapsed, setCollapsed, user, setActive, setEditingBlog, hand
   const [notifs, setNotifs] = useState(3);
 
   return (
-    <header className="fixed top-0 right-0 left-0 h-16 z-20 border-b-2 border-retro-border bg-retro-surface flex items-center px-4 gap-4"
-      style={{ paddingLeft: collapsed ? "calc(68px + 16px)" : "calc(230px + 16px)", transition: "padding 300ms ease" }}>
+    <header className="fixed top-4 right-4 h-16 z-20 border-2 border-retro-border bg-retro-surface rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E] flex items-center px-4 gap-4 transition-all duration-300"
+      style={{ left: collapsed ? "calc(68px + 32px)" : "calc(230px + 32px)" }}>
 
       {/* Mobile hamburger */}
-      <button className="lg:hidden text-retro-text/60 hover:text-retro-accent p-1.5 border-2 border-retro-border bg-retro-bg transition-all"
+      <button className="lg:hidden text-retro-text/60 hover:text-retro-accent p-1.5 border-2 border-retro-border bg-[#13141f] rounded-xl transition-all"
         onClick={() => setCollapsed(!collapsed)}>
         <Menu size={18} />
       </button>
@@ -207,29 +190,28 @@ function Topbar({ collapsed, setCollapsed, user, setActive, setEditingBlog, hand
         <input
           value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Search blogs, drafts..."
-          className="w-full bg-retro-bg border-2 border-retro-border pl-9 pr-4 py-2 text-sm text-retro-text placeholder-retro-text/25 focus:outline-none focus:border-retro-accent transition-all font-terminal"
+          className="w-full bg-[#13141f] border-2 border-retro-border rounded-xl pl-9 pr-4 py-2 text-sm text-retro-text placeholder-retro-text/30 focus:outline-none focus:border-retro-accent transition-all font-terminal"
         />
       </div>
 
       <div className="flex items-center gap-3 ml-auto">
         {/* New blog shortcut */}
-        <button onClick={handleNewBlog} className="hidden sm:flex items-center gap-2 px-4 py-2 border-2 border-retro-accent bg-[#E8E8C6] text-[#252525] text-sm font-pixel hover:bg-[#E2E2D5] active:translate-y-[1px] shadow-[2px_2px_0px_rgba(0,0,0,1)] cursor-pointer select-none">
+        <button onClick={handleNewBlog} className="hidden sm:flex items-center gap-2 px-4 py-2 border-2 border-retro-border bg-retro-accent text-[#1C1D2E] rounded-xl text-sm font-pixel hover:bg-retro-accent/80 transition-all duration-200 active:translate-y-[1px] shadow-[2px_2px_0px_#1C1D2E] cursor-pointer select-none">
           <Plus size={13} /> New Blog
         </button>
 
         {/* Notifications */}
-        <button className="relative w-9 h-9 border-2 border-retro-border bg-retro-bg hover:bg-retro-surface/30 flex items-center justify-center text-retro-text/40 hover:text-retro-accent transition-all cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px]">
+        <button className="relative w-9 h-9 border-2 border-retro-border bg-[#13141f] rounded-xl hover:bg-retro-surface/30 flex items-center justify-center text-retro-text/40 hover:text-retro-accent transition-all cursor-pointer shadow-[2px_2px_0px_#1C1D2E] active:translate-y-[1px]">
           <Bell size={15} />
           {notifs > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 px-1 bg-retro-accent border border-retro-bg text-[9px] font-pixel text-[#252525] flex items-center justify-center">
+            <span className="absolute -top-1.5 -right-1.5 px-1 bg-retro-accent border border-retro-border text-[9px] font-pixel text-[#1C1D2E] rounded-full flex items-center justify-center">
               {notifs}
             </span>
           )}
         </button>
 
         {/* Avatar */}
-        <div className="w-9 h-9 border-2 border-retro-accent bg-retro-accent flex items-center justify-center text-sm font-pixel text-[#252525] cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:bg-[#E2E2D5] select-none"
-          style={{ fontFamily: ACCENT.ox }}>
+        <div className="w-9 h-9 border-2 border-retro-border bg-retro-accent rounded-xl flex items-center justify-center text-sm font-pixel text-[#1C1D2E] cursor-pointer shadow-[2px_2px_0px_#1C1D2E] hover:bg-retro-accent/80 select-none">
           {user?.username?.slice(0,2).toUpperCase() || "U"}
         </div>
       </div>
@@ -251,31 +233,30 @@ function WelcomeSection({ visible, user, setActive, setEditingBlog, handleNewBlo
 
   return (
     <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
-      <div className="relative border-4 border-retro-accent bg-retro-surface p-6 sm:p-8 shadow-[6px_6px_0px_rgba(0,0,0,1)]">
+      <div className="relative border-2 border-retro-border bg-retro-surface p-6 sm:p-8 rounded-2xl shadow-[6px_6px_0px_0px_#1C1D2E] overflow-hidden">
         
         {/* Title bar decoration */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-retro-accent" />
 
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-5">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 border-2 border-retro-accent bg-retro-accent text-retro-bg text-xs font-pixel"
-              style={{ fontFamily: ACCENT.pixel }}>
+            <div className="inline-flex items-center gap-2 px-3 py-1 border border-retro-border bg-retro-accent text-[#1C1D2E] text-xs font-pixel rounded-lg">
               <Sparkles size={11} className="animate-spin" /> {greeting.toUpperCase()}
             </div>
-            <h1 className="text-4xl sm:text-5xl font-black text-retro-accent tracking-widest uppercase" style={{ fontFamily: ACCENT.ox }}>
+            <h1 className="text-4xl sm:text-5xl font-black text-retro-accent tracking-widest uppercase">
               {user?.username || "Loading..."}<span className="text-retro-accent">.</span>
             </h1>
-            <p className="text-retro-text/60 text-sm font-terminal" style={{ fontFamily: ACCENT.mono }}>
+            <p className="text-retro-text/60 text-xs font-terminal">
               @{user?.username || "loading"} · forced to lock in, born to write
             </p>
           </div>
 
           <div className="flex flex-col items-start sm:items-end gap-3">
-            <button onClick={handleNewBlog} className="flex items-center gap-2 px-5 py-2.5 border-2 border-retro-accent bg-retro-accent text-retro-bg text-sm font-pixel hover:bg-retro-accent/80 hover:text-retro-bg active:translate-y-[1px] shadow-[4px_4px_0px_rgba(0,0,0,1)] cursor-pointer select-none">
+            <button onClick={handleNewBlog} className="flex items-center gap-2 px-5 py-2.5 border-2 border-retro-border bg-retro-accent text-[#1C1D2E] rounded-xl text-sm font-pixel hover:bg-retro-accent/80 transition-all duration-200 active:translate-y-[1px] shadow-[4px_4px_0px_#1C1D2E] cursor-pointer select-none">
               <Plus size={14} /> CREATE NEW BLOG
             </button>
-            <div className="flex items-center gap-2 text-xs text-retro-accent max-w-[240px] font-terminal" style={{ fontFamily: ACCENT.mono }}>
-              <Zap size={12} className="text-retro-amber flex-shrink-0 animate-bounce" />
+            <div className="flex items-center gap-2 text-xs text-retro-accent max-w-[240px] font-terminal">
+              <Zap size={12} className="text-retro-accent flex-shrink-0 animate-bounce" />
               <span>{tip}</span>
             </div>
           </div>
@@ -303,12 +284,12 @@ function StatCards({ visible, userBlogs }) {
       label: "Total Blogs",
       value: totalBlogs,
       icon: <FileText size={18}/>,
-      iconBg: "bg-retro-bg border-retro-accent text-retro-accent",
-      cardBorder: "border-retro-accent",
+      iconBg: "bg-[#13141f] border-retro-border text-retro-accent rounded-xl shadow-[2px_2px_0px_0px_#1C1D2E]",
+      cardBorder: "border-retro-border",
       valueColor: "text-retro-accent",
       trend: `+${getNewBlogsThisMonth()} this month`,
       up: true,
-      sparkColor: "#E8E8C6",
+      sparkColor: "#8F72FF",
       data: [1,2,2,3,3,4,4,4,5,5,5,5],
       suffix: "",
     },
@@ -316,25 +297,25 @@ function StatCards({ visible, userBlogs }) {
       label: "Total Views",
       value: totalViews,
       icon: <Eye size={18}/>,
-      iconBg: "bg-retro-bg border-retro-amber text-retro-amber",
-      cardBorder: "border-retro-amber/60 hover:border-retro-amber",
-      valueColor: "text-retro-amber",
+      iconBg: "bg-[#13141f] border-retro-border text-cyan-400 rounded-xl shadow-[2px_2px_0px_0px_#1C1D2E]",
+      cardBorder: "border-retro-border",
+      valueColor: "text-cyan-400",
       trend: "+14.2% vs last month",
       up: true,
-      sparkColor: "#D4A373",
-      data: SPARKLINE_DATA,
+      sparkColor: "#2ac3de",
+      data: [1200, 2800, 1900, 4200, 3100, 5800, 4600],
       suffix: "",
     },
     {
       label: "Total Likes",
       value: totalLikes,
       icon: <Heart size={18}/>,
-      iconBg: "bg-retro-bg border-retro-sepia text-retro-sepia",
-      cardBorder: "border-retro-sepia/60 hover:border-retro-sepia",
-      valueColor: "text-retro-sepia",
+      iconBg: "bg-[#13141f] border-retro-border text-orange-400 rounded-xl shadow-[2px_2px_0px_0px_#1C1D2E]",
+      cardBorder: "border-retro-border",
+      valueColor: "text-orange-400",
       trend: "+8.7% vs last month",
       up: true,
-      sparkColor: "#A68A64",
+      sparkColor: "#ff9e64",
       data: [20,35,28,45,38,55,48,72,60,80,68,90],
       suffix: "",
     },
@@ -346,26 +327,25 @@ function StatCards({ visible, userBlogs }) {
         <div key={i}
           className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
           style={{ transitionDelay: `${i * 100}ms` }}>
-          <div className={`relative border-2 ${c.cardBorder} bg-retro-surface transition-all duration-300 p-5 shadow-[4px_4px_0px_rgba(0,0,0,1)] group`}>
+          <div className="relative border-2 border-retro-border bg-retro-surface transition-all duration-300 p-5 rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E] group hover:-translate-y-1">
 
             <div className="flex items-start justify-between mb-4">
-              <div className={`w-10 h-10 border-2 flex items-center justify-center ${c.iconBg}`}>
+              <div className={`w-10 h-10 border flex items-center justify-center ${c.iconBg}`}>
                 {c.icon}
               </div>
-              <div className="flex items-center gap-1 text-[10px] font-pixel px-2 py-0.5 border border-retro-border bg-retro-bg text-retro-accent uppercase tracking-wider" style={{ fontFamily: ACCENT.pixel }}>
+              <div className="flex items-center gap-1 text-[10px] font-pixel px-2 py-0.5 border border-retro-border bg-[#13141f] text-retro-accent uppercase tracking-wider rounded-lg">
                 {c.up ? "+" : "-"}{c.trend.split(" ")[0].replace("+","").replace("-","")}
               </div>
             </div>
 
-            <div className={`text-5xl font-black ${c.valueColor} mb-1`}
-              style={{ fontFamily: ACCENT.ox }}>
+            <div className={`text-5xl font-black ${c.valueColor} mb-1`}>
               <AnimatedNumber target={c.value} />
             </div>
-            <p className="text-retro-text/60 text-xs mb-4 uppercase tracking-wider font-terminal" style={{ fontFamily: ACCENT.mono }}>{c.label}</p>
+            <p className="text-retro-text/60 text-xs mb-4 uppercase tracking-wider font-terminal">{c.label}</p>
 
             <Sparkline data={c.data} color={c.sparkColor} />
 
-            <p className="text-retro-text/30 text-xs mt-2 font-terminal uppercase" style={{ fontFamily: ACCENT.mono }}>{c.trend}</p>
+            <p className="text-retro-text/30 text-xs mt-2 font-terminal uppercase">{c.trend}</p>
           </div>
         </div>
       ))}
@@ -376,14 +356,13 @@ function StatCards({ visible, userBlogs }) {
 /* ─────────────────── STATUS BADGE ─────────────────── */
 function StatusBadge({ status }) {
   const map = {
-    published: "text-emerald-400 bg-retro-bg border-emerald-400/30",
-    draft:     "text-retro-amber  bg-retro-bg  border-retro-amber/30",
-    flagged:   "text-red-400    bg-retro-bg    border-red-400/30",
+    published: "text-emerald-400 bg-[#13141f] border-emerald-400/30",
+    draft:     "text-retro-accent bg-[#13141f] border-retro-accent/30",
+    flagged:   "text-red-400    bg-[#13141f]    border-red-400/30",
   };
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-pixel border ${map[status]}`}
-      style={{ fontFamily: ACCENT.pixel }}>
-      <span className={`w-1.5 h-1.5 ${status === "published" ? "bg-emerald-400" : status === "draft" ? "bg-retro-amber" : "bg-red-400"}`} />
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-pixel border rounded-lg ${map[status]}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${status === "published" ? "bg-emerald-400" : status === "draft" ? "bg-retro-accent" : "bg-red-400"}`} />
       {status.toUpperCase()}
     </span>
   );
@@ -415,24 +394,23 @@ function BlogRow({ blog, index, visible, setActive }) {
 
   return (
     <div
-      className={`group relative flex flex-col sm:flex-row sm:items-center gap-4 p-4 border-2 border-retro-border bg-retro-bg hover:border-retro-accent transition-all duration-200 shadow-[2px_2px_0px_rgba(0,0,0,1)] ${visible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-6"}`}
+      className={`group relative flex flex-col sm:flex-row sm:items-center gap-4 p-4 border-2 border-retro-border bg-[#13141f] hover:border-retro-accent transition-all duration-200 rounded-2xl shadow-[2px_2px_0px_0px_#1C1D2E] ${visible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-6"}`}
       style={{ transitionDelay: `${index * 80}ms`, transitionDuration: "600ms" }}>
 
       {/* Emoji thumb */}
-      <div className="w-10 h-10 border-2 border-retro-border bg-retro-surface flex items-center justify-center text-xl flex-shrink-0">
+      <div className="w-10 h-10 border border-retro-border bg-retro-surface flex items-center justify-center text-xl flex-shrink-0 rounded-xl">
         {displayEmoji}
       </div>
 
       {/* Title + meta */}
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-2 mb-1.5">
-          <p className="text-retro-accent text-lg font-bold truncate group-hover:text-retro-accent/80 transition-colors"
-            style={{ fontFamily: ACCENT.ox }}>
+          <p className="text-retro-accent text-base font-bold truncate group-hover:text-retro-accent/80 transition-colors">
             {displayTitle}
           </p>
           <StatusBadge status={displayStatus} />
         </div>
-        <div className="flex flex-wrap items-center gap-3 text-xs text-retro-text/40 font-terminal" style={{ fontFamily: ACCENT.mono }}>
+        <div className="flex flex-wrap items-center gap-3 text-xs text-retro-text/40 font-terminal">
           <span className="flex items-center gap-1"><Tag size={11}/>{displayCategory.toUpperCase()}</span>
           <span className="flex items-center gap-1"><Clock size={11}/>{displayReadTime.toUpperCase()}</span>
           <span className="flex items-center gap-1"><Calendar size={11}/>{displayDate.toUpperCase()}</span>
@@ -441,20 +419,20 @@ function BlogRow({ blog, index, visible, setActive }) {
 
       {/* Stats */}
       {displayStatus === "published" && (
-        <div className="flex items-center gap-4 text-sm flex-shrink-0 font-terminal" style={{ fontFamily: ACCENT.mono }}>
+        <div className="flex items-center gap-4 text-xs flex-shrink-0 font-terminal">
           <div className="text-center">
-            <p className="text-retro-text/60 font-semibold" style={{ fontFamily: ACCENT.ox }}>
+            <p className="text-retro-text/60 font-semibold">
               {displayViews >= 1000 ? `${(displayViews / 1000).toFixed(1)}K` : displayViews}
             </p>
-            <p className="text-retro-text/30 text-[10px] flex items-center gap-1 justify-center"><Eye size={10}/>VIEWS</p>
+            <p className="text-retro-text/30 text-[9px] flex items-center gap-1 justify-center"><Eye size={10}/>VIEWS</p>
           </div>
           <div className="text-center">
-            <p className="text-retro-amber font-semibold" style={{ fontFamily: ACCENT.ox }}>{displayLikes}</p>
-            <p className="text-retro-text/30 text-[10px] flex items-center gap-1 justify-center"><Heart size={10}/>LIKES</p>
+            <p className="text-orange-400 font-semibold">{displayLikes}</p>
+            <p className="text-retro-text/30 text-[9px] flex items-center gap-1 justify-center"><Heart size={10}/>LIKES</p>
           </div>
           <div className="text-center">
-            <p className="text-retro-accent font-semibold" style={{ fontFamily: ACCENT.ox }}>{displayComments}</p>
-            <p className="text-retro-text/30 text-[10px] flex items-center gap-1 justify-center"><MessageSquare size={10}/>COMMENTS</p>
+            <p className="text-retro-accent font-semibold">{displayComments}</p>
+            <p className="text-retro-text/30 text-[9px] flex items-center gap-1 justify-center"><MessageSquare size={10}/>COMMENTS</p>
           </div>
         </div>
       )}
@@ -463,7 +441,7 @@ function BlogRow({ blog, index, visible, setActive }) {
       <button 
         onClick={handleView}
         title="View Post"
-        className="w-8 h-8 border-2 border-retro-border hover:border-retro-accent bg-retro-surface flex items-center justify-center text-retro-text/40 hover:text-retro-accent transition-all flex-shrink-0 cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px]"
+        className="w-8 h-8 border border-retro-border hover:border-retro-accent bg-retro-surface flex items-center justify-center text-retro-text/40 hover:text-retro-accent transition-all flex-shrink-0 cursor-pointer rounded-xl shadow-[2px_2px_0px_#1C1D2E] active:translate-y-[1px]"
       >
         <ExternalLink size={14}/>
       </button>
@@ -486,29 +464,28 @@ function RecentBlogs({ visible, setActive, userBlogs }) {
   return (
     <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       style={{ transitionDelay: "300ms" }}>
-      <div className="border-2 border-retro-border bg-retro-surface shadow-[4px_4px_0px_rgba(0,0,0,1)] overflow-hidden">
+      <div className="border-2 border-retro-border bg-retro-surface rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E] overflow-hidden">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-4 border-b-2 border-retro-border">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-4 border-b border-retro-border/40">
           <div>
-            <h2 className="text-2xl font-black text-retro-accent uppercase tracking-wider" style={{ fontFamily: ACCENT.ox }}>Recent Blogs</h2>
-            <p className="text-retro-text/30 text-xs font-terminal uppercase mt-0.5" style={{ fontFamily: ACCENT.mono }}>{userBlogs.length} total posts</p>
+            <h2 className="text-xl font-bold text-retro-accent uppercase tracking-wider">Recent Blogs</h2>
+            <p className="text-retro-text/30 text-xs font-terminal uppercase mt-0.5">{userBlogs.length} total posts</p>
           </div>
           <div className="flex items-center gap-2">
             {/* Filter tabs */}
-            <div className="flex items-center gap-1 bg-retro-bg border-2 border-retro-border p-1">
+            <div className="flex items-center gap-1 bg-[#13141f] border border-retro-border p-1 rounded-xl">
               {filters.map(f => (
                 <button key={f} onClick={() => setFilter(f)}
-                  className={`px-3 py-1.5 text-xs font-pixel uppercase tracking-wide transition-all duration-200 ${
+                  className={`px-3 py-1.5 text-xs font-pixel uppercase tracking-wide transition-all duration-200 rounded-lg ${
                     filter === f
-                      ? "bg-retro-accent text-retro-bg"
+                      ? "bg-retro-accent text-[#1C1D2E]"
                       : "text-retro-text/40 hover:text-retro-accent"
-                  }`} style={{ fontFamily: ACCENT.pixel }}>
+                  }`}>
                   {f}
                 </button>
               ))}
             </div>
-            <button onClick={() => setActive("read")} className="hidden sm:flex items-center gap-1.5 px-3 py-2 border-2 border-retro-border hover:border-retro-accent text-retro-text/40 hover:text-retro-accent text-xs font-pixel uppercase tracking-wide cursor-pointer select-none shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px]"
-              style={{ fontFamily: ACCENT.pixel }}>
+            <button onClick={() => setActive("read")} className="hidden sm:flex items-center gap-1.5 px-3 py-2 border border-retro-border hover:border-retro-accent text-retro-text/40 hover:text-retro-accent text-xs font-pixel uppercase tracking-wide cursor-pointer select-none rounded-xl shadow-[2px_2px_0px_#1C1D2E] active:translate-y-[1px]">
               View all <ChevronRight size={12}/>
             </button>
           </div>
@@ -522,7 +499,7 @@ function RecentBlogs({ visible, setActive, userBlogs }) {
           {filtered.length === 0 && (
             <div className="py-12 text-center">
               <FileText size={28} className="text-retro-text/10 mx-auto mb-3" />
-              <p className="text-retro-text/30 text-sm font-terminal uppercase" style={{ fontFamily: ACCENT.mono }}>No {filter} blogs yet</p>
+              <p className="text-retro-text/30 text-sm font-terminal uppercase">No {filter} blogs yet</p>
             </div>
           )}
         </div>
@@ -549,7 +526,7 @@ function ActivityFeed({ visible, userBlogs }) {
       if (b.isPublished) {
         acts.push({
           icon: <Globe size={12}/>,
-          color: "text-emerald-400 border-emerald-500/30 bg-[#242f27]",
+          color: "text-emerald-400 border-emerald-500/20 bg-emerald-950/20",
           text: `You published '${b.title}'`,
           time: timeStr,
           timestamp: new Date(b.updatedAt || b.createdAt).getTime()
@@ -557,7 +534,7 @@ function ActivityFeed({ visible, userBlogs }) {
       } else {
         acts.push({
           icon: <Save size={12}/>,
-          color: "text-retro-amber border-retro-amber/30 bg-[#352c20]",
+          color: "text-retro-accent border-retro-accent/20 bg-retro-accent/5",
           text: `You saved draft '${b.title}'`,
           time: timeStr,
           timestamp: new Date(b.updatedAt || b.createdAt).getTime()
@@ -567,7 +544,7 @@ function ActivityFeed({ visible, userBlogs }) {
       if (b.views >= 50) {
         acts.push({
           icon: <TrendingUp size={12}/>,
-          color: "text-retro-accent border-retro-accent/30 bg-[#2b3a32]",
+          color: "text-cyan-400 border-cyan-500/20 bg-cyan-950/20",
           text: `'${b.title}' crossed ${b.views} views`,
           time: "Milestone",
           timestamp: new Date(b.updatedAt || b.createdAt).getTime() - 500
@@ -583,34 +560,34 @@ function ActivityFeed({ visible, userBlogs }) {
   return (
     <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       style={{ transitionDelay: "400ms" }}>
-      <div className="border-2 border-retro-border bg-retro-surface shadow-[4px_4px_0px_rgba(0,0,0,1)] overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b-2 border-retro-border">
+      <div className="border-2 border-retro-border bg-retro-surface rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E] overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-retro-border/40">
           <div>
-            <h2 className="text-2xl font-black text-retro-accent uppercase tracking-wider" style={{ fontFamily: ACCENT.ox }}>Activity</h2>
-            <p className="text-retro-text/30 text-xs font-terminal uppercase mt-0.5" style={{ fontFamily: ACCENT.mono }}>Recent notifications</p>
+            <h2 className="text-xl font-bold text-retro-accent uppercase tracking-wider">Activity</h2>
+            <p className="text-retro-text/30 text-xs font-terminal uppercase mt-0.5">Recent notifications</p>
           </div>
-          <div className="w-2.5 h-2.5 bg-retro-accent border border-retro-bg animate-pulse" />
+          <div className="w-2.5 h-2.5 bg-retro-accent rounded-full animate-pulse" />
         </div>
         <div className="p-4 space-y-2.5">
           {activitiesList.map((item, i) => (
             <div key={i}
-              className={`flex items-start gap-3 p-3 border-2 border-retro-border/40 hover:border-retro-accent transition-all duration-200 cursor-pointer group ${visible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"} ${item.color.split(" ").slice(-1)[0]}`}
+              className="flex items-start gap-3 p-3 border border-retro-border/40 hover:border-retro-accent transition-all duration-200 cursor-pointer group rounded-xl bg-[#13141f]"
               style={{ transitionDelay: `${400 + i * 60}ms`, transitionDuration: "500ms" }}>
-              <div className={`w-7 h-7 border flex items-center justify-center flex-shrink-0 ${item.color}`}>
+              <div className={`w-7 h-7 border flex items-center justify-center flex-shrink-0 rounded-lg ${item.color}`}>
                 {item.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-retro-text/75 text-xs group-hover:text-retro-accent transition-colors font-terminal" style={{ fontFamily: ACCENT.mono }}>
+                <p className="text-retro-text/75 text-xs group-hover:text-retro-accent transition-colors font-terminal">
                   {item.text.toUpperCase()}
                 </p>
               </div>
-              <span className="text-retro-text/40 text-xs flex-shrink-0 mt-0.5 font-terminal" style={{ fontFamily: ACCENT.mono }}>
+              <span className="text-retro-text/40 text-[10px] flex-shrink-0 mt-0.5 font-terminal">
                 {item.time.toUpperCase()}
               </span>
             </div>
           ))}
           {activitiesList.length === 0 && (
-            <div className="py-8 text-center text-retro-text/30 text-xs font-terminal uppercase" style={{ fontFamily: ACCENT.mono }}>
+            <div className="py-8 text-center text-retro-text/30 text-xs font-terminal uppercase">
               No recent activities
             </div>
           )}
@@ -625,36 +602,36 @@ function QuickActions({ visible, setActive, setEditingBlog, handleNewBlog, setRe
   const draftCount = userBlogs ? userBlogs.filter(b => !b.isPublished).length : 0;
 
   const actions = [
-    { icon: <PenLine size={16}/>, label: "New Blog", desc: "Start writing", border: "border-retro-olive", bg: "bg-[#343e2f]/50 hover:bg-[#343e2f]", iconColor: "text-retro-olive", onClick: handleNewBlog },
+    { icon: <PenLine size={16}/>, label: "New Blog", desc: "Start writing", border: "border-retro-border", bg: "bg-[#13141f] hover:bg-[#1C1D2E]", iconColor: "text-emerald-400", onClick: handleNewBlog },
     {
       icon: <Star size={16}/>,
       label: "Featured",
       desc: "Admin picks",
-      border: "border-retro-sepia",
-      bg: "bg-[#3e3428]/50 hover:bg-[#3e3428]",
-      iconColor: "text-retro-sepia",
+      border: "border-retro-border",
+      bg: "bg-[#13141f] hover:bg-[#1C1D2E]",
+      iconColor: "text-orange-400",
       onClick: () => { setReadAdminOnly(true); setActive("read"); }
     },
-    { icon: <Globe size={16}/>, label: "Go Live", desc: `${draftCount} drafts`, border: "border-retro-amber", bg: "bg-[#44382c]/50 hover:bg-[#44382c]", iconColor: "text-retro-amber", onClick: () => setActive("blogs") },
+    { icon: <Globe size={16}/>, label: "Go Live", desc: `${draftCount} drafts`, border: "border-retro-border", bg: "bg-[#13141f] hover:bg-[#1C1D2E]", iconColor: "text-retro-accent", onClick: () => setActive("blogs") },
   ];
 
   return (
     <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       style={{ transitionDelay: "500ms" }}>
-      <div className="border-2 border-retro-border bg-retro-surface shadow-[4px_4px_0px_rgba(0,0,0,1)] overflow-hidden">
-        <div className="px-5 py-4 border-b-2 border-retro-border">
-          <h2 className="text-2xl font-black text-retro-accent uppercase tracking-wider" style={{ fontFamily: ACCENT.ox }}>Quick Actions</h2>
+      <div className="border-2 border-retro-border bg-retro-surface rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E] overflow-hidden">
+        <div className="px-5 py-4 border-b border-retro-border/40">
+          <h2 className="text-xl font-bold text-retro-accent uppercase tracking-wider">Quick Actions</h2>
         </div>
         <div className="p-4 grid grid-cols-3 gap-3">
           {actions.map((a, i) => (
             <button key={i} onClick={a.onClick}
-              className={`flex flex-col items-center gap-2 p-4 border-2 ${a.border} ${a.bg} hover:border-retro-accent text-retro-text transition-all duration-200 group active:translate-y-[1px] shadow-[2px_2px_0px_rgba(0,0,0,1)] cursor-pointer select-none`}>
-              <div className={`w-10 h-10 border-2 border-retro-border bg-retro-bg flex items-center justify-center ${a.iconColor} shadow-[2px_2px_0px_rgba(0,0,0,1)] transition-all`}>
+              className={`flex flex-col items-center gap-2 p-4 border-2 ${a.border} ${a.bg} hover:border-retro-accent text-retro-text transition-all duration-200 group active:translate-y-[1px] shadow-[2px_2px_0px_0px_#1C1D2E] cursor-pointer select-none rounded-2xl`}>
+              <div className={`w-10 h-10 border border-retro-border bg-retro-surface flex items-center justify-center ${a.iconColor} shadow-[2px_2px_0px_0px_#1C1D2E] rounded-xl transition-all`}>
                 {a.icon}
               </div>
               <div className="text-center">
-                <p className="text-retro-text/75 text-xs font-semibold group-hover:text-retro-accent transition-colors font-pixel uppercase tracking-wide" style={{ fontFamily: ACCENT.pixel }}>{a.label}</p>
-                <p className="text-retro-text/40 text-[9px] font-terminal uppercase mt-0.5" style={{ fontFamily: ACCENT.mono }}>{a.desc}</p>
+                <p className="text-retro-text/75 text-xs font-semibold group-hover:text-retro-accent transition-colors font-pixel uppercase tracking-wide">{a.label}</p>
+                <p className="text-retro-text/40 text-[9px] font-terminal uppercase mt-0.5">{a.desc}</p>
               </div>
             </button>
           ))}
@@ -667,7 +644,7 @@ function QuickActions({ visible, setActive, setEditingBlog, handleNewBlog, setRe
 /* ─────────────────── WRITING STREAK ─────────────────── */
 function WritingStreak({ visible, userBlogs }) {
   const weeks = 12;
-  const levels = ["bg-retro-bg border border-retro-border/20", "bg-retro-olive", "bg-retro-sepia", "bg-retro-amber", "bg-retro-accent"];
+  const levels = ["bg-[#13141f] border border-retro-border/20 rounded", "bg-emerald-800 rounded", "bg-emerald-600 rounded", "bg-emerald-400 rounded", "bg-retro-accent rounded"];
 
   const calculateStreak = () => {
     if (!userBlogs || userBlogs.length === 0) return 0;
@@ -700,8 +677,6 @@ function WritingStreak({ visible, userBlogs }) {
     }
     
     for (let i = 83; i >= 0; i--) {
-      // 83 to 0 = total 84 as 12*7=84 
-      
       const checkDate = new Date();
       checkDate.setDate(checkDate.getDate() - i);
       const count = datesMap[checkDate.toDateString()] || 0;
@@ -716,13 +691,13 @@ function WritingStreak({ visible, userBlogs }) {
   return (
     <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
       style={{ transitionDelay: "600ms" }}>
-      <div className="border-2 border-retro-border bg-retro-surface shadow-[4px_4px_0px_rgba(0,0,0,1)] overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b-2 border-retro-border">
+      <div className="border-2 border-retro-border bg-retro-surface rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E] overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-retro-border/40">
           <div>
-            <h2 className="text-2xl font-black text-retro-accent uppercase tracking-wider" style={{ fontFamily: ACCENT.ox }}>Writing Streak</h2>
-            <p className="text-retro-text/30 text-xs font-terminal uppercase mt-0.5" style={{ fontFamily: ACCENT.mono }}>12-week activity heatmap</p>
+            <h2 className="text-xl font-bold text-retro-accent uppercase tracking-wider">Writing Streak</h2>
+            <p className="text-retro-text/30 text-xs font-terminal uppercase mt-0.5">12-week activity heatmap</p>
           </div>
-          <div className="flex items-center gap-2 text-xs font-pixel tracking-wider border border-retro-accent bg-retro-bg px-2.5 py-1 text-retro-accent" style={{ fontFamily: ACCENT.pixel }}>
+          <div className="flex items-center gap-2 text-xs font-pixel tracking-wider border border-retro-border bg-[#13141f] px-2.5 py-1 text-retro-accent rounded-lg">
             <Activity size={12} className="text-retro-accent" />
             <span>{streak} DAY STREAK</span>
           </div>
@@ -742,7 +717,7 @@ function WritingStreak({ visible, userBlogs }) {
               </div>
             ))}
           </div>
-          <div className="flex items-center gap-2.5 mt-4 text-xs font-terminal uppercase text-retro-text/30" style={{ fontFamily: ACCENT.mono }}>
+          <div className="flex items-center gap-2.5 mt-4 text-xs font-terminal uppercase text-retro-text/30">
             <span>Less</span>
             {levels.map((l, i) => <div key={i} className={`w-3.5 h-3.5 ${l}`} />)}
             <span>More</span>
@@ -885,12 +860,12 @@ export default function Dashboard() {
     <div className="min-h-screen bg-retro-bg text-retro-text relative overflow-x-hidden">
       <style>{`
         ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #252525; }
-        ::-webkit-scrollbar-thumb { background: #474744; border: 2px solid #252525; }
-        ::-webkit-scrollbar-thumb:hover { background: #E8E8C6; }
+        ::-webkit-scrollbar-track { background: #171825; }
+        ::-webkit-scrollbar-thumb { background: #1c1d2e; border: 2px solid #171825; }
+        ::-webkit-scrollbar-thumb:hover { background: #8F72FF; }
         input:-webkit-autofill, input:-webkit-autofill:focus {
-          -webkit-box-shadow: 0 0 0 1000px #252525 inset !important;
-          -webkit-text-fill-color: #E2E2D5 !important;
+          -webkit-box-shadow: 0 0 0 1000px #13141f inset !important;
+          -webkit-text-fill-color: #E2E2F5 !important;
         }
       `}</style>
 
@@ -901,8 +876,8 @@ export default function Dashboard() {
 
       {/* Main content */}
       <main
-        className="relative z-10 min-h-screen pt-16 transition-all duration-300"
-        style={{ paddingLeft: `${window.innerWidth >= 1024 ? (collapsed ? 68 : 230) : 0}px` }}
+        className="relative z-10 min-h-screen pt-24 pb-8 pr-4 transition-all duration-300"
+        style={{ paddingLeft: window.innerWidth >= 1024 ? (collapsed ? "100px" : "262px") : "16px" }}
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
 
@@ -956,14 +931,14 @@ export default function Dashboard() {
           {/* Placeholder/Alternative Pages */}
           {active !== "dashboard" && active !== "create" && active !== "blogs" && active !== "read" && (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-              <div className="border-4 border-retro-accent bg-retro-surface p-8 shadow-[6px_6px_0px_rgba(0,0,0,1)] text-center max-w-md mx-auto">
-                <div className="w-16 h-16 border-2 border-retro-accent bg-retro-bg flex items-center justify-center text-retro-accent mx-auto mb-5 shadow-[3px_3px_0px_rgba(0,0,0,1)]">
+              <div className="border-2 border-retro-border bg-retro-surface p-8 shadow-[6px_6px_0px_0px_#1C1D2E] rounded-2xl text-center max-w-md mx-auto">
+                <div className="w-16 h-16 border border-retro-border bg-[#13141f] rounded-xl flex items-center justify-center text-retro-accent mx-auto mb-5 shadow-[3px_3px_0px_0px_#1C1D2E]">
                   {active === "analytics" ? <BarChart3 size={24} /> : <Users size={24} />}
                 </div>
-                <h2 className="text-3xl font-black text-retro-accent mb-2 uppercase tracking-widest font-heading" style={{ fontFamily: ACCENT.ox }}>
+                <h2 className="text-3xl font-black text-retro-accent mb-2 uppercase tracking-widest font-heading">
                   {active.toUpperCase()}
                 </h2>
-                <p className="text-retro-text/60 text-sm font-terminal uppercase" style={{ fontFamily: ACCENT.mono }}>
+                <p className="text-retro-text/60 text-sm font-terminal uppercase">
                   {active === "analytics" ? "Detailed performance analytics coming soon." : "Connect with the community here."}
                 </p>
               </div>
@@ -976,8 +951,7 @@ export default function Dashboard() {
       {/* Mobile FAB */}
       <button
         onClick={handleNewBlog}
-        className="fixed bottom-6 right-6 lg:hidden flex items-center gap-2 px-5 py-3 border-2 border-retro-accent bg-[#E8E8C6] text-[#252525] text-sm font-pixel shadow-[4px_4px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none z-30"
-        style={{ fontFamily: ACCENT.pixel }}>
+        className="fixed bottom-6 right-6 lg:hidden flex items-center gap-2 px-5 py-3 border-2 border-retro-border bg-retro-accent text-[#1C1D2E] text-sm font-pixel rounded-xl shadow-[4px_4px_0px_#1C1D2E] active:translate-y-[1px] active:shadow-none z-30">
         <Plus size={16} /> NEW BLOG
       </button>
     </div>

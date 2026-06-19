@@ -11,36 +11,24 @@ import {
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
 
-/* ════════════════════════════════════════════════
-   DESIGN TOKENS
-════════════════════════════════════════════════ */
-const T = {
-  ox: "'VT323', monospace",
-  mono: "'Space Mono', monospace",
-  pixel: "'Silkscreen', monospace"
-};
-
 function Badge({ status }) {
   const map = {
     published: {
-      cls: "border-emerald-400/40 text-emerald-400 bg-retro-bg",
+      cls: "border-emerald-400/40 text-emerald-400 bg-[#13141f]",
       label: "PUBLISHED",
     },
     draft: {
-      cls: "border-retro-amber/40  text-retro-amber  bg-retro-bg",
+      cls: "border-retro-accent/40  text-retro-accent  bg-[#13141f]",
       label: "DRAFT",
     },
     flagged: {
-      cls: "border-red-400/40    text-red-400    bg-retro-bg",
+      cls: "border-red-400/40    text-red-400    bg-[#13141f]",
       label: "FLAGGED",
     },
   };
   const s = map[status] || map.draft;
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-2 py-0.5 border text-[10px] font-pixel ${s.cls}`}
-      style={{ fontFamily: T.pixel }}
-    >
+    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 border text-[10px] font-pixel rounded-lg ${s.cls}`}>
       {s.label}
     </span>
   );
@@ -48,7 +36,7 @@ function Badge({ status }) {
 
 /* ════════════════════════════════════════════════
    USER OWN BLOGS COMPONENT
-════════════════════════════════════════════════ */
+   ════════════════════════════════════════════════ */
 export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser }) {
   const [blogs, setBlogs] = useState([]);
   const [filter, setFilter] = useState("all");
@@ -138,16 +126,10 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1
-            className="text-4xl sm:text-5xl font-black text-retro-accent uppercase tracking-widest font-heading"
-            style={{ fontFamily: T.ox }}
-          >
+          <h1 className="text-4xl sm:text-5xl font-black text-retro-accent uppercase tracking-widest font-heading">
             MY FILE MANAGER
           </h1>
-          <p
-            className="text-retro-text/30 text-xs font-terminal uppercase mt-1"
-            style={{ fontFamily: T.mono }}
-          >
+          <p className="text-retro-text/30 text-xs font-terminal uppercase mt-1">
             {userBlogs.length} total · {userBlogs.filter((b) => b.isPublished).length}{" "}
             published · {userBlogs.filter((b) => !b.isPublished).length} drafts
           </p>
@@ -157,26 +139,24 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
             setEditingBlog(null);
             setActive("create");
           }}
-          className="border-2 border-retro-accent bg-[#E8E8C6] text-[#252525] text-xs font-pixel px-4 py-2.5 shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none cursor-pointer uppercase tracking-wider"
-          style={{ fontFamily: T.pixel }}
+          className="border-2 border-retro-border bg-retro-accent text-[#1C1D2E] text-xs font-pixel px-4 py-2.5 rounded-xl shadow-[2px_2px_0px_#1C1D2E] active:translate-y-[1px] active:shadow-none cursor-pointer uppercase tracking-wider hover:bg-retro-accent/80 transition-all duration-200"
         >
           <Plus size={13} className="inline mr-1" /> NEW DOCUMENT
         </button>
       </div>
 
-      <div className="border-2 border-retro-border bg-retro-surface p-4 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+      <div className="border-2 border-retro-border bg-retro-surface p-4 rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E]">
         <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex items-center gap-1 bg-retro-bg border-2 border-retro-border p-1 flex-shrink-0">
+          <div className="flex items-center gap-1 bg-[#13141f] border border-retro-border p-1 rounded-xl flex-shrink-0">
             {["all", "published", "draft"].map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-3.5 py-1.5 text-xs font-pixel uppercase tracking-wider transition-all duration-200 ${
+                className={`px-3.5 py-1.5 text-xs font-pixel uppercase tracking-wider transition-all duration-200 rounded-lg ${
                   filter === f
-                    ? "bg-retro-accent text-retro-bg"
+                    ? "bg-retro-accent text-[#1C1D2E]"
                     : "text-retro-text/30 hover:text-retro-accent"
                 }`}
-                style={{ fontFamily: T.pixel }}
               >
                 {f}{" "}
                 {f !== "all" &&
@@ -194,22 +174,20 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
           <div className="relative flex-1">
             <Search
               size={13}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-retro-text/20"
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-retro-text/30"
             />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="SEARCH BY TITLE OR CATEGORY…"
-              className="w-full bg-retro-bg border-2 border-retro-border pl-9 pr-4 py-2 text-xs text-retro-text placeholder-retro-text/25 focus:outline-none focus:border-retro-accent font-terminal uppercase"
-              style={{ fontFamily: T.mono }}
+              className="w-full bg-[#13141f] border border-retro-border rounded-xl pl-9 pr-4 py-2 text-xs text-retro-text placeholder-retro-text/30 focus:outline-none focus:border-retro-accent font-terminal uppercase"
             />
           </div>
 
           {selected.length > 0 && (
             <button
               onClick={handleBulkDelete}
-              className="flex items-center gap-2 px-4 py-2 border-2 border-red-500 bg-retro-bg text-red-400 text-xs font-pixel uppercase tracking-wider shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px]"
-              style={{ fontFamily: T.pixel }}
+              className="flex items-center gap-2 px-4 py-2 border-2 border-red-500 bg-[#13141f] text-red-400 text-xs font-pixel uppercase tracking-wider rounded-xl shadow-[2px_2px_0px_#1C1D2E] active:translate-y-[1px] cursor-pointer"
             >
               <Trash2 size={12} /> DELETE ({selected.length})
             </button>
@@ -217,8 +195,8 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
         </div>
       </div>
 
-      <div className="border-2 border-retro-border bg-retro-surface shadow-[4px_4px_0px_rgba(0,0,0,1)] overflow-hidden">
-        <div className="grid grid-cols-[24px_1fr_100px_80px_100px_100px_100px] gap-3 px-4 py-3 border-b-2 border-retro-border bg-retro-bg max-lg:hidden">
+      <div className="border-2 border-retro-border bg-retro-surface rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E] overflow-hidden">
+        <div className="grid grid-cols-[24px_1fr_100px_80px_100px_100px_100px] gap-3 px-4 py-3 border-b border-retro-border/40 bg-[#13141f] max-lg:hidden">
           <input
             type="checkbox"
             checked={
@@ -232,7 +210,6 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
               <div
                 key={h}
                 className="flex items-center gap-1.5 text-xs font-pixel text-retro-text/45 uppercase tracking-wider cursor-pointer hover:text-retro-accent transition-colors"
-                style={{ fontFamily: T.pixel }}
               >
                 {h}{" "}
                 {["Title", "Views", "Created"].includes(h) && (
@@ -247,39 +224,30 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
           {filtered.map((b) => (
             <div
               key={b._id}
-              className="group hover:bg-retro-bg/40 transition-all border-b border-retro-border/20"
+              className="group hover:bg-[#13141f]/35 transition-all border-b border-retro-border/20"
             >
               <div className="hidden lg:grid grid-cols-[24px_1fr_100px_80px_100px_100px_100px] gap-3 px-4 py-4 items-center">
                 <input
                   type="checkbox"
                   checked={selected.includes(b._id)}
                   onChange={() => toggleSelect(b._id)}
-                  className="w-4 h-4 accent-retro-accent cursor-pointer"
+                  className="w-4 h-4 accent-retro-accent cursor-pointer rounded"
                 />
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 border border-retro-border bg-retro-bg flex items-center justify-center text-base flex-shrink-0">
+                  <div className="w-8 h-8 border border-retro-border bg-[#13141f] rounded-lg flex items-center justify-center text-base flex-shrink-0">
                     {b.isPublished ? "⚡" : "📝"}
                   </div>
                   <div className="min-w-0">
-                    <p
-                      className="text-retro-accent text-sm font-bold truncate group-hover:text-retro-accent/80 transition-colors font-terminal uppercase"
-                      style={{ fontFamily: T.mono }}
-                    >
+                    <p className="text-retro-accent text-sm font-bold truncate group-hover:text-retro-accent/80 transition-colors font-terminal uppercase">
                       {b.title}
                     </p>
-                    <p
-                      className="text-retro-text/30 text-[10px] uppercase font-terminal"
-                      style={{ fontFamily: T.mono }}
-                    >
+                    <p className="text-retro-text/30 text-[10px] uppercase font-terminal">
                       {b.category || "General"}
                     </p>
                   </div>
                 </div>
                 <Badge status={b.isPublished ? "published" : "draft"} />
-                <span
-                  className="text-retro-text/50 text-xs flex items-center gap-1 font-terminal"
-                  style={{ fontFamily: T.mono }}
-                >
+                <span className="text-retro-text/50 text-xs flex items-center gap-1 font-terminal">
                   <Eye size={11} className="text-retro-accent" />
                   {b.isPublished
                     ? b.views >= 1000
@@ -287,16 +255,10 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
                       : b.views
                     : "—"}
                 </span>
-                <span
-                  className="text-retro-text/30 text-[11px] font-terminal"
-                  style={{ fontFamily: T.mono }}
-                >
+                <span className="text-retro-text/30 text-[11px] font-terminal">
                   {new Date(b.createdAt).toLocaleDateString()}
                 </span>
-                <span
-                  className="text-retro-text/30 text-[11px] font-terminal"
-                  style={{ fontFamily: T.mono }}
-                >
+                <span className="text-retro-text/30 text-[11px] font-terminal">
                   {new Date(b.updatedAt).toLocaleDateString()}
                 </span>
                 <div className="relative">
@@ -325,7 +287,7 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
                         key={j}
                         title={a.title}
                         onClick={a.action}
-                        className={`w-8 h-8 border border-retro-border bg-retro-bg flex items-center justify-center text-retro-text/30 transition-all shadow-[1px_1px_0px_rgba(0,0,0,1)] active:translate-y-[1px] cursor-pointer ${a.cls}`}
+                        className={`w-8 h-8 border border-retro-border bg-retro-surface rounded-lg flex items-center justify-center text-retro-text/30 transition-all shadow-[1px_1px_0px_#1C1D2E] active:translate-y-[1px] cursor-pointer ${a.cls}`}
                       >
                         {a.icon}
                       </button>
@@ -335,29 +297,20 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
               </div>
 
               <div className="lg:hidden p-4 flex items-start gap-3">
-                <div className="w-10 h-10 border border-retro-border bg-retro-bg flex items-center justify-center text-xl flex-shrink-0">
+                <div className="w-10 h-10 border border-retro-border bg-[#13141f] rounded-lg flex items-center justify-center text-xl flex-shrink-0">
                   {b.isPublished ? "⚡" : "📝"}
                 </div>
                 <div className="flex-1 min-w-0 space-y-2">
-                  <p
-                    className="text-retro-accent text-sm font-bold uppercase font-terminal"
-                    style={{ fontFamily: T.mono }}
-                  >
+                  <p className="text-retro-accent text-sm font-bold uppercase font-terminal">
                     {b.title}
                   </p>
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge status={b.isPublished ? "published" : "draft"} />
-                    <span
-                      className="text-retro-text/30 text-[10px] uppercase font-terminal"
-                      style={{ fontFamily: T.mono }}
-                    >
+                    <span className="text-retro-text/30 text-[10px] uppercase font-terminal">
                       {b.category || "General"}
                     </span>
                     {b.isPublished && (
-                      <span
-                        className="text-retro-accent text-[10px] flex items-center gap-1 font-terminal"
-                        style={{ fontFamily: T.mono }}
-                      >
+                      <span className="text-retro-accent text-[10px] flex items-center gap-1 font-terminal">
                         <Eye size={10} />
                         {b.views >= 1000
                           ? `${(b.views / 1000).toFixed(1)}K`
@@ -386,7 +339,7 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
                       <button
                         key={j}
                         onClick={a.fn}
-                        className={`w-8 h-8 border border-retro-border bg-retro-bg flex items-center justify-center ${a.c} transition-all`}
+                        className={`w-8 h-8 border border-retro-border bg-retro-surface rounded-lg flex items-center justify-center ${a.c} transition-all cursor-pointer`}
                       >
                         {a.i}
                       </button>
@@ -401,33 +354,26 @@ export default function UserOwnBlogs({ setActive, setEditingBlog, currentUser })
         {filtered.length === 0 && (
           <div className="py-16 text-center">
             <FileText size={32} className="text-retro-text/10 mx-auto mb-3" />
-            <p
-              className="text-retro-text/30 text-sm font-terminal uppercase"
-              style={{ fontFamily: T.mono }}
-            >
+            <p className="text-retro-text/30 text-sm font-terminal uppercase">
               No documents match your filter
             </p>
           </div>
         )}
 
         {filtered.length > 0 && (
-          <div className="flex items-center justify-between px-4 py-3.5 border-t-2 border-retro-border bg-retro-bg">
-            <p
-              className="text-retro-text/30 text-xs font-terminal uppercase"
-              style={{ fontFamily: T.mono }}
-            >
+          <div className="flex items-center justify-between px-4 py-3.5 border-t border-retro-border/40 bg-[#13141f]">
+            <p className="text-retro-text/30 text-xs font-terminal uppercase">
               Showing {filtered.length} of {userBlogs.length} documents
             </p>
             <div className="flex items-center gap-1">
               {[1, 2, 3].map((p) => (
                 <button
                   key={p}
-                  className={`w-7 h-7 border text-xs font-pixel transition-all ${
+                  className={`w-7 h-7 border text-xs font-pixel transition-all rounded-lg ${
                     p === 1
-                      ? "border-retro-accent bg-retro-accent text-retro-bg"
-                      : "text-retro-text/40 hover:text-retro-accent bg-retro-bg border-retro-border"
+                      ? "border-retro-accent bg-retro-accent text-[#1C1D2E]"
+                      : "text-retro-text/40 hover:text-retro-accent bg-retro-surface border-retro-border"
                   }`}
-                  style={{ fontFamily: T.pixel }}
                 >
                   {p}
                 </button>

@@ -14,20 +14,6 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 
-/* ════════════════════════════════════════════════
-   DESIGN TOKENS
-   VT323 for heading, Space Mono for monospace text
-════════════════════════════════════════════════ */
-const T = {
-  ox: "'VT323', monospace",
-  mono: "'Space Mono', monospace",
-  pixel: "'Silkscreen', monospace"
-};
-
-/* ════════════════════════════════════════════════
-   HELPERS & SUB-COMPONENTS
-   ════════════════════════════════════════════════ */
-
 /**
  * Converts a text title into a URL-friendly slug.
  */
@@ -43,10 +29,7 @@ const toSlug = (v) =>
 function Field({ label, children }) {
   return (
     <div className="space-y-1.5">
-      <label
-        className="block text-xs font-pixel text-retro-accent tracking-widest uppercase"
-        style={{ fontFamily: T.pixel }}
-      >
+      <label className="block text-xs font-pixel text-retro-accent tracking-widest uppercase">
         {label}
       </label>
       {children}
@@ -59,7 +42,7 @@ function Field({ label, children }) {
  */
 function RetroCard({ children, className = "" }) {
   return (
-    <div className={`border-2 border-retro-border bg-retro-surface p-5 shadow-[4px_4px_0px_rgba(0,0,0,1)] ${className}`}>
+    <div className={`border-2 border-retro-border bg-retro-surface p-5 rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E] ${className}`}>
       {children}
     </div>
   );
@@ -220,39 +203,27 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
   };
 
   const inputCls =
-    "w-full bg-retro-bg border-2 border-retro-border px-4 py-3 text-sm text-retro-text placeholder-retro-text/25 focus:outline-none focus:border-retro-accent transition-all font-terminal";
+    "w-full bg-[#13141f] border-2 border-retro-border rounded-xl px-4 py-3 text-sm text-retro-text placeholder-retro-text/30 focus:outline-none focus:border-retro-accent transition-all font-terminal";
 
   return (
     <div className="space-y-5">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1
-            className="text-4xl sm:text-5xl font-black text-retro-accent uppercase tracking-widest font-heading"
-            style={{ fontFamily: T.ox }}
-          >
+          <h1 className="text-4xl sm:text-5xl font-black text-retro-accent uppercase tracking-widest font-heading">
             {editingBlog ? "EDIT AUTHOR DESK" : "CREATE NEW DOCUMENT"}
           </h1>
-          <p
-            className="text-retro-text/30 text-xs font-terminal uppercase mt-1"
-            style={{ fontFamily: T.mono }}
-          >
+          <p className="text-retro-text/30 text-xs font-terminal uppercase mt-1">
             Draft autosaves every 30 seconds
           </p>
         </div>
         {saved && (
-          <div
-            className="flex items-center gap-2 text-emerald-400 text-xs border-2 border-emerald-400 bg-retro-bg px-3 py-2 shadow-[2px_2px_0px_rgba(0,0,0,1)] font-terminal uppercase"
-            style={{ fontFamily: T.mono }}
-          >
+          <div className="flex items-center gap-2 text-emerald-400 text-xs border border-emerald-400 bg-[#13141f] px-3 py-2 rounded-xl shadow-[2px_2px_0px_#1c1d2e] font-terminal uppercase">
             <CheckCircle2 size={12} /> SAVED SUCCESSFULLY
           </div>
         )}
         {recovered && (
-          <div
-            className="flex items-center gap-2 text-retro-accent text-xs border-2 border-retro-accent bg-retro-bg px-3 py-2 shadow-[2px_2px_0px_rgba(0,0,0,1)] font-terminal uppercase"
-            style={{ fontFamily: T.mono }}
-          >
+          <div className="flex items-center gap-2 text-retro-accent text-xs border border-retro-accent bg-[#13141f] px-3 py-2 rounded-xl shadow-[2px_2px_0px_#1c1d2e] font-terminal uppercase">
             <CheckCircle2 size={12} /> UNSAVED DRAFT RECOVERED
           </div>
         )}
@@ -269,29 +240,25 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
                   console.log("typing", e.target.value);
                   setTitle(e.target.value);
                 }}
-                className={`${inputCls} text-lg font-bold font-terminal`}
+                className={`${inputCls} text-lg font-bold`}
               />
             </Field>
 
             <Field label="URL Slug">
-              <div className="flex items-center gap-0 border-2 border-retro-border bg-retro-bg focus-within:border-retro-accent transition-all">
-                <span
-                  className="px-3 py-3 text-xs text-retro-text/30 bg-retro-surface border-r-2 border-retro-border flex-shrink-0 flex items-center gap-1.5 font-terminal"
-                  style={{ fontFamily: T.mono }}
-                >
+              <div className="flex items-center gap-0 border-2 border-retro-border bg-[#13141f] rounded-xl overflow-hidden focus-within:border-retro-accent transition-all">
+                <span className="px-3 py-3 text-xs text-retro-text/30 bg-retro-surface border-r-2 border-retro-border flex-shrink-0 flex items-center gap-1.5 font-terminal">
                   <Hash size={11} /> quill.io/blog/
                 </span>
                 <input
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   className="flex-1 bg-transparent px-4 py-3 text-sm text-retro-accent placeholder-retro-text/20 focus:outline-none font-terminal"
-                  style={{ fontFamily: T.mono }}
                 />
                 <button
                   onClick={() =>
                     navigator.clipboard?.writeText(`quill.io/blog/${slug}`)
                   }
-                  className="px-3 text-retro-text/30 hover:text-retro-accent transition-colors"
+                  className="px-3 text-retro-text/30 hover:text-retro-accent transition-colors cursor-pointer"
                 >
                   <Copy size={13} />
                 </button>
@@ -305,18 +272,14 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
                 rows={2}
                 placeholder="A short summary shown in search results and blog cards…"
                 className={`${inputCls} resize-none`}
-                style={{ fontFamily: T.mono }}
               />
-              <p
-                className="text-right text-retro-text/20 text-[10px] mt-1 font-terminal"
-                style={{ fontFamily: T.mono }}
-              >
+              <p className="text-right text-retro-text/20 text-[10px] mt-1 font-terminal">
                 {excerpt.length}/160 CHARS
               </p>
             </Field>
 
             <Field label="Content">
-              <div className="flex items-center gap-1.5 flex-wrap mb-2 p-2 bg-retro-surface border-2 border-retro-border border-b-0">
+              <div className="flex items-center gap-1.5 flex-wrap mb-2 p-2 bg-[#13141f] border-2 border-retro-border rounded-t-xl border-b-0">
                 {[
                   ["B", "font-bold"],
                   ["I", "italic"],
@@ -324,8 +287,7 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
                 ].map(([l, cls]) => (
                   <button
                     key={l}
-                    className={`w-7 h-7 border border-retro-border bg-retro-bg text-retro-text/40 hover:text-retro-accent hover:border-retro-accent text-xs transition-all font-pixel ${cls}`}
-                    style={{ fontFamily: T.pixel }}
+                    className={`w-7 h-7 border border-retro-border bg-retro-surface text-retro-text/40 hover:text-retro-accent hover:border-retro-accent text-xs transition-all font-pixel rounded-lg ${cls}`}
                   >
                     {l}
                   </button>
@@ -340,15 +302,12 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
                   <button
                     key={i}
                     title={t.title}
-                    className="w-7 h-7 border border-retro-border bg-retro-bg text-retro-text/30 hover:text-retro-accent hover:border-retro-accent flex items-center justify-center transition-all"
+                    className="w-7 h-7 border border-retro-border bg-retro-surface text-retro-text/30 hover:text-retro-accent hover:border-retro-accent flex items-center justify-center transition-all rounded-lg"
                   >
                     {t.icon}
                   </button>
                 ))}
-                <div
-                  className="ml-auto text-retro-text/20 text-[10px] pr-1 font-terminal"
-                  style={{ fontFamily: T.mono }}
-                >
+                <div className="ml-auto text-retro-text/20 text-[10px] pr-1 font-terminal">
                   {content.split(/\s+/).filter(Boolean).length} WORDS
                 </div>
               </div>
@@ -357,8 +316,7 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
                 onChange={(e) => setContent(e.target.value)}
                 rows={16}
                 placeholder="Start writing your blog post here…&#10;&#10;Use markdown formatting:&#10;# Heading 1&#10;## Heading 2&#10;**bold**, *italic*, `code`&#10;&#10;> Blockquote"
-                className="w-full bg-retro-bg border-2 border-retro-border px-5 py-4 text-sm text-retro-text placeholder-retro-text/15 focus:outline-none focus:border-retro-accent transition-all resize-none leading-relaxed font-terminal"
-                style={{ fontFamily: T.mono }}
+                className="w-full bg-[#13141f] border-2 border-retro-border rounded-b-xl px-5 py-4 text-sm text-retro-text placeholder-retro-text/15 focus:outline-none focus:border-retro-accent transition-all resize-none leading-relaxed font-terminal"
               />
             </Field>
           </RetroCard>
@@ -367,47 +325,35 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
         {/* Sidebar settings */}
         <div className="space-y-4">
           <RetroCard className="space-y-4">
-            <h3
-              className="text-sm font-black text-retro-accent uppercase tracking-widest font-pixel"
-              style={{ fontFamily: T.pixel }}
-            >
+            <h3 className="text-xs font-bold text-retro-accent uppercase tracking-widest font-pixel">
               SETTINGS
             </h3>
 
-            <div className="flex items-center justify-between p-3 border-2 border-retro-border bg-retro-bg">
+            <div className="flex items-center justify-between p-3 border border-retro-border bg-[#13141f] rounded-xl">
               <div>
-                <p
-                  className="text-retro-text/70 text-xs font-semibold uppercase font-terminal"
-                  style={{ fontFamily: T.mono }}
-                >
+                <p className="text-retro-text/70 text-xs font-semibold uppercase font-terminal">
                   STATUS
                 </p>
-                <p
-                  className="text-retro-text/30 text-[10px] uppercase font-terminal"
-                  style={{ fontFamily: T.mono }}
-                >
+                <p className="text-retro-text/30 text-[10px] uppercase font-terminal">
                   {pub ? "Live on site" : "Draft"}
                 </p>
               </div>
-              {/* BUTTON ACTION: Toggles direct publish flag status */}
               <button
                 type="button"
                 onClick={() => setPub(!pub)}
-                className={`relative w-11 h-6 transition-all duration-300 border-2 ${pub ? "bg-retro-accent border-retro-accent" : "bg-retro-surface border-retro-border"}`}
+                className={`relative w-11 h-6 transition-all duration-300 border-2 rounded-full cursor-pointer ${pub ? "bg-retro-accent border-retro-accent" : "bg-[#13141f] border-retro-border"}`}
               >
                 <div
-                  className={`absolute top-0.5 w-4 h-4 transition-all duration-200 ${pub ? "right-0.5 bg-retro-bg" : "left-0.5 bg-retro-text/40"}`}
+                  className={`absolute top-0.5 w-4 h-4 transition-all duration-200 rounded-full ${pub ? "right-0.5 bg-retro-surface" : "left-0.5 bg-retro-text/40"}`}
                 />
               </button>
             </div>
 
             <div className="space-y-2.5">
-              {/* BUTTON ACTION: Saves the blog content as a draft */}
               <button
                 onClick={() => handleSave(false)}
                 disabled={saving}
-                className="w-full flex items-center justify-center gap-2 py-3 border-2 border-retro-border bg-retro-bg text-retro-text/75 hover:text-retro-accent hover:border-retro-accent text-xs font-pixel uppercase tracking-widest transition-all disabled:opacity-50 cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px]"
-                style={{ fontFamily: T.pixel }}
+                className="w-full flex items-center justify-center gap-2 py-3 border-2 border-retro-border bg-[#13141f] text-retro-text/75 hover:text-retro-accent hover:border-retro-accent text-xs font-pixel rounded-xl uppercase tracking-widest transition-all duration-200 disabled:opacity-50 cursor-pointer shadow-[2px_2px_0px_#1C1D2E] active:translate-y-[1px]"
               >
                 {saving ? (
                   <>
@@ -421,11 +367,9 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
                   </>
                 )}
               </button>
-              {/* BUTTON ACTION: Publishes the blog directly */}
               <button
                 onClick={() => handleSave(true)}
-                className="w-full flex items-center justify-center gap-2 py-3 border-2 border-retro-accent bg-[#E8E8C6] text-[#252525] text-xs font-pixel uppercase tracking-widest hover:bg-[#E2E2D5] transition-all cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px]"
-                style={{ fontFamily: T.pixel }}
+                className="w-full flex items-center justify-center gap-2 py-3 border-2 border-retro-border bg-retro-accent text-[#1C1D2E] text-xs font-pixel rounded-xl uppercase tracking-widest hover:bg-retro-accent/80 transition-all duration-200 cursor-pointer shadow-[2px_2px_0px_#1C1D2E] active:translate-y-[1px]"
               >
                 <Send size={12} /> PUBLISH BLOG
               </button>
@@ -433,16 +377,13 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
           </RetroCard>
 
           <RetroCard className="space-y-3">
-            <h3
-              className="text-xs font-black text-retro-accent uppercase tracking-widest font-pixel"
-              style={{ fontFamily: T.pixel }}
-            >
+            <h3 className="text-xs font-bold text-retro-accent uppercase tracking-widest font-pixel">
               FEATURED IMAGE
             </h3>
             
             {featuredImage ? (
               <div className="space-y-3">
-                <div className="relative border-2 border-retro-border aspect-video bg-retro-bg">
+                <div className="relative border border-retro-border aspect-video bg-[#13141f] rounded-xl overflow-hidden">
                   <img
                     src={featuredImage}
                     alt="Featured preview"
@@ -450,7 +391,7 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
                   />
                   <button
                     onClick={() => setFeaturedImage("")}
-                    className="absolute top-2 right-2 p-1.5 bg-retro-bg hover:bg-retro-surface text-retro-accent hover:text-retro-text border-2 border-retro-accent transition-colors"
+                    className="absolute top-2 right-2 p-1.5 bg-[#13141f]/80 hover:bg-[#13141f] text-retro-accent hover:text-retro-text border border-retro-border rounded-xl transition-colors cursor-pointer"
                     title="Remove image"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -461,11 +402,11 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
               </div>
             ) : (
               <div className="relative">
-                <label className="flex flex-col items-center justify-center border-2 border-dashed border-retro-border hover:border-retro-accent p-6 cursor-pointer bg-retro-bg hover:bg-retro-surface/25 transition-all group">
+                <label className="flex flex-col items-center justify-center border-2 border-dashed border-retro-border hover:border-retro-accent p-6 cursor-pointer bg-[#13141f] hover:bg-[#1C1D2E] rounded-xl transition-all group">
                   {uploadingImage ? (
                     <div className="flex flex-col items-center gap-2">
                       <RefreshCw size={18} className="text-retro-accent animate-spin" />
-                      <span className="text-[10px] font-medium text-retro-text/40 font-terminal uppercase" style={{ fontFamily: T.mono }}>
+                      <span className="text-[10px] font-medium text-retro-text/40 font-terminal uppercase">
                         Uploading...
                       </span>
                     </div>
@@ -474,10 +415,10 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
                       <svg className="w-6 h-6 text-retro-text/20 group-hover:text-retro-accent/60 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      <span className="text-xs font-bold text-retro-text/40 group-hover:text-retro-accent transition-colors font-pixel uppercase tracking-widest" style={{ fontFamily: T.pixel }}>
+                      <span className="text-[10px] font-bold text-retro-text/40 group-hover:text-retro-accent transition-colors font-pixel uppercase tracking-widest">
                         UPLOAD IMAGE
                       </span>
-                      <span className="text-[9px] text-retro-text/15 font-terminal uppercase" style={{ fontFamily: T.mono }}>
+                      <span className="text-[9px] text-retro-text/15 font-terminal uppercase">
                         PNG, JPG up to 5MB
                       </span>
                     </div>
@@ -495,18 +436,14 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
           </RetroCard>
 
           <RetroCard className="space-y-3">
-            <h3
-              className="text-xs font-black text-retro-accent uppercase tracking-widest font-pixel"
-              style={{ fontFamily: T.pixel }}
-            >
+            <h3 className="text-xs font-bold text-retro-accent uppercase tracking-widest font-pixel">
               CATEGORY
             </h3>
-            <div className="relative border-2 border-retro-border bg-retro-bg">
+            <div className="relative border border-retro-border bg-[#13141f] rounded-xl overflow-hidden">
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full appearance-none bg-transparent px-4 py-3 text-sm text-retro-text/70 focus:outline-none cursor-pointer font-terminal uppercase"
-                style={{ fontFamily: T.mono }}
               >
                 {[
                   "Technology",
@@ -516,7 +453,7 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
                   "Business",
                   "Opinion",
                 ].map((c) => (
-                  <option key={c} value={c} style={{ background: "#252525", color: "#E2E2D5" }}>
+                  <option key={c} value={c} style={{ background: "#13141f", color: "#E2E2F5" }}>
                     {c.toUpperCase()}
                   </option>
                 ))}
@@ -529,18 +466,14 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
           </RetroCard>
 
           <RetroCard className="space-y-3">
-            <h3
-              className="text-xs font-black text-retro-accent uppercase tracking-widest font-pixel"
-              style={{ fontFamily: T.pixel }}
-            >
+            <h3 className="text-xs font-bold text-retro-accent uppercase tracking-widest font-pixel">
               TAGS
             </h3>
             <input
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="react, node.js, tutorial"
-              className="w-full bg-retro-bg border-2 border-retro-border px-4 py-3 text-xs text-retro-text placeholder-retro-text/15 focus:outline-none focus:border-retro-accent font-terminal"
-              style={{ fontFamily: T.mono }}
+              className="w-full bg-[#13141f] border border-retro-border rounded-xl px-4 py-3 text-xs text-retro-text placeholder-retro-text/15 focus:outline-none focus:border-retro-accent font-terminal"
             />
             {tags && (
               <div className="flex flex-wrap gap-2 mt-2">
@@ -551,8 +484,7 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
                   .map((t, i) => (
                     <span
                       key={i}
-                      className="px-2 py-0.5 border border-retro-accent text-retro-accent bg-retro-bg text-[10px] font-pixel uppercase"
-                      style={{ fontFamily: T.pixel }}
+                      className="px-2 py-0.5 border border-retro-accent text-retro-accent bg-[#13141f] text-[9px] font-pixel uppercase rounded-lg"
                     >
                       {t}
                     </span>
@@ -563,11 +495,8 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
 
           <RetroCard>
             <div className="flex items-center gap-2 mb-3">
-              <Zap size={12} className="text-retro-amber" />
-              <h3
-                className="text-xs font-black text-retro-accent uppercase tracking-widest font-pixel"
-                style={{ fontFamily: T.pixel }}
-              >
+              <Zap size={12} className="text-retro-accent" />
+              <h3 className="text-xs font-bold text-retro-accent uppercase tracking-widest font-pixel">
                 WRITING TIPS
               </h3>
             </div>
@@ -581,9 +510,8 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
                 <li
                   key={i}
                   className="flex items-start gap-1 text-[11px] text-retro-text/40 font-terminal uppercase"
-                  style={{ fontFamily: T.mono }}
                 >
-                  <div className="w-1.5 h-1.5 bg-retro-accent/40 mr-2 mt-1.5 flex-shrink-0" />
+                  <div className="w-1.5 h-1.5 bg-retro-accent/40 mr-2 mt-1.5 rounded-full flex-shrink-0" />
                   {tip}
                 </li>
               ))}

@@ -13,12 +13,12 @@ import { useNavigate } from "react-router-dom";
 function RetroCard({ children, className = "", hover = true, titleBar }) {
   return (
     <div className={`
-      border-2 border-retro-border bg-retro-surface text-retro-text
-      ${hover ? "hover:border-retro-accent hover:-translate-y-1 transition-all duration-300" : ""}
+      aesthetic-card
+      ${hover ? "aesthetic-card-hover" : ""}
       ${className}
     `}>
       {titleBar && (
-        <div className="border-b-2 border-retro-border bg-retro-bg px-4 py-2 flex items-center justify-between text-[10px] font-pixel tracking-wider text-retro-accent">
+        <div className="border-b-2 border-retro-border bg-[#13141f] px-4 py-2 flex items-center justify-between text-[10px] font-pixel tracking-wider text-retro-accent rounded-t-[16px]">
           <span>{titleBar}</span>
           <div className="flex gap-1">
             <span className="w-1.5 h-1.5 border border-retro-border bg-retro-accent/20" />
@@ -34,11 +34,11 @@ function RetroCard({ children, className = "", hover = true, titleBar }) {
 }
 
 function RetroButton({ children, variant = "primary", className = "", onClick }) {
-  const base = "inline-flex items-center gap-2 px-5 py-2.5 font-pixel text-xs tracking-wider uppercase border-2 transition-all duration-200 cursor-pointer select-none active:translate-x-[2px] active:translate-y-[2px] active:shadow-none";
+  const base = "aesthetic-btn select-none";
   const variants = {
-    primary: "bg-[#E8E8C6] text-[#252525] border-[#E8E8C6] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-[#E2E2D5]",
-    secondary: "bg-transparent text-[#E8E8C6] border-[#E8E8C6] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-[#E8E8C6]/10",
-    ghost: "border-transparent text-[#E2E2D5]/70 hover:text-[#E8E8C6]",
+    primary: "aesthetic-btn-primary",
+    secondary: "aesthetic-btn-secondary",
+    ghost: "border-transparent text-retro-text hover:text-retro-accent",
   };
   return (
     <button className={`${base} ${variants[variant]} ${className}`} onClick={onClick}>
@@ -49,7 +49,7 @@ function RetroButton({ children, variant = "primary", className = "", onClick })
 
 function RetroBadge({ children }) {
   return (
-    <span className="inline-flex items-center px-2 py-0.5 border border-retro-border text-[9px] font-pixel uppercase bg-retro-bg text-retro-accent tracking-wider">
+    <span className="aesthetic-badge">
       {children}
     </span>
   );
@@ -59,19 +59,7 @@ function RetroBadge({ children }) {
    GRID BACKGROUND
 ───────────────────────────────────────────── */
 function GridBackground() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div className="absolute inset-0"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(232,232,198,0.02) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(232,232,198,0.02) 1px, transparent 1px)
-          `,
-          backgroundSize: "64px 64px",
-        }}
-      />
-    </div>
-  );
+  return null; // The background grid is now handled globally in index.css body style
 }
 
 const scrollToSection = (id) => {
@@ -87,21 +75,12 @@ const scrollToSection = (id) => {
 ───────────────────────────────────────────── */
 function Navbar() {
   const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   const links = ["Features", "How It Works", "Blog", "Pricing"];
 
   return (
-    <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 border-b ${
-      scrolled ? "bg-retro-bg/95 border-retro-border shadow-md" : "bg-transparent border-transparent"
-    }`}>
+    <nav className="fixed top-4 inset-x-4 z-50 transition-all duration-300 max-w-7xl mx-auto bg-retro-surface/90 backdrop-blur-md border-2 border-retro-border rounded-2xl shadow-[4px_4px_0px_0px_#1c1d2e] px-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo with Rocket Icon */}
@@ -115,7 +94,7 @@ function Navbar() {
           </div>
 
           {/* Desktop Links */}
-          <div className="hidden md:flex items-center gap-6 font-pixel text-xs">
+          <div className="hidden md:flex items-center gap-6 font-pixel text-[11px]">
             {links.map(l => (
               <button
                 key={l}
@@ -129,21 +108,21 @@ function Navbar() {
 
           {/* Color Swatches and CTA */}
           <div className="hidden md:flex items-center gap-6">
-            <div className="flex items-center gap-2 text-[9px] font-pixel border border-retro-border/40 p-1 bg-retro-bg/50">
-              <span className="w-3 h-3 bg-[#E8E8C6]" title="Warm Ivory" />
-              <span className="w-3 h-3 bg-[#252525]" title="Deep Charcoal" />
-              <span className="w-3 h-3 bg-[#474744]" title="Muted Graphite" />
+            <div className="flex items-center gap-2 text-[9px] font-pixel border border-retro-border/40 p-1 bg-[#13141f] rounded-lg">
+              <span className="w-3 h-3 bg-[#8F72FF] rounded" title="Violet Accent" />
+              <span className="w-3 h-3 bg-[#171825] rounded" title="Deep Navy Card" />
+              <span className="w-3 h-3 bg-[#C8CAE8] rounded" title="Soft Lavender" />
             </div>
             <RetroButton
               variant="secondary"
-              className="py-1.5 px-4"
+              className="py-1 px-3"
               onClick={() => navigate("/login")}
             >
               Sign in
             </RetroButton>
             <RetroButton
               variant="primary"
-              className="py-1.5 px-4"
+              className="py-1 px-3"
               onClick={() => navigate("/register")}
             >
               Write
@@ -152,7 +131,7 @@ function Navbar() {
 
           {/* Mobile menu button */}
           <button
-            className="md:hidden text-retro-accent border border-retro-accent p-1.5"
+            className="md:hidden text-retro-accent border-2 border-retro-border bg-[#13141f] rounded-xl p-1.5"
             onClick={() => setMenuOpen(!menuOpen)}
           >
             {menuOpen ? <X size={16} /> : <Menu size={16} />}
@@ -162,7 +141,7 @@ function Navbar() {
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="md:hidden bg-retro-bg border-b border-retro-border px-4 py-4 space-y-3 font-pixel text-xs text-center">
+        <div className="md:hidden bg-retro-surface border-t border-retro-border/40 px-4 py-4 space-y-3 font-pixel text-xs text-center rounded-b-2xl">
           {links.map(l => (
             <button
               key={l}
@@ -197,12 +176,12 @@ function Hero({ onWatchDemo }) {
       <GridBackground />
 
       {/* Title */}
-      <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-heading text-retro-accent tracking-widest uppercase leading-none mt-8">
+      <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-heading text-retro-accent tracking-widest uppercase leading-none mt-8 drop-shadow-[2px_2px_0px_#1C1D2E]">
         QUILLFORGE
       </h1>
 
       {/* Cozy Sub-Header Box */}
-      <div className="mt-6 max-w-xl bg-retro-surface border-2 border-retro-border p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div className="mt-6 max-w-xl bg-retro-surface border-2 border-retro-border p-4 rounded-2xl shadow-[4px_4px_0px_0px_#1c1d2e]">
         <p className="text-xs sm:text-sm font-terminal text-retro-text/95 leading-relaxed">
           A handcrafted digital studio for writers who care about the craft. 
           No algorithms, no corporate noise, just raw thoughts on a virtual canvas.
@@ -222,28 +201,28 @@ function Hero({ onWatchDemo }) {
       {/* Main Hero Showcase */}
       <div className="mt-16 w-full max-w-5xl px-4">
         {/* Frame container */}
-        <div className="border-4 border-retro-accent bg-retro-surface p-1 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <div className="border-2 border-retro-border bg-retro-surface p-1 rounded-2xl shadow-[6px_6px_0px_0px_#1c1d2e] overflow-hidden">
           {/* Header block of frame */}
-          <div className="border-b-2 border-retro-accent bg-[#E8E8C6] px-4 py-2 flex items-center justify-between text-xs font-pixel text-[#252525]">
+          <div className="border-b border-retro-border bg-retro-accent px-4 py-2 flex items-center justify-between text-xs font-pixel text-[#1C1D2E]">
             <span>SYSTEM_WORKSPACE_PREVIEW.EXE</span>
             <div className="flex gap-2">
-              <span className="w-3 h-3 border border-[#252525]" />
-              <span className="w-3 h-3 border border-[#252525]" />
+              <span className="w-3 h-3 border border-[#1C1D2E] rounded-sm" />
+              <span className="w-3 h-3 border border-[#1C1D2E] rounded-sm" />
             </div>
           </div>
           {/* Hero Image */}
           <img
             src="/hero-pixel.png"
             alt="Cozy Pixel Writer Workspace"
-            className="w-full h-auto object-cover border-t-2 border-retro-accent"
+            className="w-full h-auto object-cover border-b border-retro-border"
           />
           {/* Icon bar at bottom */}
-          <div className="bg-[#E8E8C6] border-t-2 border-retro-accent py-3 px-6 flex justify-around items-center text-[#252525]">
-            <Coffee size={18} className="hover:scale-110 transition-transform cursor-pointer" />
-            <Gamepad2 size={18} className="hover:scale-110 transition-transform cursor-pointer" />
-            <Compass size={18} className="hover:scale-110 transition-transform cursor-pointer" />
-            <Award size={18} className="hover:scale-110 transition-transform cursor-pointer" />
-            <Globe size={18} className="hover:scale-110 transition-transform cursor-pointer" />
+          <div className="bg-[#13141f] py-3 px-6 flex justify-around items-center text-retro-accent">
+            <Coffee size={18} className="hover:scale-110 hover:text-retro-accent/80 transition-transform cursor-pointer" />
+            <Gamepad2 size={18} className="hover:scale-110 hover:text-retro-accent/80 transition-transform cursor-pointer" />
+            <Compass size={18} className="hover:scale-110 hover:text-retro-accent/80 transition-transform cursor-pointer" />
+            <Award size={18} className="hover:scale-110 hover:text-retro-accent/80 transition-transform cursor-pointer" />
+            <Globe size={18} className="hover:scale-110 hover:text-retro-accent/80 transition-transform cursor-pointer" />
           </div>
         </div>
       </div>
@@ -393,7 +372,7 @@ function Features() {
   ];
 
   return (
-    <section id="features" className="py-24 px-4 border-t-2 border-retro-border bg-retro-surface/30">
+    <section id="features" className="py-24 px-4 border-t-2 border-retro-border bg-retro-surface/10">
       <div className="max-w-7xl mx-auto text-center mb-16">
         <RetroBadge>Capabilities</RetroBadge>
         <h2 className="text-4xl md:text-5xl font-heading text-retro-accent uppercase mt-3 tracking-widest">
@@ -437,9 +416,9 @@ function HowItWorks() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {steps.map((s, i) => (
-            <div key={i} className="border-2 border-retro-border bg-retro-surface p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div key={i} className="border-2 border-retro-border bg-retro-surface p-5 rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E]">
               <div className="font-pixel text-[10px] text-retro-accent mb-3">STEP_0{i + 1}.EXE</div>
-              <div className="font-terminal text-xs text-[#E8E8C6] bg-retro-bg p-2.5 border border-retro-border/50 mb-3 truncate">
+              <div className="font-terminal text-xs text-retro-accent bg-[#13141f] p-2.5 border border-retro-border/50 mb-3 truncate rounded-lg">
                 $ {s.cmd}
               </div>
               <p className="text-xs text-retro-text/75 font-terminal leading-relaxed">{s.desc}</p>
@@ -462,7 +441,7 @@ function Pricing() {
   ];
 
   return (
-    <section id="pricing" className="py-24 px-4 border-t-2 border-retro-border bg-retro-surface/30">
+    <section id="pricing" className="py-24 px-4 border-t-2 border-retro-border bg-retro-surface/10">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <RetroBadge>Monetization</RetroBadge>
@@ -475,8 +454,8 @@ function Pricing() {
           {plans.map((p, i) => (
             <div 
               key={i} 
-              className={`border-2 border-retro-border p-6 flex flex-col ${
-                i === 1 ? "bg-retro-surface border-retro-accent shadow-[6px_6px_0px_0px_rgba(232,232,198,0.2)]" : "bg-retro-surface/50"
+              className={`border-2 border-retro-border p-6 flex flex-col rounded-2xl transition-all duration-300 ${
+                i === 1 ? "bg-retro-surface border-retro-accent shadow-[6px_6px_0px_0px_#1C1D2E] lg:-translate-y-3" : "bg-retro-surface/90 shadow-[4px_4px_0px_0px_#1C1D2E]"
               }`}
             >
               <h3 className="font-heading text-2xl text-retro-accent uppercase tracking-wider">{p.name}</h3>
@@ -524,9 +503,9 @@ function CTABanner() {
 
   return (
     <section className="py-20 px-4 max-w-4xl mx-auto">
-      <div className="border-4 border-retro-accent bg-retro-surface p-1 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+      <div className="border-2 border-retro-border bg-retro-surface p-1 rounded-2xl shadow-[6px_6px_0px_0px_#1c1d2e] overflow-hidden">
         {/* Title bar */}
-        <div className="border-b-2 border-retro-accent bg-[#E8E8C6] px-4 py-2 flex items-center justify-between text-xs font-pixel text-[#252525]">
+        <div className="border-b border-retro-border bg-retro-accent px-4 py-2 flex items-center justify-between text-xs font-pixel text-[#1C1D2E]">
           <span>ALERT_SYSTEM_CONFIRM.EXE</span>
           <span className="font-bold cursor-pointer">X</span>
         </div>
@@ -568,7 +547,7 @@ function Footer() {
   ];
 
   return (
-    <footer className="border-t-2 border-retro-border py-16 px-4 bg-retro-bg">
+    <footer className="border-t-2 border-retro-border py-16 px-4 bg-retro-surface text-retro-text">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-10 mb-12">
           
@@ -576,14 +555,14 @@ function Footer() {
             <div className="flex items-center gap-2.5 mb-4 text-retro-accent font-pixel text-xs tracking-wider">
               <span>QUILLFORGE</span>
             </div>
-            <p className="text-retro-text/40 text-xs font-terminal leading-relaxed mb-6">
+            <p className="text-retro-text/60 text-xs font-terminal leading-relaxed mb-6">
               A writing studio where thoughts are compiled like beautiful retro software.
             </p>
             <div className="flex gap-2">
               {["GH", "RSS", "MAIL"].map((text) => (
                 <button 
                   key={text} 
-                  className="px-2 py-1 border border-retro-border text-[9px] font-pixel text-retro-text/40 hover:text-retro-accent hover:border-retro-accent transition-colors"
+                  className="px-2 py-1 border border-retro-border rounded text-[9px] font-pixel text-retro-text/60 hover:text-retro-accent hover:border-retro-accent transition-colors"
                   onClick={() => window.open("https://github.com/unitedtechlab/QUillForge_", "_blank")}
                 >
                   {text}
@@ -595,7 +574,7 @@ function Footer() {
           {cols.map((col) => (
             <div key={col.heading}>
               <h4 className="text-retro-accent font-pixel text-[10px] uppercase tracking-wider mb-4">{col.heading}</h4>
-              <ul className="space-y-2 font-terminal text-xs text-retro-text/40">
+              <ul className="space-y-2 font-terminal text-xs text-retro-text/50">
                 {col.links.map((link) => (
                   <li key={link}>
                     <a href="/" className="hover:text-retro-accent transition-colors">
@@ -608,7 +587,7 @@ function Footer() {
           ))}
         </div>
 
-        <div className="pt-8 border-t border-retro-border/20 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-pixel text-retro-text/30">
+        <div className="pt-8 border-t border-retro-border/20 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-pixel text-retro-text/40">
           <span>© 1998-2026 QUILLFORGE PROTOCOL.</span>
           <div className="flex items-center gap-2">
             <span>SOC2 BYPASS · COOKIE-FREE ZONE · uptime: 99.9%</span>
@@ -627,7 +606,7 @@ export default function Home() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen text-retro-text font-terminal selection:bg-retro-accent selection:text-[#252525]">
+    <div className="min-h-screen text-retro-text font-terminal selection:bg-retro-accent selection:text-[#1c1d2e]">
       {/* Preamble Reset */}
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -638,7 +617,7 @@ export default function Home() {
       <Hero onWatchDemo={() => setShowDemo(true)} />
       
       {/* Logo Strip replaced with pixel terminal ticker */}
-      <section className="relative py-4 border-y-2 border-retro-border bg-retro-surface/20 overflow-hidden font-pixel text-[10px] text-retro-text/40">
+      <section className="relative py-4 border-y-2 border-retro-border bg-[#13141f] overflow-hidden font-pixel text-[10px] text-retro-accent">
         <div className="flex gap-12 animate-[scroll_25s_linear_infinite] whitespace-nowrap">
           {Array(8).fill("SYSTEM RUNNING // ZERO COOKIES // HOSTED ON DECENTRALIZED PROTOCOLS // WRITE WITHOUT DISTRACTIONS").map((text, idx) => (
             <span key={idx} className="uppercase tracking-widest">{text}</span>
@@ -662,19 +641,19 @@ export default function Home() {
       {/* Demo Modal Styled as alert system dialog */}
       {showDemo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
-          <div className="relative w-full max-w-lg border-4 border-retro-accent bg-retro-surface shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <div className="flex items-center justify-between px-4 py-2 border-b-2 border-retro-accent bg-[#E8E8C6] text-xs font-pixel text-[#252525]">
+          <div className="relative w-full max-w-lg border-2 border-retro-border bg-retro-surface rounded-2xl shadow-[6px_6px_0px_0px_#1C1D2E] overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-2 border-b border-retro-border bg-retro-accent text-xs font-pixel text-[#1C1D2E]">
               <span>WALKTHROUGH_MODULE.EXE</span>
               <button className="font-bold hover:scale-110" onClick={() => setShowDemo(false)}>
                 X
               </button>
             </div>
             <div className="p-6 text-center flex flex-col items-center">
-              <div className="w-12 h-12 border-2 border-retro-accent flex items-center justify-center text-retro-accent font-pixel text-xl mb-4">
+              <div className="w-12 h-12 border-2 border-retro-accent flex items-center justify-center text-retro-accent font-pixel text-xl mb-4 rounded-xl">
                 !
               </div>
               <h3 className="text-xl font-heading text-retro-accent uppercase tracking-wider mb-2">Walkthrough Coming Soon</h3>
-              <p className="text-xs text-retro-text/50 font-terminal mb-6 max-w-sm">
+              <p className="text-xs text-retro-text/60 font-terminal mb-6 max-w-sm">
                 Our core systems are compiling this module. Access the studio by registering your card profile now!
               </p>
               <RetroButton variant="primary" className="text-xs" onClick={() => { setShowDemo(false); navigate("/register"); }}>

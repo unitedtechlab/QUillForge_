@@ -15,17 +15,8 @@ import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
 
 /* ════════════════════════════════════════════════
-   DESIGN TOKENS
-════════════════════════════════════════════════ */
-const T = {
-  ox: "'VT323', monospace",
-  mono: "'Space Mono', monospace",
-  pixel: "'Silkscreen', monospace"
-};
-
-/* ════════════════════════════════════════════════
    READ BLOGS FEED PAGE
-════════════════════════════════════════════════ */
+   ════════════════════════════════════════════════ */
 export default function ReadBlogsFeed({ adminOnly = false }) {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -167,23 +158,22 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl sm:text-5xl font-black text-retro-accent flex items-center gap-2 uppercase tracking-widest font-heading" style={{ fontFamily: T.ox }}>
+          <h1 className="text-4xl sm:text-5xl font-black text-retro-accent flex items-center gap-2 uppercase tracking-widest font-heading">
             <BookOpen className="text-retro-accent animate-pulse" size={32} /> READ ARTICLES
           </h1>
-          <p className="text-retro-text/30 text-xs font-terminal uppercase mt-1" style={{ fontFamily: T.mono }}>
+          <p className="text-retro-text/30 text-xs font-terminal uppercase mt-1">
             Explore the latest knowledge, tutorials, and stories from our community.
           </p>
         </div>
 
         {/* Search bar */}
         <div className="relative w-full md:max-w-xs">
-          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-retro-text/20" />
+          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-retro-text/30" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="SEARCH ARTICLES..."
-            className="w-full bg-retro-bg border-2 border-retro-border pl-9 pr-4 py-2.5 text-xs text-retro-text placeholder-retro-text/25 focus:outline-none focus:border-retro-accent font-terminal uppercase"
-            style={{ fontFamily: T.mono }}
+            className="w-full bg-[#13141f] border border-retro-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-retro-text placeholder-retro-text/30 focus:outline-none focus:border-retro-accent font-terminal uppercase"
           />
         </div>
       </div>
@@ -192,14 +182,13 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none flex-wrap">
         <button
           onClick={() => setShowAdminOnly(v => !v)}
-          className={`flex items-center gap-1.5 px-4 py-2 border-2 text-xs font-pixel uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+          className={`flex items-center gap-1.5 px-4 py-2 border text-xs font-pixel uppercase tracking-wider transition-all duration-200 cursor-pointer rounded-xl ${
             showAdminOnly
-              ? "border-retro-accent bg-[#E8E8C6] text-retro-bg"
-              : "text-retro-text/30 hover:text-retro-accent border-retro-border bg-retro-bg"
+              ? "border-retro-accent bg-retro-accent text-[#1C1D2E]"
+              : "text-retro-text/30 hover:text-retro-accent border-retro-border bg-[#13141f]"
           }`}
-          style={{ fontFamily: T.pixel }}
         >
-          <Star size={10} className={showAdminOnly ? "fill-retro-bg text-retro-bg" : ""} />
+          <Star size={10} className={showAdminOnly ? "fill-[#1C1D2E] text-[#1C1D2E]" : ""} />
           FEATURED BY ADMIN
         </button>
 
@@ -210,12 +199,11 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-            className={`px-4 py-2 border-2 text-xs font-pixel uppercase tracking-wider transition-all cursor-pointer ${
+            className={`px-4 py-2 border text-xs font-pixel uppercase tracking-wider transition-all cursor-pointer rounded-xl ${
               selectedCategory === cat
-                ? "border-retro-accent bg-retro-accent text-retro-bg"
-                : "text-retro-text/30 hover:text-retro-accent border-retro-border bg-retro-bg"
+                ? "border-retro-accent bg-retro-accent text-[#1C1D2E]"
+                : "text-retro-text/30 hover:text-retro-accent border-retro-border bg-[#13141f]"
             }`}
-            style={{ fontFamily: T.pixel }}
           >
             {cat}
           </button>
@@ -226,14 +214,14 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
       {loading ? (
         <div className="py-24 text-center space-y-4">
           <div className="w-8 h-8 border-2 border-retro-accent/20 border-t-retro-accent rounded-full mx-auto animate-spin" />
-          <p className="text-retro-text/30 text-xs tracking-wider uppercase font-pixel" style={{ fontFamily: T.pixel }}>
+          <p className="text-retro-text/30 text-xs tracking-wider uppercase font-pixel">
             LOADING FEED...
           </p>
         </div>
       ) : filteredBlogs.length === 0 ? (
-        <div className="py-24 text-center border-2 border-retro-border bg-retro-surface shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+        <div className="py-24 text-center border-2 border-retro-border bg-retro-surface rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E]">
           <BookOpen size={36} className="text-retro-text/10 mx-auto mb-3" />
-          <p className="text-retro-text/30 text-sm font-terminal uppercase" style={{ fontFamily: T.mono }}>
+          <p className="text-retro-text/30 text-sm font-terminal uppercase">
             No published articles matched your search.
           </p>
         </div>
@@ -252,9 +240,9 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
                 : blog.content;
 
             return (
-              <div key={blog._id} className="border-2 border-retro-border bg-retro-surface p-6 sm:p-8 space-y-6 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+              <div key={blog._id} className="border-2 border-retro-border bg-retro-surface p-6 sm:p-8 space-y-6 rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E]">
                 {(blog.featuredImage || blog.coverImage) && (
-                  <div className="relative h-48 sm:h-56 w-full border-2 border-retro-border bg-retro-bg overflow-hidden">
+                  <div className="relative h-48 sm:h-56 w-full border border-retro-border bg-[#13141f] rounded-xl overflow-hidden">
                     <img 
                       src={blog.featuredImage || blog.coverImage} 
                       alt={blog.title} 
@@ -265,34 +253,28 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
                 {/* Article Metadata Header */}
                 <div className="flex items-center justify-between text-xs text-retro-text/30 font-terminal">
                   <div className="flex items-center gap-3">
-                    <span
-                      className="px-2 py-0.5 border border-retro-accent text-retro-accent bg-retro-bg text-[10px] font-pixel uppercase tracking-wide"
-                      style={{ fontFamily: T.pixel }}
-                    >
+                    <span className="px-2 py-0.5 border border-retro-accent text-retro-accent bg-[#13141f] text-[9px] font-pixel uppercase tracking-wide rounded-lg">
                       {blog.category || "General"}
                     </span>
-                    <span className="flex items-center gap-1 uppercase" style={{ fontFamily: T.mono }}>
+                    <span className="flex items-center gap-1 uppercase">
                       <Calendar size={11} /> {new Date(blog.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </span>
                   </div>
-                  <span className="flex items-center gap-1 uppercase" style={{ fontFamily: T.mono }}>
+                  <span className="flex items-center gap-1 uppercase">
                     <Clock size={11} /> {readTime} MIN READ
                   </span>
                 </div>
 
                 {/* Title & Author Info */}
                 <div className="space-y-2">
-                  <h2
-                    className="text-retro-accent font-extrabold text-3xl sm:text-4xl leading-tight tracking-tight hover:text-retro-accent/80 transition-colors uppercase font-heading"
-                    style={{ fontFamily: T.ox }}
-                  >
+                  <h2 className="text-retro-accent font-extrabold text-3xl sm:text-4xl leading-tight tracking-tight hover:text-retro-accent/80 transition-colors uppercase font-heading">
                     {blog.title}
                   </h2>
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 border border-retro-border bg-retro-bg flex items-center justify-center text-[10px] font-black text-retro-accent">
+                    <div className="w-5 h-5 border border-retro-border bg-[#13141f] rounded-lg flex items-center justify-center text-[10px] font-black text-retro-accent">
                       {blog.author?.username?.slice(0, 2).toUpperCase() || "A"}
                     </div>
-                    <span className="text-xs font-medium text-retro-text/50 font-terminal uppercase" style={{ fontFamily: T.mono }}>
+                    <span className="text-xs font-medium text-retro-text/50 font-terminal uppercase">
                       BY <span className="text-retro-accent">@{blog.author?.username || "Anonymous"}</span>
                     </span>
                   </div>
@@ -300,7 +282,7 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
 
                 {/* Excerpt if present */}
                 {blog.excerpt && (
-                  <div className="p-4 border-l-2 border-retro-accent bg-retro-bg/40 text-xs leading-relaxed text-retro-accent/80 italic font-terminal uppercase">
+                  <div className="p-4 border-l-2 border-retro-accent bg-[#13141f] text-xs leading-relaxed text-retro-accent/80 italic font-terminal uppercase rounded-r-xl">
                     "{blog.excerpt}"
                   </div>
                 )}
@@ -310,7 +292,7 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
 
                 {/* Content Block */}
                 <div className="relative">
-                  <div className="text-retro-text/80 text-sm leading-relaxed whitespace-pre-wrap font-terminal uppercase space-y-4" style={{ fontFamily: T.mono }}>
+                  <div className="text-retro-text/80 text-sm leading-relaxed whitespace-pre-wrap font-terminal uppercase space-y-4">
                     {renderedContent}
                   </div>
 
@@ -324,8 +306,7 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
                 {shouldTruncate && (
                   <button
                     onClick={() => toggleExpand(blog._id)}
-                    className="flex items-center gap-1.5 text-xs text-retro-accent font-pixel border-2 border-retro-border bg-retro-bg px-4 py-2 hover:border-retro-accent transition-all shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-[1px] cursor-pointer"
-                    style={{ fontFamily: T.pixel }}
+                    className="flex items-center gap-1.5 text-xs text-retro-accent font-pixel border border-retro-border bg-[#13141f] px-4 py-2 rounded-xl hover:border-retro-accent transition-all shadow-[2px_2px_0px_0px_#1C1D2E] active:translate-y-[1px] cursor-pointer"
                   >
                     {isExpanded ? (
                       <>SHOW LESS <ChevronUp size={14} /></>
@@ -343,18 +324,17 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => toggleLike(blog._id)}
-                      className={`flex items-center gap-1.5 text-xs font-pixel transition-all border px-2.5 py-1 ${
+                      className={`flex items-center gap-1.5 text-xs font-pixel transition-all border px-2.5 py-1 rounded-xl cursor-pointer ${
                         isLiked 
-                          ? "text-retro-amber border-retro-amber bg-retro-bg shadow-[1px_1px_0px_rgba(0,0,0,1)]" 
-                          : "text-retro-text/30 border-retro-border bg-retro-bg hover:text-retro-accent hover:border-retro-accent"
+                          ? "text-orange-400 border-orange-400 bg-[#13141f] shadow-[1px_1px_0px_0px_#1C1D2E]" 
+                          : "text-retro-text/30 border-retro-border bg-[#13141f] hover:text-retro-accent hover:border-retro-accent"
                       }`}
-                      style={{ fontFamily: T.pixel }}
                     >
-                      <Heart size={12} className={isLiked ? "fill-retro-amber text-retro-amber" : ""} />
+                      <Heart size={12} className={isLiked ? "fill-orange-400 text-orange-400" : ""} />
                       <span>{(blog.likes || []).length} LIKES</span>
                     </button>
 
-                    <span className="text-retro-text/30 text-xs flex items-center gap-1.5 font-terminal" style={{ fontFamily: T.mono }}>
+                    <span className="text-retro-text/30 text-xs flex items-center gap-1.5 font-terminal">
                       <Eye size={14} className="text-retro-accent" />
                       <span>{blog.views || 0} VIEWS</span>
                     </span>
@@ -363,7 +343,6 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
                   <button
                     onClick={() => navigate(`/blog/${blog._id}`)}
                     className="flex items-center gap-1.5 text-xs text-retro-text/40 hover:text-retro-accent transition-colors font-pixel cursor-pointer"
-                    style={{ fontFamily: T.pixel }}
                   >
                     <span>OPEN PAGE</span>
                     <ExternalLink size={12} />

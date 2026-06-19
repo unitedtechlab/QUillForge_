@@ -57,11 +57,11 @@ function PasswordStrength({ password }) {
    REUSABLE RETRO COMPONENTS
 ───────────────────────────────────────────── */
 function RetroButton({ children, variant = "primary", className = "", onClick, type = "button", disabled }) {
-  const base = "inline-flex items-center justify-center gap-2 px-5 py-2.5 font-pixel text-sm tracking-wider uppercase border-2 transition-all duration-200 cursor-pointer select-none active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed";
+  const base = "aesthetic-btn select-none justify-center";
   const variants = {
-    primary: "bg-[#E8E8C6] text-[#252525] border-[#E8E8C6] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-[#E2E2D5]",
-    secondary: "bg-transparent text-[#E8E8C6] border-[#E8E8C6] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-[#E8E8C6]/10",
-    ghost: "border-transparent text-[#E2E2D5]/70 hover:text-[#E8E8C6]",
+    primary: "aesthetic-btn-primary",
+    secondary: "aesthetic-btn-secondary",
+    ghost: "border-transparent text-retro-text hover:text-retro-accent",
   };
   return (
     <button type={type} disabled={disabled} className={`${base} ${variants[variant]} ${className}`} onClick={onClick}>
@@ -76,17 +76,17 @@ function InputField({ label, type = "text", placeholder, value, onChange, error,
       <label className="block text-xs font-pixel text-retro-accent tracking-wide uppercase">
         {label}
       </label>
-      <div className={`relative flex items-center border-2 bg-retro-bg transition-colors duration-300 ${
+      <div className={`relative flex items-center border-2 bg-[#13141f] rounded-xl transition-all duration-300 ${
         error
           ? "border-red-500/60 focus-within:border-red-400"
-          : "border-retro-border focus-within:border-retro-accent"
+          : "border-retro-border focus-within:border-retro-accent focus-within:ring-2 focus-within:ring-retro-accent/20"
       }`}>
         <input
           type={type}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          className="w-full bg-transparent px-3 py-2.5 text-sm text-retro-text placeholder-retro-text/20 focus:outline-none font-terminal"
+          className="w-full bg-transparent px-3 py-2.5 text-sm text-retro-text placeholder-retro-text/30 focus:outline-none font-terminal"
         />
         {rightElement && (
           <div className="absolute right-3 flex items-center">
@@ -284,10 +284,10 @@ export default function Register() {
       </button>
 
       {/* Main retro window */}
-      <div className="w-full max-w-md border-4 border-retro-accent bg-retro-surface shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+      <div className="w-full max-w-md border-2 border-retro-border bg-retro-surface rounded-2xl shadow-[6px_6px_0px_0px_#1C1D2E] overflow-hidden">
         
         {/* Title bar */}
-        <div className="border-b-2 border-retro-accent bg-[#E8E8C6] px-4 py-2 flex items-center justify-between text-xs font-pixel text-[#252525]">
+        <div className="border-b border-retro-border bg-retro-accent px-4 py-2 flex items-center justify-between text-xs font-pixel text-[#1C1D2E]">
           <span>USER_REGISTRATION.EXE</span>
           <span className="font-bold cursor-pointer" onClick={() => navigate("/")}>X</span>
         </div>
@@ -295,7 +295,7 @@ export default function Register() {
         {/* Done State */}
         {done ? (
           <div className="p-8 text-center flex flex-col items-center">
-            <div className="w-12 h-12 border-2 border-retro-accent flex items-center justify-center text-retro-accent font-pixel text-xl mb-4">
+            <div className="w-12 h-12 border-2 border-retro-accent flex items-center justify-center text-retro-accent font-pixel text-xl mb-4 rounded-xl">
               ✔
             </div>
             <h3 className="text-2xl font-heading text-retro-accent uppercase tracking-wider mb-2">
@@ -324,7 +324,7 @@ export default function Register() {
             {/* Google Gateway */}
             <button
               onClick={handleGoogle}
-              className="w-full flex items-center justify-center gap-3 py-2.5 border-2 border-retro-accent bg-retro-bg text-retro-text hover:bg-retro-accent/10 font-pixel text-xs tracking-wider uppercase active:translate-x-[1px] active:translate-y-[1px]"
+              className="w-full flex items-center justify-center gap-3 py-2.5 border-2 border-retro-border bg-[#13141f] text-retro-text hover:bg-[#1C1D2E] font-pixel text-xs tracking-wider uppercase rounded-xl transition-all duration-200 active:translate-x-[1px] active:translate-y-[1px] shadow-[2px_2px_0px_0px_#1C1D2E]"
             >
               <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -338,7 +338,7 @@ export default function Register() {
             {/* Divider */}
             <div className="relative my-5">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-retro-border/40" />
+                <div className="w-full border-t border-retro-border/20" />
               </div>
               <div className="relative flex justify-center">
                 <span className="px-3 bg-retro-surface text-retro-text/30 text-xs font-pixel uppercase tracking-widest">
