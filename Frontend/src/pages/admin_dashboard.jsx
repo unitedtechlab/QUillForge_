@@ -127,86 +127,99 @@ function GradientBtn({ children, onClick, className = "" }) {
    SIDEBAR
    ════════════════════════════════════════════════ */
 const NAV_ITEMS = [
-  { id: "dashboard", icon: <LayoutDashboard size={15} />, label: "Dashboard" },
-  { id: "create", icon: <PenLine size={15} />, label: "Create Blog" },
-  { id: "manage", icon: <BookMarked size={15} />, label: "Manage Blogs" },
-  { id: "read", icon: <BookOpen size={15} />, label: "Read Blogs" },
+  { id: "dashboard", icon: <LayoutDashboard size={16}/>, label: "Dashboard" },
+  { id: "create",    icon: <PenLine size={16}/>,         label: "Create Blog" },
+  { id: "manage",    icon: <BookMarked size={16}/>,      label: "My Blogs" },
+  { id: "read",      icon: <BookOpen size={16}/>,        label: "Read Blogs" },
 ];
 
-function Sidebar({ page, setPage, open, setOpen, handleLogout }) {
+function Sidebar({ page, setPage, collapsed, setCollapsed, setEditingBlog, handleLogout }) {
+  const bottom = [
+    { id: "logout",   icon: <LogOut size={16}/>,   label: "Logout" },
+  ];
+
   return (
     <>
-      {open && (
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-xs z-30 lg:hidden"
-          onClick={() => setOpen(false)}
-        />
+      {/* Mobile overlay */}
+      {!collapsed && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-30 lg:hidden"
+          onClick={() => setCollapsed(true)} />
       )}
-      <aside
-        className={`fixed top-4 left-4 h-[calc(100vh-32px)] w-[230px] z-45 flex flex-col border-2 border-retro-border bg-retro-surface rounded-2xl transition-all duration-300 shadow-[4px_4px_0px_0px_#1C1D2E] ${
-          open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        }`}
-      >
-        <div className="flex items-center gap-3 px-5 h-16 border-b border-retro-border/20 flex-shrink-0">
-          <div className="w-8 h-8 bg-[#13141f] border border-retro-border flex items-center justify-center flex-shrink-0 rounded-lg shadow-[2px_2px_0px_#1C1D2E]">
+
+      <aside className={`
+        fixed top-4 left-4 h-[calc(100vh-32px)] z-40 flex flex-col
+        border-2 border-retro-border bg-retro-surface rounded-2xl
+        transition-all duration-300 ease-in-out shadow-[4px_4px_0px_0px_#1C1D2E]
+        ${collapsed ? "-translate-x-full lg:translate-x-0 lg:w-[68px]" : "translate-x-0 w-[230px]"}
+      `}>
+        {/* Logo */}
+        <div className={`flex items-center gap-3 px-4 h-16 border-b border-retro-border/40 flex-shrink-0 ${collapsed ? "lg:justify-center" : ""}`}>
+          <div className="w-8 h-8 bg-[#13141f] border border-retro-border flex items-center justify-center flex-shrink-0 rounded-lg shadow-[2px_2px_0px_0px_#1C1D2E]">
             <Feather size={14} className="text-retro-accent" />
           </div>
-          <span className="text-retro-accent font-black text-lg tracking-widest uppercase">
-            Quill<span className="text-retro-accent">.</span>
-          </span>
-          <button
-            className="ml-auto lg:hidden text-retro-text/60 hover:text-retro-accent border border-retro-border rounded-lg p-1 bg-[#13141f]"
-            onClick={() => setOpen(false)}
-          >
-            <X size={15} />
-          </button>
+          {!collapsed && (
+            <span className="text-retro-accent font-black text-lg tracking-widest uppercase whitespace-nowrap">
+              QuillForge
+            </span>
+          )}
         </div>
 
-        <div className="px-5 pt-5 pb-2">
-          <p className="text-retro-text/45 text-[10px] tracking-[0.2em] uppercase font-bold font-pixel">
-            Navigation
-          </p>
-        </div>
-
-        <nav className="flex-1 px-3 space-y-1.5 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
-            const active = page === item.id;
+        {/* Nav */}
+        <nav className="flex-grow p-3 space-y-1.5 overflow-hidden">
+          {NAV_ITEMS.map(item => {
+            const isActive = page === item.id;
             return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setPage(item.id);
-                  if (window.innerWidth < 1024) setOpen(false);
-                }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-200 group relative text-left rounded-xl cursor-pointer ${
-                  active
-                    ? "bg-[#13141f] border border-retro-accent text-retro-accent shadow-[2px_2px_0px_#1c1d2e]"
-                    : "text-retro-text/60 hover:text-retro-accent hover:bg-[#13141f]/30 border border-transparent"
-                }`}
+              <button key={item.id} onClick={() => { if (item.id === "create") { if (setEditingBlog) setEditingBlog(null); setPage("create"); } else { setPage(item.id); } setCollapsed(window.innerWidth < 1024 ? true : collapsed); }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-200 group relative text-left cursor-pointer ${
+                  isActive
+                    ? "bg-retro-accent text-[#1C1D2E] border border-retro-accent rounded-xl shadow-[2px_2px_0px_0px_#1c1d2e]"
+                    : "text-retro-text/60 hover:text-retro-accent hover:bg-[#13141f] rounded-xl border border-transparent"
+                } ${collapsed ? "lg:justify-center lg:px-2" : ""}`}
               >
-                <span className={active ? "text-retro-accent" : "group-hover:text-retro-accent/70 transition-colors"}>
+                <span className="flex-shrink-0">
                   {item.icon}
                 </span>
-                <span className="text-xs font-semibold uppercase tracking-wider font-pixel">
-                  {item.label}
-                </span>
-                {active && (
-                  <div className="ml-auto w-2 h-2 bg-retro-accent rounded-full animate-pulse" />
+                {!collapsed && (
+                  <span className="text-xs font-pixel tracking-wider uppercase whitespace-nowrap">
+                    {item.label}
+                  </span>
+                )}
+                {/* Tooltip for collapsed */}
+                {collapsed && (
+                  <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-retro-surface border border-retro-border text-retro-accent text-[10px] rounded-lg uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 hidden lg:block shadow-[2px_2px_0px_0px_#1C1D2E]">
+                    {item.label}
+                  </div>
                 )}
               </button>
             );
           })}
         </nav>
 
-        <div className="p-3 border-t border-retro-border/20 space-y-1">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-retro-text/40 hover:text-retro-accent hover:bg-[#13141f]/30 border border-transparent group relative text-left rounded-xl cursor-pointer"
-          >
-            <LogOut size={15} />
-            <span className="text-xs font-semibold uppercase tracking-wider font-pixel">
-              Logout
-            </span>
+        {/* Bottom */}
+        <div className="p-3 border-t border-retro-border/40 space-y-1">
+          {bottom.map(item => (
+            <button key={item.id}
+              onClick={() => {
+                if (item.id === "logout") {
+                  handleLogout();
+                }
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-200 text-retro-text/40 hover:text-retro-accent hover:bg-[#13141f] rounded-xl border border-transparent group relative cursor-pointer ${collapsed ? "lg:justify-center lg:px-2" : ""}`}
+            >
+              <span className="flex-shrink-0">{item.icon}</span>
+              {!collapsed && <span className="text-xs font-pixel tracking-wider uppercase whitespace-nowrap">{item.label}</span>}
+              {collapsed && (
+                <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-retro-surface border border-retro-border text-retro-accent text-[10px] rounded-lg uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 hidden lg:block shadow-[2px_2px_0px_0px_#1C1D2E]">
+                  {item.label}
+                </div>
+              )}
+            </button>
+          ))}
+
+          {/* Collapse toggle — desktop only */}
+          <button onClick={() => setCollapsed(!collapsed)}
+            className="hidden lg:flex w-full items-center gap-3 px-3 py-2.5 text-retro-text/30 hover:text-retro-accent hover:bg-[#13141f] rounded-xl border border-transparent justify-center mt-1 cursor-pointer">
+            <ChevronRight size={14} className={`transition-transform duration-300 ${collapsed ? "" : "rotate-180"}`} />
           </button>
         </div>
       </aside>
@@ -217,13 +230,15 @@ function Sidebar({ page, setPage, open, setOpen, handleLogout }) {
 /* ════════════════════════════════════════════════
    TOPBAR
    ════════════════════════════════════════════════ */
-function Topbar({ setOpen, setPage, setEditingBlog }) {
+function Topbar({ collapsed, setCollapsed, setPage, setEditingBlog, user }) {
   const [search, setSearch] = useState("");
   return (
-    <div className="fixed top-4 right-4 left-[260px] max-lg:left-4 h-16 z-20 flex items-center px-5 gap-4 border-2 border-retro-border bg-retro-surface rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E]">
+    <header className="fixed top-4 right-4 h-16 z-20 border-2 border-retro-border bg-retro-surface rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E] flex items-center px-4 gap-4 transition-all duration-300"
+      style={{ left: collapsed ? "calc(68px + 32px)" : "calc(230px + 32px)" }}>
+      
       <button
         className="lg:hidden text-retro-text/60 hover:text-retro-accent p-1.5 border border-retro-border bg-[#13141f] rounded-lg transition-all"
-        onClick={() => setOpen(true)}
+        onClick={() => setCollapsed(false)}
       >
         <Menu size={17} />
       </button>
@@ -257,10 +272,10 @@ function Topbar({ setOpen, setPage, setEditingBlog }) {
         </button>
 
         <div className="w-9 h-9 border border-retro-accent bg-retro-accent rounded-xl flex items-center justify-center text-xs font-pixel text-[#1C1D2E] cursor-pointer shadow-[2px_2px_0px_#1C1D2E] hover:bg-retro-accent/80 transition-colors select-none">
-          KX
+          {user ? user.username?.substring(0,2).toUpperCase() : "AD"}
         </div>
       </div>
-    </div>
+    </header>
   );
 }
 
@@ -1011,7 +1026,7 @@ export default function AdminDashboard() {
   }, [navigate]);
 
   const [page, setPage] = useState("dashboard");
-  const [sideOpen, setSideOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [readAdminOnly, setReadAdminOnly] = useState(false);
 
   const handleLogout = async () => {
@@ -1025,8 +1040,8 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const check = () => {
-      if (window.innerWidth >= 1024) setSideOpen(true);
-      else setSideOpen(false);
+      if (window.innerWidth >= 1024) setCollapsed(false);
+      else setCollapsed(true);
     };
     check();
     window.addEventListener("resize", check);
@@ -1041,17 +1056,23 @@ export default function AdminDashboard() {
       <Sidebar
         page={page}
         setPage={setPage}
-        open={sideOpen}
-        setOpen={setSideOpen}
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+        setEditingBlog={setEditingBlog}
         handleLogout={handleLogout}
       />
       <Topbar
-        setOpen={setSideOpen}
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
         setPage={setPage}
         setEditingBlog={setEditingBlog}
+        user={user}
       />
 
-      <main className="relative z-10 lg:pl-[260px] pt-24 min-h-screen">
+      <main
+        className="relative z-10 min-h-screen pt-24 pb-8 pr-4 transition-all duration-300"
+        style={{ paddingLeft: window.innerWidth >= 1024 ? (collapsed ? "100px" : "262px") : "16px" }}
+      >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           {page === "dashboard" && (
             <DashboardPage setPage={setPage} setEditingBlog={setEditingBlog} setReadAdminOnly={setReadAdminOnly} user={user} />
