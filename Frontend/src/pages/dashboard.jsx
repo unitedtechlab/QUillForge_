@@ -243,7 +243,7 @@ function WelcomeSection({ visible, user, setActive, setEditingBlog, handleNewBlo
             <div className="inline-flex items-center gap-2 px-3 py-1 border border-retro-border bg-retro-accent text-[#1C1D2E] text-xs font-pixel rounded-lg">
               <Sparkles size={11} className="animate-spin" /> {greeting.toUpperCase()}
             </div>
-            <h1 className="text-4xl sm:text-5xl font-black text-retro-accent tracking-widest uppercase">
+            <h1 className="text-4xl sm:text-5xl font-black text-retro-accent tracking-widest uppercase font-heading">
               {user?.username || "Loading..."}<span className="text-retro-accent">.</span>
             </h1>
             <p className="text-retro-text/60 text-xs font-terminal">
@@ -338,7 +338,7 @@ function StatCards({ visible, userBlogs }) {
               </div>
             </div>
 
-            <div className={`text-5xl font-black ${c.valueColor} mb-1`}>
+            <div className={`text-5xl font-black ${c.valueColor} mb-1 font-heading`}>
               <AnimatedNumber target={c.value} />
             </div>
             <p className="text-retro-text/60 text-xs mb-4 uppercase tracking-wider font-terminal">{c.label}</p>
@@ -468,7 +468,7 @@ function RecentBlogs({ visible, setActive, userBlogs }) {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-4 border-b border-retro-border/40">
           <div>
-            <h2 className="text-xl font-bold text-retro-accent uppercase tracking-wider">Recent Blogs</h2>
+            <h2 className="text-xl font-bold text-retro-accent uppercase tracking-wider font-heading">Recent Blogs</h2>
             <p className="text-retro-text/30 text-xs font-terminal uppercase mt-0.5">{userBlogs.length} total posts</p>
           </div>
           <div className="flex items-center gap-2">
@@ -563,7 +563,7 @@ function ActivityFeed({ visible, userBlogs }) {
       <div className="border-2 border-retro-border bg-retro-surface rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E] overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-retro-border/40">
           <div>
-            <h2 className="text-xl font-bold text-retro-accent uppercase tracking-wider">Activity</h2>
+            <h2 className="text-xl font-bold text-retro-accent uppercase tracking-wider font-heading">Activity</h2>
             <p className="text-retro-text/30 text-xs font-terminal uppercase mt-0.5">Recent notifications</p>
           </div>
           <div className="w-2.5 h-2.5 bg-retro-accent rounded-full animate-pulse" />
@@ -620,7 +620,7 @@ function QuickActions({ visible, setActive, setEditingBlog, handleNewBlog, setRe
       style={{ transitionDelay: "500ms" }}>
       <div className="border-2 border-retro-border bg-retro-surface rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E] overflow-hidden">
         <div className="px-5 py-4 border-b border-retro-border/40">
-          <h2 className="text-xl font-bold text-retro-accent uppercase tracking-wider">Quick Actions</h2>
+          <h2 className="text-xl font-bold text-retro-accent uppercase tracking-wider font-heading">Quick Actions</h2>
         </div>
         <div className="p-4 grid grid-cols-3 gap-3">
           {actions.map((a, i) => (
@@ -694,7 +694,7 @@ function WritingStreak({ visible, userBlogs }) {
       <div className="border-2 border-retro-border bg-retro-surface rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E] overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-retro-border/40">
           <div>
-            <h2 className="text-xl font-bold text-retro-accent uppercase tracking-wider">Writing Streak</h2>
+            <h2 className="text-xl font-bold text-retro-accent uppercase tracking-wider font-heading">Writing Streak</h2>
             <p className="text-retro-text/30 text-xs font-terminal uppercase mt-0.5">12-week activity heatmap</p>
           </div>
           <div className="flex items-center gap-2 text-xs font-pixel tracking-wider border border-retro-border bg-[#13141f] px-2.5 py-1 text-retro-accent rounded-lg">
