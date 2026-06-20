@@ -224,6 +224,44 @@ export default function BlogDetails() {
   }, [id]);
 
   useEffect(() => {
+    if (blog) {
+      document.title = `${blog.title} | QuillForge`;
+      
+      let metaDesc = document.querySelector('meta[name="description"]');
+      if (!metaDesc) {
+        metaDesc = document.createElement('meta');
+        metaDesc.name = 'description';
+        document.head.appendChild(metaDesc);
+      }
+      metaDesc.content = blog.excerpt || "Read this story on QuillForge developer portal.";
+
+      let scriptSchema = document.getElementById('jsonld-schema');
+      if (!scriptSchema) {
+        scriptSchema = document.createElement('script');
+        scriptSchema.id = 'jsonld-schema';
+        scriptSchema.type = 'application/ld+json';
+        document.head.appendChild(scriptSchema);
+      }
+      scriptSchema.textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": blog.title,
+        "description": blog.excerpt || "Read this story on QuillForge developer portal.",
+        "author": {
+          "@type": "Person",
+          "name": blog.author?.username || "Author"
+        },
+        "datePublished": blog.createdAt,
+        "dateModified": blog.updatedAt,
+        "mainEntityOfPage": {
+          "@type": "WebPage",
+          "@id": window.location.href
+        }
+      });
+    }
+  }, [blog]);
+
+  useEffect(() => {
     const handleScroll = () => {
       const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
       if (totalScroll > 0) {

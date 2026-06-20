@@ -4,6 +4,16 @@ import cookieParser from "cookie-parser";
 import router from "./routes/user.routes.js";
 import passport from "passport";
 import blogRouter from "./routes/blog.routes.js";
+import swaggerUi from "swagger-ui-express";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const swaggerDocument = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "./config/swagger.json"), "utf8")
+);
 
 //function of passport is to handle authentication and authorization in our application,
 //  it provides a simple and consistent API for handling different authentication strategies, such as local username/password, Google OAuth, Facebook OAuth, etc.
@@ -48,6 +58,9 @@ app.use(passport.initialize());
 app.get("/", (req, res) => {
     res.send("Backend Running 🚀");
 });
+
+// Swagger UI Docs
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Routes
 app.use("/api/v1/users", router);
