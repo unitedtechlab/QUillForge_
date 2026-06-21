@@ -127,10 +127,13 @@ const updateBlog = asyncHandler(async (req, res) => {
     );
   }
 
+  // Whitelist only safe fields — prevents mass-assignment attacks
+  const { title, content, excerpt, isPublished, featuredImage } = req.body;
+
   const updatedBlog = await Blog.findByIdAndUpdate(
     req.params.id,
-    req.body,
-    { new: true }
+    { title, content, excerpt, isPublished, featuredImage },
+    { new: true, runValidators: true }
   );
 
   return res.status(200).json(

@@ -43,9 +43,14 @@ app.use(cookieParser());
 
 app.use(
   session({
-    secret: "googleauth",
+    secret: process.env.SESSION_SECRET || "fallback_dev_only_secret",
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 5 * 60 * 1000 // 5 minutes — short, sessions are not used for auth
+    }
   })
 );
 

@@ -40,14 +40,11 @@ const userSchema = new mongoose.Schema({
     });
     
     userSchema.pre('save', async function (next) {
-         if (!this.password) {
-        return;
-    }
-        if (!this.isModified('password')) {
-            return ;
+        if (!this.password || !this.isModified('password')) {
+            return next(); // always call next() so Mongoose doesn't hang
         }
         this.password = await bcrypt.hash(this.password, 10);
-  
+        return next();
     });
 
     userSchema.methods.isPasswordCorrect = async function(password){
