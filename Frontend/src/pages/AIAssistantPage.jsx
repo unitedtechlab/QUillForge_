@@ -34,6 +34,49 @@ function RetroCard({ children, className = "" }) {
   );
 }
 
+// Simulated progress stages that match Gemini's actual processing pipeline
+const PROGRESS_STAGES = [
+  { pct: 5,  label: "Initializing Gemini 2.5 Flash..." },
+  { pct: 15, label: "Analyzing subject and context..." },
+  { pct: 30, label: "Generating article structure..." },
+  { pct: 50, label: "Writing content sections..." },
+  { pct: 68, label: "Formatting HTML output..." },
+  { pct: 80, label: "Fetching cover image..." },
+  { pct: 92, label: "Finalizing draft..." },
+  { pct: 99, label: "Almost done..." },
+];
+
+/**
+ * Animated progress bar shown while Gemini is compiling
+ */
+function CompilationLoader({ progress, stage }) {
+  return (
+    <div className="mt-4 p-4 border-2 border-[#FF728F]/40 bg-[#13141f] rounded-xl space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-pixel text-[#FF728F] uppercase tracking-widest animate-pulse">
+          ★ GEMINI ENGINE ACTIVE
+        </span>
+        <span className="text-[10px] font-pixel text-retro-accent tabular-nums">
+          {progress}%
+        </span>
+      </div>
+
+      {/* Progress track */}
+      <div className="w-full h-2 bg-retro-border/30 rounded-full overflow-hidden border border-retro-border/40">
+        <div
+          className="h-full bg-gradient-to-r from-[#FF728F] to-retro-accent rounded-full transition-all duration-500 ease-out"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      {/* Stage label */}
+      <p className="text-[10px] font-terminal text-retro-text/50 uppercase tracking-wide">
+        {stage}
+      </p>
+    </div>
+  );
+}
+
 export default function AIAssistantPage({ onGenerateSuccess }) {
   const [aiSubject, setAiSubject] = useState("");
   const [aiTone, setAiTone] = useState("Professional");
@@ -45,6 +88,10 @@ export default function AIAssistantPage({ onGenerateSuccess }) {
   const [selectedPresetId, setSelectedPresetId] = useState("");
   const [generating, setGenerating] = useState(false);
   const [aiError, setAiError] = useState("");
+
+  // Progress loader state
+  const [progress, setProgress] = useState(0);
+  const [progressStage, setProgressStage] = useState("");
 
   // Load presets on mount
   useEffect(() => {
@@ -95,6 +142,25 @@ export default function AIAssistantPage({ onGenerateSuccess }) {
     }
   };
 
+  // Simulates progress ticking through stages while waiting for the API
+  const runProgressSimulation = () => {
+    let stageIndex = 0;
+    setProgress(PROGRESS_STAGES[0].pct);
+    setProgressStage(PROGRESS_STAGES[0].label);
+
+    const interval = setInterval(() => {
+      stageIndex += 1;
+      if (stageIndex < PROGRESS_STAGES.length) {
+        setProgress(PROGRESS_STAGES[stageIndex].pct);
+        setProgressStage(PROGRESS_STAGES[stageIndex].label);
+      } else {
+        clearInterval(interval);
+      }
+    }, 1800); // advances every 1.8 seconds (~14s total for 8 stages)
+
+    return interval;
+  };
+
   const handleAIGenerate = async () => {
     if (!aiSubject.trim()) {
       setAiError("Please enter a subject/topic idea");
@@ -102,6 +168,9 @@ export default function AIAssistantPage({ onGenerateSuccess }) {
     }
     setAiError("");
     setGenerating(true);
+
+    const progressInterval = runProgressSimulation();
+
     try {
       const res = await api.post("/blogs/ai-generate", {
         subject: aiSubject,
@@ -114,7 +183,15 @@ export default function AIAssistantPage({ onGenerateSuccess }) {
 
       if (res.data?.data) {
         const { title, excerpt, content, featuredImage } = res.data.data;
-        
+
+        // Snap to 100% before handing off
+        clearInterval(progressInterval);
+        setProgress(100);
+        setProgressStage("Draft ready! Loading into Writer Desk...");
+
+        // Small delay so user sees 100% before redirect
+        await new Promise((r) => setTimeout(r, 800));
+
         // Pass the generated blog data back to Dashboard to load into editor
         onGenerateSuccess({
           title: title || "",
@@ -135,10 +212,13 @@ export default function AIAssistantPage({ onGenerateSuccess }) {
         }
       }
     } catch (err) {
+      clearInterval(progressInterval);
       console.error(err);
       setAiError(err.response?.data?.message || "AI Compilation failed. Check your quota limit.");
     } finally {
       setGenerating(false);
+      setProgress(0);
+      setProgressStage("");
     }
   };
 
@@ -212,6 +292,7 @@ export default function AIAssistantPage({ onGenerateSuccess }) {
                 type="text"
                 value={aiSubject}
                 onChange={(e) => setAiSubject(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !generating) handleAIGenerate(); }}
                 placeholder="e.g. How to use WebSockets in Node.js, Cozy Digital Aesthetics..."
                 className={inputCls}
               />
@@ -318,10 +399,15 @@ export default function AIAssistantPage({ onGenerateSuccess }) {
               ) : (
                 <>
                   <Wand2 size={12} />
-                  COMPILE WITH GEMINI FLASH & PRE-FILL WRITER DESK
+                  COMPILE WITH GEMINI FLASH &amp; PRE-FILL WRITER DESK
                 </>
               )}
             </button>
+
+            {/* Progress Loader — shown only while generating */}
+            {generating && (
+              <CompilationLoader progress={progress} stage={progressStage} />
+            )}
           </div>
         </RetroCard>
       </div>

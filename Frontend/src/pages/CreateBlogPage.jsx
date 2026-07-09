@@ -54,7 +54,7 @@ function RetroCard({ children, className = "" }) {
 /* ════════════════════════════════════════════════
    CREATE BLOG PAGE COMPONENT
    ════════════════════════════════════════════════ */
-export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
+export default function CreateBlogPage({ editingBlog, setEditingBlog, aiDraft, clearAiDraft }) {
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [excerpt, setExcerpt] = useState("");
@@ -91,6 +91,20 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
       }
     }
   }, [editingBlog]);
+
+  // When a fresh AI draft arrives from the AI Assistant page, fill the editor immediately
+  useEffect(() => {
+    if (!aiDraft) return;
+    setTitle(aiDraft.title || "");
+    setExcerpt(aiDraft.excerpt || "");
+    setContent(aiDraft.content || "");
+    setCategory(aiDraft.category || "Technology");
+    setTags(aiDraft.tags || "");
+    setFeaturedImage(aiDraft.featuredImage || "");
+    setRecovered(true);
+    setTimeout(() => setRecovered(false), 5000);
+    if (clearAiDraft) clearAiDraft(); // consume — prevents re-fill on tab switch
+  }, [aiDraft]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Save draft to localStorage whenever fields change
   useEffect(() => {

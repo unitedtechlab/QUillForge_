@@ -754,6 +754,7 @@ export default function Dashboard() {
   const [editingBlog, setEditingBlog] = useState(null);
   const [createKey, setCreateKey] = useState(0);
   const [readAdminOnly, setReadAdminOnly] = useState(false);
+  const [aiDraft, setAiDraft] = useState(null); // AI-generated draft passed directly to editor
 
   // New state for user's blogs
   const [blogs, setBlogs] = useState([]);
@@ -770,13 +771,12 @@ export default function Dashboard() {
   };
 
   /**
-   * Receives generated content from AI assistant, saves it to draft,
-   * resets editing state, and switches focus to writer desk.
+   * Receives generated content from AI assistant and passes it directly to the editor.
+   * Uses aiDraft state prop instead of localStorage to avoid race conditions on remount.
    */
-  const handleAILoad = (aiDraft) => {
-    localStorage.setItem("quillforge_draft", JSON.stringify(aiDraft));
+  const handleAILoad = (draft) => {
     setEditingBlog(null);
-    setCreateKey(prev => prev + 1);
+    setAiDraft(draft);
     setActive("create");
   };
 
@@ -942,7 +942,13 @@ export default function Dashboard() {
 
           {/* Create Blog Page */}
           <div style={{ display: active === "create" ? "block" : "none" }}>
-            <CreateBlogPage key={editingBlog ? `edit-${editingBlog._id}` : `new-${createKey}`} editingBlog={editingBlog} setEditingBlog={setEditingBlog} />
+            <CreateBlogPage
+              key={editingBlog ? `edit-${editingBlog._id}` : `new-${createKey}`}
+              editingBlog={editingBlog}
+              setEditingBlog={setEditingBlog}
+              aiDraft={aiDraft}
+              clearAiDraft={() => setAiDraft(null)}
+            />
           </div>
 
           {/* AI Assistant Page */}
