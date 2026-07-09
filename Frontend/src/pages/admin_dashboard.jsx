@@ -28,11 +28,13 @@ import {
   Shield,
   BookMarked,
   Send,
+  Sparkles,
 } from "lucide-react";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
 import CreateBlogPage from "./CreateBlogPage";
 import ReadBlogsPage from "./ReadBlogsFeed";
+import AIAssistantPage from "./AIAssistantPage";
 
 const ACCENT = { ox: "'VT323', monospace", mono: "'Space Mono', monospace", pixel: "'Silkscreen', monospace" };
 
@@ -129,6 +131,7 @@ function GradientBtn({ children, onClick, className = "" }) {
 const NAV_ITEMS = [
   { id: "dashboard", icon: <LayoutDashboard size={16}/>, label: "Dashboard" },
   { id: "create",    icon: <PenLine size={16}/>,         label: "Create Blog" },
+  { id: "ai-assistant", icon: <Sparkles size={16} className="text-[#FF728F] animate-pulse" />, label: "AI Assistant", isAi: true },
   { id: "manage",    icon: <BookMarked size={16}/>,      label: "My Blogs" },
   { id: "read",      icon: <BookOpen size={16}/>,        label: "Read Blogs" },
 ];
@@ -171,22 +174,35 @@ function Sidebar({ page, setPage, collapsed, setCollapsed, setEditingBlog, handl
             return (
               <button key={item.id} onClick={() => { if (item.id === "create") { if (setEditingBlog) setEditingBlog(null); setPage("create"); } else { setPage(item.id); } setCollapsed(window.innerWidth < 1024 ? true : collapsed); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-200 group relative text-left cursor-pointer ${
-                  isActive
-                    ? "bg-retro-accent text-[#1C1D2E] border border-retro-accent rounded-xl shadow-[2px_2px_0px_0px_#1c1d2e]"
-                    : "text-retro-text/60 hover:text-retro-accent hover:bg-[#13141f] rounded-xl border border-transparent"
+                  item.isAi
+                    ? isActive
+                      ? "bg-[#FF728F] text-[#1C1D2E] border border-[#FF728F] rounded-xl shadow-[2px_2px_0px_0px_#1C1D2E]"
+                      : "text-[#FF728F]/90 border border-dashed border-[#FF728F]/40 hover:bg-[#FF728F]/10 rounded-xl"
+                    : isActive
+                      ? "bg-retro-accent text-[#1C1D2E] border border-retro-accent rounded-xl shadow-[2px_2px_0px_0px_#1c1d2e]"
+                      : "text-retro-text/60 hover:text-retro-accent hover:bg-[#13141f] rounded-xl border border-transparent"
                 } ${collapsed ? "lg:justify-center lg:px-2" : ""}`}
               >
                 <span className="flex-shrink-0">
                   {item.icon}
                 </span>
                 {!collapsed && (
-                  <span className="text-xs font-pixel tracking-wider uppercase whitespace-nowrap">
-                    {item.label}
-                  </span>
+                  <div className="flex flex-col items-start leading-tight">
+                    <span className="text-xs font-pixel tracking-wider uppercase whitespace-nowrap">
+                      {item.label}
+                    </span>
+                    {item.isAi && (
+                      <span className="text-[7px] text-[#FF728F] font-pixel tracking-widest uppercase mt-0.5 block opacity-85">
+                        ★ NEW FEATURE ★
+                      </span>
+                    )}
+                  </div>
                 )}
                 {/* Tooltip for collapsed */}
                 {collapsed && (
-                  <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-retro-surface border border-retro-border text-retro-accent text-[10px] rounded-lg uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 hidden lg:block shadow-[2px_2px_0px_0px_#1C1D2E]">
+                  <div className={`absolute left-full ml-2 px-2.5 py-1.5 bg-retro-surface border text-[10px] rounded-lg uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 hidden lg:block shadow-[2px_2px_0px_0px_#1C1D2E] ${
+                    item.isAi ? "border-[#FF728F] text-[#FF728F]" : "border-retro-border text-retro-accent"
+                  }`}>
                     {item.label}
                   </div>
                 )}
@@ -1028,6 +1044,14 @@ export default function AdminDashboard() {
   const [page, setPage] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const [readAdminOnly, setReadAdminOnly] = useState(false);
+  const [createKey, setCreateKey] = useState(0);
+
+  const handleAILoad = (aiDraft) => {
+    localStorage.setItem("quillforge_draft", JSON.stringify(aiDraft));
+    setEditingBlog(null);
+    setCreateKey(prev => prev + 1);
+    setPage("create");
+  };
 
   const handleLogout = async () => {
     try {
@@ -1083,6 +1107,9 @@ export default function AdminDashboard() {
               setEditingBlog={setEditingBlog}
             />
           )}
+          {page === "ai-assistant" && (
+            <AIAssistantPage onGenerateSuccess={handleAILoad} />
+          )}
           {page === "read" && (
             <ReadBlogsPage adminOnly={readAdminOnly} />
           )}
@@ -1090,6 +1117,7 @@ export default function AdminDashboard() {
           {/* Always mounted so state is never lost, hidden when not active */}
           <div style={{ display: page === "create" ? "block" : "none" }}>
             <CreateBlogPage
+              key={editingBlog ? `edit-${editingBlog._id}` : `new-${createKey}`}
               editingBlog={editingBlog}
               setEditingBlog={setEditingBlog}
             />
