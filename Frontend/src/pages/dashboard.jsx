@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import CreateBlogPage from "./CreateBlogPage";
 import MyBlogsPage from "./UserOwnBlogs";
 import ReadBlogsPage from "./ReadBlogsFeed";
+import AIAssistantPage from "./AIAssistantPage";
 
 
 
@@ -68,7 +69,7 @@ function Sparkline({ data, color = "#8F72FF", height = 40 }) {
 }
 
 /* ─────────────────── SIDEBAR ─────────────────── */
-function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, handleNewBlog, handleLogout, activeAiWriter }) {
+function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, handleNewBlog, handleLogout }) {
   const nav = [
     { id: "dashboard", icon: <LayoutDashboard size={16}/>, label: "Dashboard" },
     { id: "create",    icon: <PenLine size={16}/>,         label: "Create Blog" },
@@ -110,14 +111,10 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, h
         {/* Nav */}
         <nav className="flex-grow p-3 space-y-1.5 overflow-hidden">
           {nav.map(item => {
-            const isActive = item.id === "ai-assistant"
-              ? (active === "create" && activeAiWriter)
-              : item.id === "create"
-                ? (active === "create" && !activeAiWriter)
-                : active === item.id;
+            const isActive = active === item.id;
 
             return (
-              <button key={item.id} onClick={() => { if (item.id === "create") { handleNewBlog(false); } else if (item.id === "ai-assistant") { handleNewBlog(true); } else { setActive(item.id); } setCollapsed(window.innerWidth < 1024 ? true : collapsed); }}
+              <button key={item.id} onClick={() => { if (item.id === "create") { handleNewBlog(); } else { setActive(item.id); } setCollapsed(window.innerWidth < 1024 ? true : collapsed); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-200 group relative ${
                   item.isAi
                     ? isActive
@@ -757,7 +754,6 @@ export default function Dashboard() {
   const [editingBlog, setEditingBlog] = useState(null);
   const [createKey, setCreateKey] = useState(0);
   const [readAdminOnly, setReadAdminOnly] = useState(false);
-  const [activeAiWriter, setActiveAiWriter] = useState(false);
 
   // New state for user's blogs
   const [blogs, setBlogs] = useState([]);
@@ -767,11 +763,21 @@ export default function Dashboard() {
    * Resets editing state and redirects active viewport focus to the blog editor screen.
    * Why: Ensures the editor launches with blank inputs instead of lingering edit session data.
    */
-  const handleNewBlog = (startWithAi = false) => {
+  const handleNewBlog = () => {
     setEditingBlog(null);
     setActive("create");
     setCreateKey(prev => prev + 1);
-    setActiveAiWriter(startWithAi);
+  };
+
+  /**
+   * Receives generated content from AI assistant, saves it to draft,
+   * resets editing state, and switches focus to writer desk.
+   */
+  const handleAILoad = (aiDraft) => {
+    localStorage.setItem("quillforge_draft", JSON.stringify(aiDraft));
+    setEditingBlog(null);
+    setCreateKey(prev => prev + 1);
+    setActive("create");
   };
 
   /**
@@ -892,7 +898,7 @@ export default function Dashboard() {
 
       <Background />
 
-      <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} setEditingBlog={setEditingBlog} handleNewBlog={handleNewBlog} handleLogout={handleLogout} activeAiWriter={activeAiWriter} />
+      <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} setEditingBlog={setEditingBlog} handleNewBlog={handleNewBlog} handleLogout={handleLogout} />
       <Topbar collapsed={collapsed} setCollapsed={setCollapsed} user={user} setActive={setActive} setEditingBlog={setEditingBlog} handleNewBlog={handleNewBlog} />
 
       {/* Main content */}
@@ -936,7 +942,12 @@ export default function Dashboard() {
 
           {/* Create Blog Page */}
           <div style={{ display: active === "create" ? "block" : "none" }}>
-            <CreateBlogPage key={editingBlog ? `edit-${editingBlog._id}` : `new-${createKey}`} editingBlog={editingBlog} setEditingBlog={setEditingBlog} initialShowAI={activeAiWriter} />
+            <CreateBlogPage key={editingBlog ? `edit-${editingBlog._id}` : `new-${createKey}`} editingBlog={editingBlog} setEditingBlog={setEditingBlog} />
+          </div>
+
+          {/* AI Assistant Page */}
+          <div style={{ display: active === "ai-assistant" ? "block" : "none" }}>
+            <AIAssistantPage onGenerateSuccess={handleAILoad} />
           </div>
 
           {/* My Blogs Page */}
@@ -950,7 +961,7 @@ export default function Dashboard() {
           </div>
 
           {/* Placeholder/Alternative Pages */}
-          {active !== "dashboard" && active !== "create" && active !== "blogs" && active !== "read" && (
+          {active !== "dashboard" && active !== "create" && active !== "ai-assistant" && active !== "blogs" && active !== "read" && (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
               <div className="border-2 border-retro-border bg-retro-surface p-8 shadow-[6px_6px_0px_0px_#1C1D2E] rounded-2xl text-center max-w-md mx-auto">
                 <div className="w-16 h-16 border border-retro-border bg-[#13141f] rounded-xl flex items-center justify-center text-retro-accent mx-auto mb-5 shadow-[3px_3px_0px_0px_#1C1D2E]">
