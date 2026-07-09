@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import {
-  CheckCircle2,
   ChevronDown,
   Trash2,
   Sparkles,

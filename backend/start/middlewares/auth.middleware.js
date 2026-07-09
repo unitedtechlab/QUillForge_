@@ -31,3 +31,21 @@ const verifyjwt= asyncHandler(async (req,res,next)=>{
 });
 
 export { verifyjwt };
+
+// Optional authentication: attaches req.user if a valid token is present,
+// but NEVER rejects the request. Used on public routes (e.g. GET /blogs)
+// where logged-in authors should additionally see their own drafts.
+const optionalAuth = asyncHandler(async (req, res, next) => {
+    const token = req.cookies?.accessToken || req.headers.authorization?.split(" ")[1];
+    if (!token) return next();
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded._id).select("-password");
+        if (user) req.user = user;
+    } catch (err) {
+        // Invalid/expired token on a public route — just treat as anonymous
+    }
+    next();
+});
+
+export { optionalAuth };

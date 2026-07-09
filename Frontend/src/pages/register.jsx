@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
-import {
-  Mail, Lock, Eye, EyeOff, ArrowRight,
-  User, CheckCircle2, AlertCircle
-} from "lucide-react";
-import api from "../api/axios";
+import { Eye, EyeOff, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
+import api, { backendUrl } from "../api/axios";
 import { useNavigate } from "react-router-dom";
 
 /* ─────────────────────────────────────────────
@@ -45,7 +42,7 @@ function PasswordStrength({ password }) {
         />
       ))}
       {level.label && (
-        <span className="text-[11px] font-pixel ml-1 transition-all duration-300 ${level.textColor}">
+        <span className={`text-[11px] font-pixel ml-1 transition-all duration-300 ${level.textColor}`}>
           {level.label}
         </span>
       )}
@@ -270,7 +267,8 @@ export default function Register() {
   };
 
   const handleGoogle = () => {
-    window.location.href = "https://api.quillforge.unitedtechlab.com/api/v1/users/google";
+    // Uses the configured backend (env-driven) instead of a hardcoded production URL
+    window.location.href = `${backendUrl}/api/v1/users/google`;
   };
 
   return (
@@ -418,7 +416,7 @@ export default function Register() {
                   className="accent-retro-accent w-3.5 h-3.5 mt-0.5 cursor-pointer"
                 />
                 <span className="text-xs font-terminal text-retro-text/40 leading-tight">
-                  I agree to the <a href="#" className="text-retro-accent hover:underline">Terms of Service</a> & <a href="#" className="text-retro-accent hover:underline">Privacy Policy</a>
+                  I agree to the <span className="text-retro-accent">Terms of Service</span> & <span className="text-retro-accent">Privacy Policy</span>
                 </span>
               </label>
 

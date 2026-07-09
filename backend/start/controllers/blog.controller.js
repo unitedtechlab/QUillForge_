@@ -74,10 +74,16 @@ const createBlog = asyncHandler(async (req, res) => {
 
 const getAllBlogs = asyncHandler(async (req, res) => {
 
-  // Unauthenticated users only see published blogs; authenticated authors also see their own drafts
-  const filter = req.user
-    ? { $or: [{ isPublished: true }, { author: req.user._id }] }
-    : { isPublished: true };
+  // Visibility rules:
+  //  - anonymous:   published blogs only
+  //  - logged in:   published blogs + their own drafts
+  //  - admin:       everything (required for the moderation dashboard)
+  let filter = { isPublished: true };
+  if (req.user) {
+    filter = req.user.role === "admin"
+      ? {}
+      : { $or: [{ isPublished: true }, { author: req.user._id }] };
+  }
 
   const blogs = await Blog.find(filter)
     .populate("author", "username role")
@@ -158,11 +164,28 @@ const updateBlog = asyncHandler(async (req, res) => {
 
   const safeContent = content ? sanitizeHtml(content, ALLOWED_HTML) : undefined;
 
-  const updatedBlog = await Blog.findByIdAndUpdate(
-    req.params.id,
-    { title, content: safeContent, excerpt, isPublished, featuredImage },
-    { new: true, runValidators: true }
-  );
+  // Keep the slug in sync when the title changes
+  let slug;
+  if (title && title !== blog.title) {
+    slug = title.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    if (!slug) {
+      throw new ApiError(400, "Title must contain at least one ASCII character");
+    }
+  }
+
+  let updatedBlog;
+  try {
+    updatedBlog = await Blog.findByIdAndUpdate(
+      req.params.id,
+      { title, slug, content: safeContent, excerpt, isPublished, featuredImage },
+      { new: true, runValidators: true }
+    );
+  } catch (err) {
+    if (err.code === 11000) {
+      throw new ApiError(409, "A blog with this title already exists");
+    }
+    throw err;
+  }
 
   return res.status(200).json(
     new ApiResponse(

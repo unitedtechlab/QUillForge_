@@ -10,10 +10,7 @@ import {
   Zap,
   AlignLeft,
   Layers,
-  ExternalLink,
-  Trash2,
-  Sparkles,
-  Wand2
+  ExternalLink
 } from "lucide-react";
 import api from "../api/axios";
 
@@ -68,31 +65,54 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog, aiDraft, c
   const [featuredImage, setFeaturedImage] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
 
-  // Load draft from localStorage on mount (if we are NOT editing an existing blog)
+  // ── Effect 1: Load editing blog OR localStorage draft on mount / blog change ──
+  // Runs when the component mounts or when editingBlog changes (e.g. user picks
+  // an existing blog to edit, or starts fresh). Skips when AI content is pending
+  // so it doesn't clobber fields that the AI effect will fill momentarily.
   useEffect(() => {
-    if (!editingBlog) {
-      const savedDraft = localStorage.getItem("quillforge_draft");
-      if (savedDraft) {
-        try {
-          const { title: dTitle, excerpt: dExcerpt, content: dContent, category: dCategory, tags: dTags, featuredImage: dImg } = JSON.parse(savedDraft);
-          if (dTitle || dContent || dExcerpt || dImg) {
-            setTitle(dTitle || "");
-            setExcerpt(dExcerpt || "");
-            setContent(dContent || "");
-            setCategory(dCategory || "Technology");
-            setTags(dTags || "");
-            setFeaturedImage(dImg || "");
-            setRecovered(true);
-            setTimeout(() => setRecovered(false), 5000);
-          }
-        } catch (e) {
-          console.error("Failed to parse saved draft", e);
+    if (aiDraft) return; // AI draft takes priority — handled in the next effect
+
+    if (editingBlog) {
+      setTitle(editingBlog.title || "");
+      setExcerpt(editingBlog.excerpt || "");
+      setContent(editingBlog.content || "");
+      setPub(editingBlog.isPublished);
+      setFeaturedImage(editingBlog.featuredImage || "");
+      return;
+    }
+
+    // No editing blog — try to recover from localStorage
+    const savedDraft = localStorage.getItem("quillforge_draft");
+    if (savedDraft) {
+      try {
+        const { title: dTitle, excerpt: dExcerpt, content: dContent, category: dCategory, tags: dTags, featuredImage: dImg } = JSON.parse(savedDraft);
+        if (dTitle || dContent || dExcerpt || dImg) {
+          setTitle(dTitle || "");
+          setExcerpt(dExcerpt || "");
+          setContent(dContent || "");
+          setCategory(dCategory || "Technology");
+          setTags(dTags || "");
+          setFeaturedImage(dImg || "");
+          setRecovered(true);
+          setTimeout(() => setRecovered(false), 5000);
+          return;
         }
+      } catch (e) {
+        console.error("Failed to parse saved draft", e);
       }
     }
-  }, [editingBlog]);
 
-  // When a fresh AI draft arrives from the AI Assistant page, fill the editor immediately
+    // No editing blog, no localStorage draft — clear everything
+    setTitle("");
+    setExcerpt("");
+    setContent("");
+    setPub(false);
+    setFeaturedImage("");
+  }, [editingBlog, aiDraft]);
+
+  // ── Effect 2: AI-generated draft — MUST run after Effect 1 to win the race ──
+  // When the AI Assistant generates content, this fills the editor fields.
+  // clearAiDraft is deferred to avoid a batched re-render that would clear fields.
   useEffect(() => {
     if (!aiDraft) return;
     setTitle(aiDraft.title || "");
@@ -103,10 +123,12 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog, aiDraft, c
     setFeaturedImage(aiDraft.featuredImage || "");
     setRecovered(true);
     setTimeout(() => setRecovered(false), 5000);
-    if (clearAiDraft) clearAiDraft(); // consume — prevents re-fill on tab switch
+    // Defer clear so React commits the field updates before the parent re-renders
+    // with aiDraft=null (which would otherwise trigger Effect 1's clear branch)
+    if (clearAiDraft) setTimeout(() => clearAiDraft(), 0);
   }, [aiDraft]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Save draft to localStorage whenever fields change
+  // ── Auto-save draft to localStorage whenever fields change ──
   useEffect(() => {
     if (editingBlog) return;
     if (!title && !content && !excerpt && !tags && !featuredImage) {
@@ -116,28 +138,6 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog, aiDraft, c
     const draftData = { title, excerpt, content, category, tags, featuredImage };
     localStorage.setItem("quillforge_draft", JSON.stringify(draftData));
   }, [title, excerpt, content, category, tags, featuredImage, editingBlog]);
-
-  // Effect to load editingBlog properties into form fields when in edit mode,
-  // or clear them when launching a fresh blog creation.
-  useEffect(() => {
-    if (!editingBlog) {
-      const savedDraft = localStorage.getItem("quillforge_draft");
-      if (!savedDraft) {
-        setTitle("");
-        setExcerpt("");
-        setContent("");
-        setPub(false);
-        setFeaturedImage("");
-      }
-      return;
-    }
-
-    setTitle(editingBlog.title || "");
-    setExcerpt(editingBlog.excerpt || "");
-    setContent(editingBlog.content || "");
-    setPub(editingBlog.isPublished);
-    setFeaturedImage(editingBlog.featuredImage || "");
-  }, [editingBlog]);
 
   // Effect to automatically synchronize URL Slug field with title changes.
   useEffect(() => {

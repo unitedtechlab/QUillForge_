@@ -9,7 +9,9 @@ const resolveMxAsync = promisify(dns.resolveMx);
 
 const registerUser = asyncHandler(async (req, res) => {
     const { username, email, password } = req.body;
-    if ([username, email, password].some((field) => field?.trim() === "")) {
+    // Reject missing, non-string, or blank fields (the old `field?.trim() === ""`
+    // check let undefined fields slip through and crash with a 500 at the DB layer)
+    if ([username, email, password].some((field) => typeof field !== "string" || field.trim() === "")) {
         throw new ApiError(400, "All fields are required");
     }
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });

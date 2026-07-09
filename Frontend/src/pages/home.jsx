@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
-  ArrowRight, BookOpen, Star, Check, X, Menu,
-  Lock, Eye, Heart, Coffee, Shield, Globe, Award, Rss,
-  Gamepad2, Compass, Play, ChevronRight, Feather
+  ArrowRight, X, Menu,
+  Eye, Heart, Coffee, Globe, Award,
+  Gamepad2, Compass, ChevronRight
 } from "lucide-react";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
@@ -263,6 +263,9 @@ function BlogPreview() {
       .catch(() => {
         setPosts(fallbackPosts);
       });
+    // fallbackPosts is a static constant defined outside the component —
+    // it will never change, so it is safe to omit from the dependency array.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const featuredPost = posts[0] || fallbackPosts[0];

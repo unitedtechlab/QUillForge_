@@ -36,7 +36,9 @@ const router = Router();
   
 router.route("/register").post(registerLimiter, registerUser);
 router.route("/login").post(loginLimiter, loginUser);
-router.route("/validate-email").get(validateEmailLimiter, verifyjwt, validateEmail);
+// NOTE: no verifyjwt here — this endpoint is called from the login/register pages
+// BEFORE the user has a token. It is protected by the rate limiter above instead.
+router.route("/validate-email").get(validateEmailLimiter, validateEmail);
 router.route("/current-user").get(verifyjwt, getCurrentUser);
 router.route("/logout").post(verifyjwt, logoutUser);
 

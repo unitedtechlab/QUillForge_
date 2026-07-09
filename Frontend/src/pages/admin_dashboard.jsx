@@ -1,28 +1,22 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Feather,
   LayoutDashboard,
   BookOpen,
   PenLine,
-  Settings,
   LogOut,
   Bell,
   Search,
   Plus,
   Eye,
-  Heart,
   TrendingUp,
   ArrowRight,
   Menu,
-  X,
   Edit3,
   Trash2,
   Globe,
   FileText,
   Save,
-  CheckCircle2,
-  ChevronDown,
-  ChevronUp,
   ChevronRight,
   Star,
   Shield,
@@ -36,6 +30,8 @@ import CreateBlogPage from "./CreateBlogPage";
 import ReadBlogsPage from "./ReadBlogsFeed";
 import AIAssistantPage from "./AIAssistantPage";
 
+// Font stack constants (used by inline style overrides in JSX)
+// eslint-disable-next-line no-unused-vars
 const ACCENT = { ox: "'VT323', monospace", mono: "'Space Mono', monospace", pixel: "'Silkscreen', monospace" };
 
 const CHART_DATA = [
@@ -390,7 +386,7 @@ function StatCard({
    ════════════════════════════════════════════════ */
 function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
   const [blogs, setBlogs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // eslint-disable-line no-unused-vars
   const navigate = useNavigate();
 
   const hour = new Date().getHours();

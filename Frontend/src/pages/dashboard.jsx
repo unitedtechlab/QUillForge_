@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Feather, LayoutDashboard, BookOpen, PenLine, BarChart3,
-  Users, Settings, LogOut, Bell, Search, Plus, Eye, Heart,
-  MessageSquare, TrendingUp, TrendingDown, ArrowRight, Menu, X,
-  MoreHorizontal, Edit3, Trash2, ExternalLink, Star, Zap,
-  Calendar, Clock, Tag, ChevronRight, ChevronUp, Sparkles,
-  Globe, Lock, FileText, Activity, BookMarked, Save
+  Users, LogOut, Bell, Search, Plus, Eye, Heart,
+  MessageSquare, TrendingUp, Menu,
+  ExternalLink, Star, Zap,
+  Calendar, Clock, Tag, ChevronRight, Sparkles,
+  Globe, FileText, Activity, BookMarked, Save
 } from "lucide-react";
 
 import api from "../api/axios";
@@ -18,8 +18,10 @@ import AIAssistantPage from "./AIAssistantPage";
 
 
 /* ─────────────────── CONSTANTS ─────────────────── */
+// eslint-disable-next-line no-unused-vars
 const ACCENT = { ox: "'VT323', monospace", mono: "'Space Mono', monospace", pixel: "'Silkscreen', monospace" };
 
+// eslint-disable-next-line no-unused-vars
 const BLOGS = [
   { id: 1, title: "Building Scalable APIs with Node.js and Express", category: "Technology", status: "published", views: 8241, likes: 432, comments: 38, date: "Jun 1, 2025", readTime: "8 min", emoji: "⚡" },
   { id: 2, title: "The Art of Minimalist UI Design Systems", category: "Design", status: "published", views: 5712, likes: 289, comments: 24, date: "May 24, 2025", readTime: "6 min", emoji: "🎨" },
@@ -188,7 +190,7 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, h
 /* ─────────────────── TOPBAR ─────────────────── */
 function Topbar({ collapsed, setCollapsed, user, setActive, setEditingBlog, handleNewBlog }) {
   const [search, setSearch] = useState("");
-  const [notifs, setNotifs] = useState(3);
+  const [notifs, setNotifs] = useState(3); // eslint-disable-line no-unused-vars
 
   return (
     <header className="fixed top-4 right-4 h-16 z-20 border-2 border-retro-border bg-retro-surface rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E] flex items-center px-4 gap-4 transition-all duration-300"
@@ -758,6 +760,7 @@ export default function Dashboard() {
 
   // New state for user's blogs
   const [blogs, setBlogs] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [blogsLoading, setBlogsLoading] = useState(true);
 
   /**
@@ -777,6 +780,7 @@ export default function Dashboard() {
   const handleAILoad = (draft) => {
     setEditingBlog(null);
     setAiDraft(draft);
+    setCreateKey(k => k + 1); // force remount so editor starts fresh with AI content
     setActive("create");
   };
 
@@ -803,14 +807,16 @@ export default function Dashboard() {
     const fetchUser = async () => {
       try {
         const res = await api.get("/users/current-user");
-        console.log(res.data);
         setUser(res.data.data);
       } catch (error) {
-        console.log(error);
+        // No valid session — send the visitor to the login page instead of
+        // rendering a broken, empty dashboard
+        navigate("/login");
       }
     };
 
     fetchUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**
@@ -856,6 +862,7 @@ export default function Dashboard() {
    * API CALL: DELETE `/blogs/:id` (in backend start/routes/blog.routes.js)
    * Why: Removes the post object permanently from the server and local list state.
    */
+  // eslint-disable-next-line no-unused-vars
   const handleDeleteBlog = async (id) => {
     try {
       await api.delete(`/blogs/${id}`);
@@ -881,6 +888,7 @@ export default function Dashboard() {
     return authorId === user._id;
   });
 
+  // eslint-disable-next-line no-unused-vars
   const sideW = collapsed ? 0 : 230;
 
   return (

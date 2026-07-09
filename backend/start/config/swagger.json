@@ -3,7 +3,7 @@
   "info": {
     "title": "QuillForge REST API Documentation",
     "version": "1.0.0",
-    "description": "Comprehensive API specification sheet for QuillForge — a developer-themed retro blogging platform."
+    "description": "Comprehensive API specification sheet for QuillForge \u2014 a developer-themed retro blogging platform."
   },
   "servers": [
     {
@@ -28,33 +28,93 @@
       "User": {
         "type": "object",
         "properties": {
-          "_id": { "type": "string", "example": "65893a72cb123e4567890def" },
-          "username": { "type": "string", "example": "hacker_writer" },
-          "email": { "type": "string", "example": "writer@gmail.com" },
-          "role": { "type": "string", "enum": ["user", "admin"], "example": "user" },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" }
+          "_id": {
+            "type": "string",
+            "example": "65893a72cb123e4567890def"
+          },
+          "username": {
+            "type": "string",
+            "example": "hacker_writer"
+          },
+          "email": {
+            "type": "string",
+            "example": "writer@gmail.com"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "admin"
+            ],
+            "example": "user"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "Blog": {
         "type": "object",
         "properties": {
-          "_id": { "type": "string", "example": "65893b82cb123e4567890abc" },
-          "title": { "type": "string", "example": "Mastering Mongoose Aggregations" },
-          "slug": { "type": "string", "example": "mastering-mongoose-aggregations" },
-          "excerpt": { "type": "string", "example": "Learn how to write performant pipelines." },
-          "content": { "type": "string", "example": "<p>MongoDB Aggregation framework is powerful...</p>" },
-          "author": { "type": "string", "description": "User ID of the author", "example": "65893a72cb123e4567890def" },
-          "isPublished": { "type": "boolean", "example": true },
-          "featuredImage": { "type": "string", "example": "https://res.cloudinary.com/demo/image/upload/v1/featured.png" },
-          "views": { "type": "integer", "example": 42 },
+          "_id": {
+            "type": "string",
+            "example": "65893b82cb123e4567890abc"
+          },
+          "title": {
+            "type": "string",
+            "example": "Mastering Mongoose Aggregations"
+          },
+          "slug": {
+            "type": "string",
+            "example": "mastering-mongoose-aggregations"
+          },
+          "excerpt": {
+            "type": "string",
+            "example": "Learn how to write performant pipelines."
+          },
+          "content": {
+            "type": "string",
+            "example": "<p>MongoDB Aggregation framework is powerful...</p>"
+          },
+          "author": {
+            "type": "string",
+            "description": "User ID of the author",
+            "example": "65893a72cb123e4567890def"
+          },
+          "isPublished": {
+            "type": "boolean",
+            "example": true
+          },
+          "featuredImage": {
+            "type": "string",
+            "example": "https://res.cloudinary.com/demo/image/upload/v1/featured.png"
+          },
+          "views": {
+            "type": "integer",
+            "example": 42
+          },
           "likes": {
             "type": "array",
-            "items": { "type": "string" },
-            "example": ["65893a72cb123e4567890def"]
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "65893a72cb123e4567890def"
+            ]
           },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" }
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       }
     }
@@ -70,11 +130,24 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["username", "email", "password"],
+                "required": [
+                  "username",
+                  "email",
+                  "password"
+                ],
                 "properties": {
-                  "username": { "type": "string", "example": "new_writer" },
-                  "email": { "type": "string", "example": "new_writer@gmail.com" },
-                  "password": { "type": "string", "example": "SecurePass123!" }
+                  "username": {
+                    "type": "string",
+                    "example": "new_writer"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "new_writer@gmail.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "SecurePass123!"
+                  }
                 }
               }
             }
@@ -88,15 +161,25 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "message": { "type": "string", "example": "User registered successfully" },
-                    "data": { "$ref": "#/components/schemas/User" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User registered successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
                   }
                 }
               }
             }
           },
-          "400": { "description": "Invalid input or email already registered" }
+          "400": {
+            "description": "Invalid input or email already registered"
+          }
         }
       }
     },
@@ -110,10 +193,19 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["email", "password"],
+                "required": [
+                  "email",
+                  "password"
+                ],
                 "properties": {
-                  "email": { "type": "string", "example": "writer@gmail.com" },
-                  "password": { "type": "string", "example": "SecurePass123!" }
+                  "email": {
+                    "type": "string",
+                    "example": "writer@gmail.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "SecurePass123!"
+                  }
                 }
               }
             }
@@ -124,7 +216,10 @@
             "description": "Login successful",
             "headers": {
               "Set-Cookie": {
-                "schema": { "type": "string", "example": "accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; Path=/; HttpOnly; Secure" }
+                "schema": {
+                  "type": "string",
+                  "example": "accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; Path=/; HttpOnly; Secure"
+                }
               }
             },
             "content": {
@@ -132,11 +227,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "user": { "$ref": "#/components/schemas/User" }
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        }
                       }
                     }
                   }
@@ -144,7 +244,9 @@
               }
             }
           },
-          "401": { "description": "Unauthorized - invalid credentials" }
+          "401": {
+            "description": "Unauthorized - invalid credentials"
+          }
         }
       }
     },
@@ -157,7 +259,10 @@
             "name": "email",
             "in": "query",
             "required": true,
-            "schema": { "type": "string", "example": "writer@gmail.com" }
+            "schema": {
+              "type": "string",
+              "example": "writer@gmail.com"
+            }
           }
         ],
         "responses": {
@@ -168,14 +273,29 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "isValid": { "type": "boolean", "example": true },
-                        "exists": { "type": "boolean", "example": true },
-                        "isGoogle": { "type": "boolean", "example": true },
-                        "reason": { "type": "string", "example": "Gmail account exists on Google" }
+                        "isValid": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "exists": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "isGoogle": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "reason": {
+                          "type": "string",
+                          "example": "Gmail account exists on Google"
+                        }
                       }
                     }
                   }
@@ -190,7 +310,11 @@
       "get": {
         "summary": "Get authenticated user profile",
         "description": "Retrieves metadata of the currently signed-in user.",
-        "security": [{ "cookieAuth": [] }],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "User profile details",
@@ -199,14 +323,21 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "data": { "$ref": "#/components/schemas/User" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
                   }
                 }
               }
             }
           },
-          "401": { "description": "Unauthorized - Cookie missing or invalid" }
+          "401": {
+            "description": "Unauthorized - Cookie missing or invalid"
+          }
         }
       }
     },
@@ -214,7 +345,11 @@
       "post": {
         "summary": "Logout user",
         "description": "Clears the JWT authentication access cookie.",
-        "security": [{ "cookieAuth": [] }],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Logout successful",
@@ -223,8 +358,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "message": { "type": "string", "example": "Logged out successfully" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Logged out successfully"
+                    }
                   }
                 }
               }
@@ -238,7 +379,9 @@
         "summary": "Initiate Google OAuth2 authentication flow",
         "description": "Redirects browser to Google Account selection and authorization screen.",
         "responses": {
-          "302": { "description": "Redirects to Google accounts gateway" }
+          "302": {
+            "description": "Redirects to Google accounts gateway"
+          }
         }
       }
     },
@@ -251,11 +394,15 @@
             "name": "code",
             "in": "query",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
-          "302": { "description": "Sets cookie and redirects to dashboard/admin" }
+          "302": {
+            "description": "Sets cookie and redirects to dashboard/admin"
+          }
         }
       }
     },
@@ -263,16 +410,25 @@
       "post": {
         "summary": "Upload image to Cloudinary",
         "description": "Uploads an image file to Cloudinary cloud hosting using a multipart form file stream.",
-        "security": [{ "cookieAuth": [] }],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "multipart/form-data": {
               "schema": {
                 "type": "object",
-                "required": ["image"],
+                "required": [
+                  "image"
+                ],
                 "properties": {
-                  "image": { "type": "string", "format": "binary" }
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  }
                 }
               }
             }
@@ -286,8 +442,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "url": { "type": "string", "example": "https://res.cloudinary.com/demo/image/upload/v1/featured.png" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "url": {
+                      "type": "string",
+                      "example": "https://res.cloudinary.com/demo/image/upload/v1/featured.png"
+                    }
                   }
                 }
               }
@@ -308,10 +470,15 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "data": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/Blog" }
+                      "items": {
+                        "$ref": "#/components/schemas/Blog"
+                      }
                     }
                   }
                 }
@@ -323,20 +490,42 @@
       "post": {
         "summary": "Create new blog post",
         "description": "Saves a new blog draft or published post linked to the signed-in user.",
-        "security": [{ "cookieAuth": [] }],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["title", "content"],
+                "required": [
+                  "title",
+                  "content"
+                ],
                 "properties": {
-                  "title": { "type": "string", "example": "Creating clean APIs" },
-                  "content": { "type": "string", "example": "<p>Content markdown...</p>" },
-                  "excerpt": { "type": "string", "example": "Brief overview..." },
-                  "isPublished": { "type": "boolean", "example": true },
-                  "featuredImage": { "type": "string", "example": "https://res.cloudinary.com/image.png" }
+                  "title": {
+                    "type": "string",
+                    "example": "Creating clean APIs"
+                  },
+                  "content": {
+                    "type": "string",
+                    "example": "<p>Content markdown...</p>"
+                  },
+                  "excerpt": {
+                    "type": "string",
+                    "example": "Brief overview..."
+                  },
+                  "isPublished": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "featuredImage": {
+                    "type": "string",
+                    "example": "https://res.cloudinary.com/image.png"
+                  }
                 }
               }
             }
@@ -350,8 +539,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "data": { "$ref": "#/components/schemas/Blog" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Blog"
+                    }
                   }
                 }
               }
@@ -369,7 +563,10 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "example": "65893b82cb123e4567890abc" }
+            "schema": {
+              "type": "string",
+              "example": "65893b82cb123e4567890abc"
+            }
           }
         ],
         "responses": {
@@ -380,26 +577,40 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "data": { "$ref": "#/components/schemas/Blog" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Blog"
+                    }
                   }
                 }
               }
             }
           },
-          "404": { "description": "Blog not found" }
+          "404": {
+            "description": "Blog not found"
+          }
         }
       },
       "put": {
         "summary": "Update existing blog post",
         "description": "Edits title, content, status, excerpt, or image of a blog. Requires author ownership or Admin role.",
-        "security": [{ "cookieAuth": [] }],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "example": "65893b82cb123e4567890abc" }
+            "schema": {
+              "type": "string",
+              "example": "65893b82cb123e4567890abc"
+            }
           }
         ],
         "requestBody": {
@@ -409,9 +620,18 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "title": { "type": "string", "example": "Updated API design guidelines" },
-                  "content": { "type": "string", "example": "New revised text body..." },
-                  "isPublished": { "type": "boolean", "example": false }
+                  "title": {
+                    "type": "string",
+                    "example": "Updated API design guidelines"
+                  },
+                  "content": {
+                    "type": "string",
+                    "example": "New revised text body..."
+                  },
+                  "isPublished": {
+                    "type": "boolean",
+                    "example": false
+                  }
                 }
               }
             }
@@ -425,8 +645,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "data": { "$ref": "#/components/schemas/Blog" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Blog"
+                    }
                   }
                 }
               }
@@ -437,13 +662,20 @@
       "delete": {
         "summary": "Delete blog post",
         "description": "Deletes a post. Requires ownership or Admin role.",
-        "security": [{ "cookieAuth": [] }],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "example": "65893b82cb123e4567890abc" }
+            "schema": {
+              "type": "string",
+              "example": "65893b82cb123e4567890abc"
+            }
           }
         ],
         "responses": {
@@ -454,8 +686,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "message": { "type": "string", "example": "Blog deleted successfully" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Blog deleted successfully"
+                    }
                   }
                 }
               }
@@ -473,7 +711,10 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "example": "65893b82cb123e4567890abc" }
+            "schema": {
+              "type": "string",
+              "example": "65893b82cb123e4567890abc"
+            }
           }
         ],
         "responses": {
@@ -484,8 +725,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "views": { "type": "integer", "example": 43 }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "views": {
+                      "type": "integer",
+                      "example": 43
+                    }
                   }
                 }
               }
@@ -498,13 +745,20 @@
       "patch": {
         "summary": "Toggle user like on post",
         "description": "Adds or removes user ID from blog likes array and returns toggle status.",
-        "security": [{ "cookieAuth": [] }],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "example": "65893b82cb123e4567890abc" }
+            "schema": {
+              "type": "string",
+              "example": "65893b82cb123e4567890abc"
+            }
           }
         ],
         "responses": {
@@ -515,13 +769,154 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "likesCount": { "type": "integer", "example": 14 },
-                    "liked": { "type": "boolean", "example": true }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "likesCount": {
+                      "type": "integer",
+                      "example": 14
+                    },
+                    "liked": {
+                      "type": "boolean",
+                      "example": true
+                    }
                   }
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/blogs/ai-generate": {
+      "post": {
+        "summary": "Generate a blog post using AI (Gemini 2.5 Flash)",
+        "tags": [
+          "AI"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "subject",
+                  "tone",
+                  "blogType"
+                ],
+                "properties": {
+                  "subject": {
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  "tone": {
+                    "type": "string",
+                    "enum": [
+                      "Professional",
+                      "Casual",
+                      "Humorous",
+                      "Enthusiastic",
+                      "Academic"
+                    ]
+                  },
+                  "blogType": {
+                    "type": "string",
+                    "enum": [
+                      "Technical",
+                      "Tutorial",
+                      "Case Study",
+                      "Narrative",
+                      "Creative",
+                      "Opinion"
+                    ]
+                  },
+                  "context": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "savePreset": {
+                    "type": "boolean"
+                  },
+                  "presetName": {
+                    "type": "string",
+                    "maxLength": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Blog generated successfully"
+          },
+          "400": {
+            "description": "Missing required fields or input too long"
+          },
+          "403": {
+            "description": "Free plan limit reached"
+          },
+          "429": {
+            "description": "Rate limited (1 request per 15 seconds)"
+          },
+          "500": {
+            "description": "AI generation failed"
+          }
+        }
+      }
+    },
+    "/blogs/ai-presets": {
+      "get": {
+        "summary": "Get the current user's saved AI writing presets",
+        "tags": [
+          "AI"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Presets fetched successfully"
+          }
+        }
+      }
+    },
+    "/blogs/ai-presets/{id}": {
+      "delete": {
+        "summary": "Delete a saved AI writing preset",
+        "tags": [
+          "AI"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Preset deleted successfully"
+          },
+          "404": {
+            "description": "Preset not found"
           }
         }
       }

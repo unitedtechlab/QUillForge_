@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
-import {
-  Mail, Lock, Eye, EyeOff, ArrowRight,
-  Shield, CheckCircle2, AlertCircle, Feather
-} from "lucide-react";
-import api from "../api/axios";
+import { Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
+import api, { backendUrl } from "../api/axios";
 import { useNavigate } from "react-router-dom";
 
 /* ─────────────────────────────────────────────
@@ -189,7 +186,8 @@ export default function Login() {
   };
 
   const handleGoogle = () => {
-    window.location.href = "https://api.quillforge.unitedtechlab.com/api/v1/users/google";
+    // Uses the configured backend (env-driven) instead of a hardcoded production URL
+    window.location.href = `${backendUrl}/api/v1/users/google`;
   };
 
   return (
@@ -292,9 +290,9 @@ export default function Login() {
                   Remember me
                 </span>
               </label>
-              <a href="#" className="text-xs font-pixel text-retro-accent/70 hover:text-retro-accent">
+              <button type="button" className="text-xs font-pixel text-retro-accent/70 hover:text-retro-accent">
                 Forgot pass?
-              </a>
+              </button>
             </div>
 
             {/* Submit Button */}

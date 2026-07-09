@@ -1,6 +1,6 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
-import { verifyjwt } from "../middlewares/auth.middleware.js";
+import { verifyjwt, optionalAuth } from "../middlewares/auth.middleware.js";
 import { verifyadmin } from "../middlewares/admin.middleware.js";
 import { verifyAiLimit } from "../middlewares/quota.middleware.js";
 import { createBlog, getAllBlogs, deleteBlog, updateBlog, getBlogById, incrementView, toggleLike, uploadBlogImage } from "../controllers/blog.controller.js";
@@ -38,7 +38,9 @@ router.delete("/ai-presets/:id", verifyjwt, deleteUserPreset);
 router.post("/upload", verifyjwt, upload.single("image"), uploadBlogImage);
 router.post("/", verifyjwt, createBlog);
 
-router.get("/", getAllBlogs);
+// optionalAuth (not verifyjwt): route stays public, but logged-in users get
+// req.user attached so the controller can include their drafts / admin view
+router.get("/", optionalAuth, getAllBlogs);
 
 // Must be declared before /:id so Express does not treat "view"/"like" as an id param
 router.patch("/:id/view", viewRateLimiter, incrementView);
