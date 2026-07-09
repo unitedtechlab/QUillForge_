@@ -4,7 +4,6 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
-import cors from "cors";
 import app from "./app.js";
 import connectmongo from "./db/connectmongo.js";
 
@@ -16,9 +15,14 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 import dns from "node:dns/promises";
 dns.setServers(["1.1.1.1", "1.0.0.1"]);
 
-
-// console.log("MONGODB_URI =", process.env.MONGODB_URI);
-// console.log("cwd =", process.cwd());
+// Fail fast if critical env vars are missing
+const REQUIRED_ENV = ["MONGODB_URI", "JWT_SECRET", "JWT_EXPIRES_IN", "SESSION_SECRET", "GEMINI_API_KEY"];
+for (const key of REQUIRED_ENV) {
+  if (!process.env[key]) {
+    console.error(`FATAL: Missing required environment variable: ${key}`);
+    process.exit(1);
+  }
+}
 
 // Connect to MongoDB and start the server
 connectmongo().then(() =>{

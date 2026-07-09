@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import router from "./routes/user.routes.js";
 import passport from "passport";
@@ -26,6 +27,11 @@ import "./config/passport.js";
 // this whole file is responsible for setting up the express app, middlewares and routes
 const app = express();
 
+// Security headers
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
 // Middlewares
 app.use(
     cors({
@@ -41,9 +47,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 
+if (!process.env.SESSION_SECRET) {
+  throw new Error("SESSION_SECRET environment variable is required");
+}
+
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "fallback_dev_only_secret",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {

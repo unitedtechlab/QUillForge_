@@ -48,12 +48,12 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const user=await User.findOne({ email });
     if(!user) {
-        throw new ApiError(401, "email dont exist");
+        throw new ApiError(401, "Invalid credentials");
     }
 
     const isPasswordValid = await user.isPasswordCorrect(password);
     if(!isPasswordValid) {
-        throw new ApiError(401, "invalid password");
+        throw new ApiError(401, "Invalid credentials");
     }
 
     const accessToken = user.generateAccessToken();
@@ -132,7 +132,6 @@ const validateEmail = asyncHandler(async (req, res) => {
         return res.status(200).json(
             new ApiResponse(200, {
                 isValid: false,
-                exists: false,
                 isGoogle: false,
                 reason: "Invalid email format"
             }, "Invalid email format")
@@ -141,52 +140,9 @@ const validateEmail = asyncHandler(async (req, res) => {
 
     const domain = email.split("@")[1].toLowerCase();
 
-    // 2. Direct Gmail check (with account existence verification via Google gxlu API)
-    if (domain === "gmail.com" || domain === "googlemail.com") {
-        try {
-            // Query Google's internal identifier validator for existence
-            const checkUrl = `https://mail.google.com/mail/gxlu?email=${encodeURIComponent(email)}`;
-            const response = await fetch(checkUrl, {
-                headers: {
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-                }
-            });
-            const cookieHeader = response.headers.get("set-cookie") || "";
-            const existsOnGoogle = cookieHeader.includes("COMPASS");
+    const isGmailDomain = domain === "gmail.com" || domain === "googlemail.com";
 
-            if (existsOnGoogle) {
-                return res.status(200).json(
-                    new ApiResponse(200, {
-                        isValid: true,
-                        exists: true,
-                        isGoogle: true,
-                        reason: "Gmail account exists on Google"
-                    }, "Gmail account exists")
-                );
-            } else {
-                return res.status(200).json(
-                    new ApiResponse(200, {
-                        isValid: true,
-                        exists: false,
-                        isGoogle: true,
-                        reason: "Gmail account does not exist on Google"
-                    }, "Gmail account does not exist")
-                );
-            }
-        } catch (error) {
-            // Fallback if network call fails
-            return res.status(200).json(
-                new ApiResponse(200, {
-                    isValid: true,
-                    exists: null,
-                    isGoogle: true,
-                    reason: "Gmail address (could not verify existence)"
-                }, "Verification skipped")
-            );
-        }
-    }
-
-    // 3. Google Workspace domain check via DNS MX records
+    // 2. DNS MX record check to validate the domain has mail servers
     try {
         const mxRecords = await resolveMxAsync(domain);
         const isGoogleWorkspace = mxRecords.some((record) =>
@@ -194,33 +150,19 @@ const validateEmail = asyncHandler(async (req, res) => {
             record.exchange.toLowerCase().includes("googlemail.com")
         );
 
-        if (isGoogleWorkspace) {
-            return res.status(200).json(
-                new ApiResponse(200, {
-                    isValid: true,
-                    exists: true,
-                    isGoogle: true,
-                    reason: "Google Workspace domain"
-                }, "Google Workspace email")
-            );
-        } else {
-            return res.status(200).json(
-                new ApiResponse(200, {
-                    isValid: true,
-                    exists: true,
-                    isGoogle: false,
-                    reason: "Non-Google email address"
-                }, "Non-Google email")
-            );
-        }
+        return res.status(200).json(
+            new ApiResponse(200, {
+                isValid: true,
+                isGoogle: isGmailDomain || isGoogleWorkspace,
+                reason: isGmailDomain ? "Gmail address" : isGoogleWorkspace ? "Google Workspace domain" : "Valid email domain"
+            }, "Email validated")
+        );
     } catch (error) {
-        // MX record lookup failed, meaning the domain doesn't exist or has no mail servers
         return res.status(200).json(
             new ApiResponse(200, {
                 isValid: false,
-                exists: false,
                 isGoogle: false,
-                reason: "Domain has no valid mail servers (MX records)"
+                reason: "Domain has no valid mail servers"
             }, "Domain has no mail servers")
         );
     }
