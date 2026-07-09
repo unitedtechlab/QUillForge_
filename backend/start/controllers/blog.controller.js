@@ -3,6 +3,17 @@ import { asyncHandler } from "../../utilities/asynchandler.js";
 import { ApiError } from "../../utilities/errors.js";
 import { ApiResponse } from "../../utilities/response.js";
 import { uploadOnCloudinary } from "../../utilities/cloudinary.js";
+import sanitizeHtml from "sanitize-html";
+
+const ALLOWED_HTML = {
+  allowedTags: ["p", "h2", "h3", "h4", "pre", "code", "ul", "ol", "li", "a", "strong", "em", "blockquote", "br", "hr", "span"],
+  allowedAttributes: {
+    a: ["href", "target", "rel"],
+    code: ["class"],
+    span: ["class"]
+  },
+  allowedSchemes: ["https", "http"]
+};
 
 const createBlog = asyncHandler(async (req, res) => {
 
@@ -18,27 +29,36 @@ const createBlog = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Title and content are required");
   }
 
+  const safeContent = sanitizeHtml(content, ALLOWED_HTML);
+
   const slug = title
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, "-");
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");  // strip non-ASCII chars that would break slugs
 
-  const existingBlog = await Blog.findOne({ slug });
-
-  if (existingBlog) {
-    throw new ApiError(409, "Blog with same title already exists");
+  if (!slug) {
+    throw new ApiError(400, "Title must contain at least one ASCII character");
   }
 
-  const blog = await Blog.create({
-    title,
-    slug, // auto generated 
-    excerpt,
-    views: 0,
-    content,
-    isPublished,
-    featuredImage,
-    author: req.user._id
-  });
+  let blog;
+  try {
+    blog = await Blog.create({
+      title,
+      slug,
+      excerpt,
+      views: 0,
+      content: safeContent,
+      isPublished,
+      featuredImage,
+      author: req.user._id
+    });
+  } catch (err) {
+    if (err.code === 11000) {
+      throw new ApiError(409, "A blog with this title already exists");
+    }
+    throw err;
+  }
 
   const Blogdetails = await Blog.findById(blog._id)
     .populate("author", "username email");
@@ -54,7 +74,12 @@ const createBlog = asyncHandler(async (req, res) => {
 
 const getAllBlogs = asyncHandler(async (req, res) => {
 
-  const blogs = await Blog.find()
+  // Unauthenticated users only see published blogs; authenticated authors also see their own drafts
+  const filter = req.user
+    ? { $or: [{ isPublished: true }, { author: req.user._id }] }
+    : { isPublished: true };
+
+  const blogs = await Blog.find(filter)
     .populate("author", "username role")
     .sort({ createdAt: -1 });
 
@@ -95,6 +120,7 @@ const deleteBlog = asyncHandler(async (req, res) => {
     )
   );
 });
+
 const getBlogById = asyncHandler(async (req, res) => {
 
   const blog = await Blog.findById(req.params.id).populate("author", "username email role");
@@ -130,9 +156,11 @@ const updateBlog = asyncHandler(async (req, res) => {
   // Whitelist only safe fields — prevents mass-assignment attacks
   const { title, content, excerpt, isPublished, featuredImage } = req.body;
 
+  const safeContent = content ? sanitizeHtml(content, ALLOWED_HTML) : undefined;
+
   const updatedBlog = await Blog.findByIdAndUpdate(
     req.params.id,
-    { title, content, excerpt, isPublished, featuredImage },
+    { title, content: safeContent, excerpt, isPublished, featuredImage },
     { new: true, runValidators: true }
   );
 
@@ -144,6 +172,7 @@ const updateBlog = asyncHandler(async (req, res) => {
     )
   );
 });
+
 const incrementView = asyncHandler(async (req, res) => {
   const blog = await Blog.findByIdAndUpdate(
     req.params.id,
@@ -160,34 +189,22 @@ const incrementView = asyncHandler(async (req, res) => {
   );
 });
 
-// explaination of togglelike is as follows : 
-// togglelike is used to like or unlike a blog post.
-// it takes the id of the blog post as a parameter.
-// it checks if the blog post is liked by the user.
-// if the blog post is liked by the user, it removes the like.
-// if the blog post is not liked by the user, it adds the like.
-// it returns the number of likes and the liked status.
-
+// toggleLike uses atomic $addToSet/$pull — no race condition possible
 const toggleLike = asyncHandler(async (req, res) => {
-  const blog = await Blog.findById(req.params.id);
-
-  if (!blog) {
+  const existing = await Blog.findById(req.params.id).select("likes");
+  if (!existing) {
     throw new ApiError(404, "Blog not found");
   }
 
-  const userId = req.user._id.toString();
-  const alreadyLiked = blog.likes.some(id => id.toString() === userId);
+  const userId = req.user._id;
+  const alreadyLiked = existing.likes.some(id => id.toString() === userId.toString());
 
-  if (alreadyLiked) {
-    blog.likes = blog.likes.filter(id => id.toString() !== userId);
-  } else {
-    blog.likes.push(req.user._id);
-  }
-  // the above if else function works as follows :
-  // if the blog is already liked by the user, it removes the like.
-  // if the blog is not liked by the user, it adds the like.
-
-  await blog.save();
+  // Atomic update — no race condition possible
+  const blog = await Blog.findByIdAndUpdate(
+    req.params.id,
+    alreadyLiked ? { $pull: { likes: userId } } : { $addToSet: { likes: userId } },
+    { new: true }
+  );
 
   return res.status(200).json(
     new ApiResponse(

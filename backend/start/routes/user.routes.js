@@ -23,11 +23,20 @@ const registerLimiter = rateLimit({
     legacyHeaders: false
 });
 
+// Max 10 email validations per minute per IP — prevents bulk enumeration
+const validateEmailLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 10,
+    message: { success: false, message: "Too many validation requests. Please try again in a minute." },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
 const router = Router();
   
 router.route("/register").post(registerLimiter, registerUser);
 router.route("/login").post(loginLimiter, loginUser);
-router.route("/validate-email").get(validateEmail);
+router.route("/validate-email").get(validateEmailLimiter, verifyjwt, validateEmail);
 router.route("/current-user").get(verifyjwt, getCurrentUser);
 router.route("/logout").post(verifyjwt, logoutUser);
 
