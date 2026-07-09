@@ -81,6 +81,8 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog, aiDraft, c
       setContent(editingBlog.content || "");
       setPub(editingBlog.isPublished);
       setFeaturedImage(editingBlog.featuredImage || "");
+      setCategory(editingBlog.category || "Technology");
+      setTags(Array.isArray(editingBlog.tags) ? editingBlog.tags.join(", ") : (editingBlog.tags || ""));
       return;
     }
 
@@ -173,15 +175,17 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog, aiDraft, c
   const handleSave = async (publish = false) => {
     try {
       setSaving(true);
-      let res;
+      // (response not needed — success is inferred from no throw)
 
       if (editingBlog) {
-        res = await api.put(`/blogs/${editingBlog._id}`, { 
+        await api.put(`/blogs/${editingBlog._id}`, { 
           title,
           excerpt,
           content,
           isPublished: publish,
           featuredImage,
+          category,
+          tags,
         });
 
         if (setEditingBlog) setEditingBlog(null);
@@ -191,15 +195,16 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog, aiDraft, c
         setPub(false);
         setFeaturedImage("");
       } else {
-        res = await api.post("/blogs", {
+        await api.post("/blogs", {
           title,
           excerpt,
           content,
           isPublished: publish,
           featuredImage,
+          category,
+          tags,
         });
 
-        console.log("BLOG CREATED:", res.data);
         setTitle("");
         setExcerpt("");
         setContent("");

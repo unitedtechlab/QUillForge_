@@ -17,6 +17,8 @@ const mockQuery = (resolveValue) => {
     select: jest.fn().mockImplementation(() => query),
     populate: jest.fn().mockImplementation(() => query),
     sort: jest.fn().mockImplementation(() => query),
+    skip: jest.fn().mockImplementation(() => query),
+    limit: jest.fn().mockImplementation(() => query),
     lean: jest.fn().mockImplementation(() => query),
     exec: jest.fn().mockResolvedValue(resolveValue),
     then: jest.fn().mockImplementation((onResolve, onReject) => {
@@ -122,6 +124,7 @@ describe("QuillForge Backend API Test Suite", () => {
 
     jest.spyOn(Blog, "create").mockResolvedValue(mockBlogDoc);
     jest.spyOn(Blog, "find").mockImplementation(() => mockQuery([mockBlogDoc]));
+    jest.spyOn(Blog, "countDocuments").mockResolvedValue(1);
     jest.spyOn(Blog, "findOne").mockImplementation(() => mockQuery(null));
     jest.spyOn(Blog, "findById").mockImplementation(() => mockQuery(mockBlogDoc));
     

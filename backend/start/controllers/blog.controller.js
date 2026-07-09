@@ -15,6 +15,23 @@ const ALLOWED_HTML = {
   allowedSchemes: ["https", "http"]
 };
 
+// Estimate reading time in minutes from HTML content (avg 200 words/min, min 1)
+function estimateReadingTime(html) {
+  const text = String(html || "").replace(/<[^>]*>/g, " ");
+  const words = text.split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
+// Normalize tags into a clean string array (accepts array or comma-separated string)
+function normalizeTags(tags) {
+  if (!tags) return [];
+  const arr = Array.isArray(tags) ? tags : String(tags).split(",");
+  return arr
+    .map(t => String(t).trim())
+    .filter(Boolean)
+    .slice(0, 10); // cap at 10 tags
+}
+
 const createBlog = asyncHandler(async (req, res) => {
 
   const {
@@ -22,7 +39,9 @@ const createBlog = asyncHandler(async (req, res) => {
     excerpt,
     content,
     isPublished = false,
-    featuredImage = ""
+    featuredImage = "",
+    category = "General",
+    tags = []
   } = req.body;
 
   if (!title || !content) {
@@ -51,6 +70,9 @@ const createBlog = asyncHandler(async (req, res) => {
       content: safeContent,
       isPublished,
       featuredImage,
+      category: category || "General",
+      tags: normalizeTags(tags),
+      readingTime: estimateReadingTime(safeContent),
       author: req.user._id
     });
   } catch (err) {
@@ -85,17 +107,49 @@ const getAllBlogs = asyncHandler(async (req, res) => {
       : { $or: [{ isPublished: true }, { author: req.user._id }] };
   }
 
-  const blogs = await Blog.find(filter)
-    .populate("author", "username role")
-    .sort({ createdAt: -1 });
+  // Optional category filter
+  if (req.query.category && req.query.category !== "all") {
+    filter.category = req.query.category;
+  }
 
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      blogs,
-      "Blogs fetched successfully"
-    )
-  );
+  // Optional full-text search across title/excerpt/content/tags
+  const search = req.query.q?.trim();
+  if (search) {
+    filter.$text = { $search: search };
+  }
+
+  // Pagination (defaults: page 1, 30 per page). limit capped at 100.
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 30));
+  const skip = (page - 1) * limit;
+
+  // Sort: relevance when searching, newest otherwise; "popular" sorts by views
+  let sort = { createdAt: -1 };
+  if (search) sort = { score: { $meta: "textScore" } };
+  else if (req.query.sort === "popular") sort = { views: -1 };
+
+  const query = Blog.find(filter);
+  if (search) query.select({ score: { $meta: "textScore" } });
+
+  const [blogs, total] = await Promise.all([
+    query.populate("author", "username role").sort(sort).skip(skip).limit(limit),
+    Blog.countDocuments(filter)
+  ]);
+
+  return res.status(200).json({
+    statusCode: 200,
+    // `data` stays an array for backward compatibility with existing frontend code.
+    data: blogs,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      hasMore: page * limit < total
+    },
+    message: "Blogs fetched successfully",
+    success: true
+  });
 });
 
 const deleteBlog = asyncHandler(async (req, res) => {
@@ -160,7 +214,7 @@ const updateBlog = asyncHandler(async (req, res) => {
   }
 
   // Whitelist only safe fields — prevents mass-assignment attacks
-  const { title, content, excerpt, isPublished, featuredImage } = req.body;
+  const { title, content, excerpt, isPublished, featuredImage, category, tags } = req.body;
 
   const safeContent = content ? sanitizeHtml(content, ALLOWED_HTML) : undefined;
 
@@ -173,11 +227,24 @@ const updateBlog = asyncHandler(async (req, res) => {
     }
   }
 
+  // Recompute reading time only when content actually changed
+  const readingTime = safeContent ? estimateReadingTime(safeContent) : undefined;
+
   let updatedBlog;
   try {
     updatedBlog = await Blog.findByIdAndUpdate(
       req.params.id,
-      { title, slug, content: safeContent, excerpt, isPublished, featuredImage },
+      {
+        title,
+        slug,
+        content: safeContent,
+        excerpt,
+        isPublished,
+        featuredImage,
+        category,
+        tags: tags !== undefined ? normalizeTags(tags) : undefined,
+        readingTime
+      },
       { new: true, runValidators: true }
     );
   } catch (err) {

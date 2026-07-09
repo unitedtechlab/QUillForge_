@@ -41,6 +41,25 @@ const blogSchema = new mongoose.Schema(
       default: ""
     },
 
+    category: {
+      type: String,
+      default: "General",
+      trim: true
+    },
+
+    tags: [
+      {
+        type: String,
+        trim: true
+      }
+    ],
+
+    // Estimated reading time in minutes, computed from word count on save
+    readingTime: {
+      type: Number,
+      default: 1
+    },
+
     views: {
       type: Number,
       default: 0
@@ -57,6 +76,9 @@ const blogSchema = new mongoose.Schema(
     timestamps: true
   }
 );
+
+// Full-text search index across title, excerpt, content, and tags
+blogSchema.index({ title: "text", excerpt: "text", content: "text", tags: "text" });
 
 const Blog = mongoose.model("Blog", blogSchema);
 
