@@ -52,12 +52,11 @@ const userSchema = new mongoose.Schema({
         timestamps: true
     });
     
-    userSchema.pre('save', async function (next) {
+    userSchema.pre('save', async function () {
         if (!this.password || !this.isModified('password')) {
-            return next(); // always call next() so Mongoose doesn't hang
+            return;
         }
         this.password = await bcrypt.hash(this.password, 10);
-        return next();
     });
 
     userSchema.methods.isPasswordCorrect = async function(password){
