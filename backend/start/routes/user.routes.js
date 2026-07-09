@@ -76,15 +76,17 @@ router.get(
         sameSite: "none" // consistent with the rest of the auth flow
     };
 
-if (req.user.role === "admin") {
-  return res
-    .cookie("accessToken", accessToken, options)
-    .redirect("https://quillforge.unitedtechlab.com/admin");
-}
+    const frontendUrl = process.env.FRONTEND_URL || "https://quillforge.unitedtechlab.com";
 
-return res
-  .cookie("accessToken", accessToken, options)
-  .redirect("https://quillforge.unitedtechlab.com/dashboard");
+    if (req.user.role === "admin") {
+      return res
+        .cookie("accessToken", accessToken, options)
+        .redirect(`${frontendUrl}/admin`);
+    }
+
+    return res
+      .cookie("accessToken", accessToken, options)
+      .redirect(`${frontendUrl}/dashboard`);
 }
 );
 export default router;
