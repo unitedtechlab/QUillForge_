@@ -31,9 +31,22 @@ const userSchema = new mongoose.Schema({
 
         role:{
             type: String,
-            enum: ["user", "admin"],
+            enum: ["user", "admin", "pro"],
             default: "user"
-
+        },
+        aiQuota: {
+            generationsCount: {
+                type: Number,
+                default: 0
+            },
+            resetDate: {
+                type: Date,
+                default: () => {
+                    const nextMonth = new Date();
+                    nextMonth.setMonth(nextMonth.getMonth() + 1);
+                    return nextMonth;
+                }
+            }
         }
     },{
         timestamps: true
