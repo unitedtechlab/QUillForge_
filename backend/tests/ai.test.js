@@ -4,20 +4,23 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 
 // Mocking GoogleGenAI SDK using ESM unstable_mockModule before importing app/models
+// Exposed at module scope so individual tests can override the return value (e.g. refusals)
+const mockGenerateContent = jest.fn().mockResolvedValue({
+  text: JSON.stringify({
+    sufficientContext: true,
+    reason: "",
+    title: "Mock AI Blog Post",
+    excerpt: "This is a mock blog excerpt generated during testing.",
+    content: "<p>Mock blog content in HTML format.</p>",
+    imageKeywords: "mock, testing, ai"
+  })
+});
+
 jest.unstable_mockModule("@google/genai", () => {
   return {
     GoogleGenAI: class MockGoogleGenAI {
       constructor() {
-        this.models = {
-          generateContent: jest.fn().mockResolvedValue({
-            text: JSON.stringify({
-              title: "Mock AI Blog Post",
-              excerpt: "This is a mock blog excerpt generated during testing.",
-              content: "<p>Mock blog content in HTML format.</p>",
-              imageKeywords: "mock, testing, ai"
-            })
-          })
-        };
+        this.models = { generateContent: mockGenerateContent };
       }
     }
   };
@@ -120,7 +123,7 @@ describe("QuillForge AI Integration Test Suite", () => {
           .post("/api/v1/blogs/ai-generate")
           .set("Cookie", userCookie)
           .send({
-            subject: "Any Subject",
+            subject: "Any Subject To Write About",
             tone: "Casual",
             blogType: "Creative"
           });
@@ -130,6 +133,48 @@ describe("QuillForge AI Integration Test Suite", () => {
       } finally {
         mockUserDoc.aiQuota.generationsCount = 0;
       }
+    });
+
+    it("should reject trivially short/gibberish subjects before calling the AI (Layer 1)", async () => {
+      const res = await request(app)
+        .post("/api/v1/blogs/ai-generate")
+        .set("Cookie", userCookie)
+        .send({
+          subject: "hi lol",
+          tone: "Casual",
+          blogType: "Creative"
+        });
+
+      expect(res.statusCode).toBe(422);
+      expect(res.body.success).toBe(false);
+      expect(res.body.message).toMatch(/too short/i);
+    });
+
+    it("should reject when the AI judges the topic lacks sufficient context (Layer 2)", async () => {
+      // Override the mock once: model returns a refusal instead of a fabricated blog
+      mockGenerateContent.mockResolvedValueOnce({
+        text: JSON.stringify({
+          sufficientContext: false,
+          reason: "The topic is too vague to write a meaningful article.",
+          title: "",
+          excerpt: "",
+          content: "",
+          imageKeywords: ""
+        })
+      });
+
+      const res = await request(app)
+        .post("/api/v1/blogs/ai-generate")
+        .set("Cookie", userCookie)
+        .send({
+          subject: "something about stuff maybe",
+          tone: "Casual",
+          blogType: "Creative"
+        });
+
+      expect(res.statusCode).toBe(422);
+      expect(res.body.success).toBe(false);
+      expect(res.body.message).toMatch(/vague|context|substance/i);
     });
   });
 
