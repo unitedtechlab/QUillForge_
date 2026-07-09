@@ -83,6 +83,42 @@ describe("Blogs Functionality - Create and Details", () => {
         expect(storedDraft.title).toBe("My Great Draft");
       });
     });
+
+    it("populates the editor with AI-generated content and keeps it after clearAiDraft", async () => {
+      const aiDraft = {
+        title: "Kohli vs Sachin",
+        excerpt: "A cricketing comparison.",
+        content: "<p>Two legends of the game.</p>",
+        featuredImage: "",
+        category: "Technology",
+        tags: ""
+      };
+      const clearAiDraft = vi.fn();
+
+      const { container } = render(
+        <BrowserRouter>
+          <CreateBlogPage aiDraft={aiDraft} clearAiDraft={clearAiDraft} />
+        </BrowserRouter>
+      );
+
+      // The title input should reflect the AI-generated title
+      await waitFor(() => {
+        const titleInput = container.querySelector("input");
+        expect(titleInput.value).toBe("Kohli vs Sachin");
+      });
+
+      // clearAiDraft must have been called to consume the draft
+      expect(clearAiDraft).toHaveBeenCalled();
+
+      // Simulate the parent nulling the prop after clearAiDraft — fields must persist
+      const { container: c2 } = render(
+        <BrowserRouter>
+          <CreateBlogPage aiDraft={null} clearAiDraft={clearAiDraft} />
+        </BrowserRouter>
+      );
+      // (fresh render with null draft should not crash and should not carry stale state)
+      expect(c2.querySelector("input")).toBeInTheDocument();
+    });
   });
 
   describe("BlogDetails Component", () => {

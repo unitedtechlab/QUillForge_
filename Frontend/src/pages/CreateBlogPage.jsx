@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   CheckCircle2,
   Hash,
@@ -64,13 +64,16 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog, aiDraft, c
   const [recovered, setRecovered] = useState(false);
   const [featuredImage, setFeaturedImage] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
+  // Tracks whether AI content has been loaded into this editor instance, so the
+  // localStorage-recovery effect never wipes it after clearAiDraft() nulls the prop.
+  const aiDraftRef = useRef(false);
 
   // ── Effect 1: Load editing blog OR localStorage draft on mount / blog change ──
-  // Runs when the component mounts or when editingBlog changes (e.g. user picks
-  // an existing blog to edit, or starts fresh). Skips when AI content is pending
-  // so it doesn't clobber fields that the AI effect will fill momentarily.
+  // Runs when the component mounts or when editingBlog changes. Uses a ref to check
+  // for a pending AI draft (rather than the aiDraft prop) so that clearing aiDraft
+  // later never retriggers this effect's "clear everything" branch.
   useEffect(() => {
-    if (aiDraft) return; // AI draft takes priority — handled in the next effect
+    if (aiDraftRef.current) return; // AI content pending — Effect 2 owns the fields
 
     if (editingBlog) {
       setTitle(editingBlog.title || "");
@@ -108,13 +111,12 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog, aiDraft, c
     setContent("");
     setPub(false);
     setFeaturedImage("");
-  }, [editingBlog, aiDraft]);
+  }, [editingBlog]); // NOTE: aiDraft intentionally omitted — see aiDraftRef
 
-  // ── Effect 2: AI-generated draft — MUST run after Effect 1 to win the race ──
-  // When the AI Assistant generates content, this fills the editor fields.
-  // clearAiDraft is deferred to avoid a batched re-render that would clear fields.
+  // ── Effect 2: AI-generated draft — fills the editor when content arrives ──
   useEffect(() => {
     if (!aiDraft) return;
+    aiDraftRef.current = true; // mark pending so Effect 1 never clears these fields
     setTitle(aiDraft.title || "");
     setExcerpt(aiDraft.excerpt || "");
     setContent(aiDraft.content || "");
@@ -123,9 +125,7 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog, aiDraft, c
     setFeaturedImage(aiDraft.featuredImage || "");
     setRecovered(true);
     setTimeout(() => setRecovered(false), 5000);
-    // Defer clear so React commits the field updates before the parent re-renders
-    // with aiDraft=null (which would otherwise trigger Effect 1's clear branch)
-    if (clearAiDraft) setTimeout(() => clearAiDraft(), 0);
+    if (clearAiDraft) clearAiDraft(); // safe now — Effect 1 won't re-run on aiDraft change
   }, [aiDraft]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-save draft to localStorage whenever fields change ──
