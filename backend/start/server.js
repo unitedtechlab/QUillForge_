@@ -17,7 +17,7 @@ import dns from "node:dns/promises";
 dns.setServers(["1.1.1.1", "1.0.0.1"]);
 
 // Fail fast if critical env vars are missing
-const REQUIRED_ENV = ["MONGODB_URI", "JWT_SECRET", "JWT_EXPIRES_IN", "SESSION_SECRET", "GEMINI_API_KEY"];
+const REQUIRED_ENV = ["MONGODB_URI", "JWT_SECRET", "JWT_EXPIRES_IN", "SESSION_SECRET", "GROQ_API_KEY"];
 for (const key of REQUIRED_ENV) {
   if (!process.env[key]) {
     console.error(`FATAL: Missing required environment variable: ${key}`);

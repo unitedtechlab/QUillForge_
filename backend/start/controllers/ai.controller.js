@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import Groq from "groq-sdk";
 import { asyncHandler } from "../../utilities/asynchandler.js";
 import { ApiResponse } from "../../utilities/response.js";
 import { ApiError } from "../../utilities/errors.js";
@@ -119,9 +119,9 @@ export const generateBlogContent = asyncHandler(async (req, res) => {
   const safeBlogType = sanitizeAiInput(blogType);
   const safeContext = sanitizeAiInput(context);
 
-  const geminiApiKey = process.env.GEMINI_API_KEY;
-  if (!geminiApiKey) {
-    throw new ApiError(500, "Gemini API key is not configured on the server.");
+  const groqApiKey = process.env.GROQ_API_KEY;
+  if (!groqApiKey) {
+    throw new ApiError(500, "GROQ_API_KEY is not configured on the server.");
   }
 
   // Save preset configuration if checked
@@ -133,8 +133,8 @@ export const generateBlogContent = asyncHandler(async (req, res) => {
     );
   }
 
-  // Initialize the Google GenAI SDK
-  const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+  // Initialize the Groq SDK (OpenAI-compatible chat completions)
+  const groq = new Groq({ apiKey: groqApiKey });
 
   const systemInstruction = `
     You are a professional blog post generator for QuillForge, a retro-themed software development blogging platform.
@@ -170,31 +170,21 @@ export const generateBlogContent = asyncHandler(async (req, res) => {
     [END USER DATA]
   `;
 
-  const responseSchema = {
-    type: "OBJECT",
-    properties: {
-      sufficientContext: { type: "BOOLEAN" },
-      reason: { type: "STRING" },
-      title: { type: "STRING" },
-      excerpt: { type: "STRING" },
-      content: { type: "STRING" },
-      imageKeywords: { type: "STRING" }
-    },
-    required: ["sufficientContext", "reason", "title", "excerpt", "content", "imageKeywords"]
-  };
-
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: userPrompt,
-      config: {
-        systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: responseSchema
-      }
+    // Groq is OpenAI-compatible. response_format json_object forces valid JSON output.
+    // Model is env-overridable so it can be swapped without a code change if Groq
+    // rotates its model lineup (GROQ_MODEL in .env).
+    const completion = await groq.chat.completions.create({
+      model: process.env.GROQ_MODEL || "openai/gpt-oss-20b",
+      messages: [
+        { role: "system", content: systemInstruction },
+        { role: "user", content: userPrompt }
+      ],
+      temperature: 0.7,
+      response_format: { type: "json_object" }
     });
 
-    const text = response.text;
+    const text = completion.choices?.[0]?.message?.content || "";
     const parsedBlog = parseAIResponseRobust(text);
 
     // ── Layer 2: model-judged context sufficiency ──
@@ -225,7 +215,7 @@ export const generateBlogContent = asyncHandler(async (req, res) => {
         excerpt: parsedBlog.excerpt,
         content: parsedBlog.content,
         featuredImage: imageUrl
-      }, "Blog compiled successfully via Gemini Flash")
+      }, "Blog compiled successfully via Groq")
     );
   } catch (error) {
     // Let intentional ApiErrors (e.g. the 422 context-refusal) pass through with

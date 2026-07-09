@@ -3,24 +3,31 @@ import request from "supertest";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 
-// Mocking GoogleGenAI SDK using ESM unstable_mockModule before importing app/models
-// Exposed at module scope so individual tests can override the return value (e.g. refusals)
-const mockGenerateContent = jest.fn().mockResolvedValue({
-  text: JSON.stringify({
-    sufficientContext: true,
-    reason: "",
-    title: "Mock AI Blog Post",
-    excerpt: "This is a mock blog excerpt generated during testing.",
-    content: "<p>Mock blog content in HTML format.</p>",
-    imageKeywords: "mock, testing, ai"
-  })
+// Mocking the Groq SDK using ESM unstable_mockModule before importing app/models.
+// Exposed at module scope so individual tests can override the return value (e.g. refusals).
+// Groq returns { choices: [ { message: { content: "<json string>" } } ] }.
+const mockCreate = jest.fn().mockResolvedValue({
+  choices: [
+    {
+      message: {
+        content: JSON.stringify({
+          sufficientContext: true,
+          reason: "",
+          title: "Mock AI Blog Post",
+          excerpt: "This is a mock blog excerpt generated during testing.",
+          content: "<p>Mock blog content in HTML format.</p>",
+          imageKeywords: "mock, testing, ai"
+        })
+      }
+    }
+  ]
 });
 
-jest.unstable_mockModule("@google/genai", () => {
+jest.unstable_mockModule("groq-sdk", () => {
   return {
-    GoogleGenAI: class MockGoogleGenAI {
+    default: class MockGroq {
       constructor() {
-        this.models = { generateContent: mockGenerateContent };
+        this.chat = { completions: { create: mockCreate } };
       }
     }
   };
@@ -58,7 +65,7 @@ describe("QuillForge AI Integration Test Suite", () => {
 
   beforeAll(() => {
     // Configure environment mock keys
-    process.env.GEMINI_API_KEY = "mock_key_for_testing";
+    process.env.GROQ_API_KEY = "mock_key_for_testing";
 
     // Generate valid test token
     const token = jwt.sign(
@@ -152,15 +159,21 @@ describe("QuillForge AI Integration Test Suite", () => {
 
     it("should reject when the AI judges the topic lacks sufficient context (Layer 2)", async () => {
       // Override the mock once: model returns a refusal instead of a fabricated blog
-      mockGenerateContent.mockResolvedValueOnce({
-        text: JSON.stringify({
-          sufficientContext: false,
-          reason: "The topic is too vague to write a meaningful article.",
-          title: "",
-          excerpt: "",
-          content: "",
-          imageKeywords: ""
-        })
+      mockCreate.mockResolvedValueOnce({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                sufficientContext: false,
+                reason: "The topic is too vague to write a meaningful article.",
+                title: "",
+                excerpt: "",
+                content: "",
+                imageKeywords: ""
+              })
+            }
+          }
+        ]
       });
 
       const res = await request(app)
