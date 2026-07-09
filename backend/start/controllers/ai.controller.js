@@ -5,6 +5,15 @@ import { ApiError } from "../../utilities/errors.js";
 import AIPreset from "../models/aiPreset.model.js";
 import User from "../models/user.model.js";
 
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+
 // Helper to retrieve a cool image from Unsplash or fallback to retro placeholders
 async function fetchFeaturedImage(keywords) {
   const unsplashAccessKey = process.env.UNSPLASH_ACCESS_KEY;
