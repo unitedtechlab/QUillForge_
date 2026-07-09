@@ -32,6 +32,41 @@ async function fetchFeaturedImage(keywords) {
   return placeholders[Math.floor(Math.random() * placeholders.length)];
 }
 
+// Helper to robustly parse JSON or fall back to regex if Gemini output contains unescaped quotes or format bugs
+function cleanJSONString(str) {
+  if (!str) return "";
+  return str
+    .replace(/\\"/g, '"')
+    .replace(/\\n/g, '\n')
+    .replace(/\\r/g, '\r')
+    .replace(/\\t/g, '\t')
+    .replace(/\\\\/g, '\\');
+}
+
+function parseAIResponseRobust(text) {
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    console.warn("JSON.parse failed on AI response. Attempting regex-based recovery...", err.message);
+    const result = {};
+    
+    const titleMatch = text.match(/"title"\s*:\s*"([\s\S]*?)"\s*,\s*"excerpt"\s*:/);
+    const excerptMatch = text.match(/"excerpt"\s*:\s*"([\s\S]*?)"\s*,\s*"content"\s*:/);
+    const contentMatch = text.match(/"content"\s*:\s*"([\s\S]*?)"\s*,\s*"imageKeywords"\s*:/);
+    const imageKeywordsMatch = text.match(/"imageKeywords"\s*:\s*"([\s\S]*?)"\s*\}?\s*$/) || text.match(/"imageKeywords"\s*:\s*"([\s\S]*?)"/);
+    
+    if (titleMatch) result.title = cleanJSONString(titleMatch[1]);
+    if (excerptMatch) result.excerpt = cleanJSONString(excerptMatch[1]);
+    if (contentMatch) result.content = cleanJSONString(contentMatch[1]);
+    if (imageKeywordsMatch) result.imageKeywords = cleanJSONString(imageKeywordsMatch[1]);
+    
+    if (result.title && result.content) {
+      return result;
+    }
+    throw err;
+  }
+}
+
 // Controller to compile blog details using Gemini 2.5 Flash
 export const generateBlogContent = asyncHandler(async (req, res) => {
   const { subject, tone, blogType, context, savePreset, presetName } = req.body;
@@ -67,6 +102,7 @@ export const generateBlogContent = asyncHandler(async (req, res) => {
     3. Ensure the title is catchy, technical, and relevant to the subject.
     4. Provide a short 1-2 sentence article summary in the 'excerpt' field.
     5. Return a comma-separated list of 2-3 search query keywords (e.g. "retro computing terminal", "coding screen purple") in the 'imageKeywords' field.
+    6. IMPORTANT: To prevent JSON formatting errors, do NOT use unescaped double quotes (") inside the field values. For HTML elements, use single quotes (e.g. <a href='...'> or <code class='javascript'>). For quoted text, use single quotes or curly quotes.
     
     You must output exactly this JSON schema:
     {
@@ -84,18 +120,30 @@ export const generateBlogContent = asyncHandler(async (req, res) => {
     Additional points/context: ${context || "None provided"}
   `;
 
+  const responseSchema = {
+    type: "OBJECT",
+    properties: {
+      title: { type: "STRING" },
+      excerpt: { type: "STRING" },
+      content: { type: "STRING" },
+      imageKeywords: { type: "STRING" }
+    },
+    required: ["title", "excerpt", "content", "imageKeywords"]
+  };
+
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: userPrompt,
       config: {
         systemInstruction,
-        responseMimeType: "application/json"
+        responseMimeType: "application/json",
+        responseSchema: responseSchema
       }
     });
 
     const text = response.text;
-    const parsedBlog = JSON.parse(text);
+    const parsedBlog = parseAIResponseRobust(text);
 
     // Fetch cover image using the generated keywords
     const imageUrl = await fetchFeaturedImage(parsedBlog.imageKeywords || subject);
