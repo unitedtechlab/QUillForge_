@@ -1,14 +1,18 @@
 // its job is to load env variables, connect to the database and start express server
 // more like a application bootstrap file
 
+import path from "path";
+import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import cors from "cors";
 import app from "./app.js";
 import connectmongo from "./db/connectmongo.js";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load environment variables from .env file
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 import dns from "node:dns/promises";
 dns.setServers(["1.1.1.1", "1.0.0.1"]);
 
