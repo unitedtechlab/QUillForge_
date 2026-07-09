@@ -68,10 +68,11 @@ function Sparkline({ data, color = "#8F72FF", height = 40 }) {
 }
 
 /* ─────────────────── SIDEBAR ─────────────────── */
-function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, handleNewBlog, handleLogout }) {
+function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, handleNewBlog, handleLogout, activeAiWriter }) {
   const nav = [
     { id: "dashboard", icon: <LayoutDashboard size={16}/>, label: "Dashboard" },
     { id: "create",    icon: <PenLine size={16}/>,         label: "Create Blog" },
+    { id: "ai-assistant", icon: <Sparkles size={16} className="text-[#FF728F] animate-pulse" />, label: "AI Assistant", isAi: true },
     { id: "blogs",     icon: <BookMarked size={16}/>,      label: "My Blogs" },
     { id: "read",      icon: <BookOpen size={16}/>,        label: "Read Blogs" },
     { id: "community", icon: <Users size={16}/>,           label: "Community" },
@@ -109,26 +110,44 @@ function Sidebar({ active, setActive, collapsed, setCollapsed, setEditingBlog, h
         {/* Nav */}
         <nav className="flex-grow p-3 space-y-1.5 overflow-hidden">
           {nav.map(item => {
-            const isActive = active === item.id;
+            const isActive = item.id === "ai-assistant"
+              ? (active === "create" && activeAiWriter)
+              : item.id === "create"
+                ? (active === "create" && !activeAiWriter)
+                : active === item.id;
+
             return (
-              <button key={item.id} onClick={() => { if (item.id === "create") { handleNewBlog(); } else { setActive(item.id); } setCollapsed(window.innerWidth < 1024 ? true : collapsed); }}
+              <button key={item.id} onClick={() => { if (item.id === "create") { handleNewBlog(false); } else if (item.id === "ai-assistant") { handleNewBlog(true); } else { setActive(item.id); } setCollapsed(window.innerWidth < 1024 ? true : collapsed); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-200 group relative ${
-                  isActive
-                    ? "bg-retro-accent text-[#1C1D2E] border border-retro-accent rounded-xl shadow-[2px_2px_0px_0px_#1c1d2e]"
-                    : "text-retro-text/60 hover:text-retro-accent hover:bg-[#13141f] rounded-xl border border-transparent"
+                  item.isAi
+                    ? isActive
+                      ? "bg-[#FF728F] text-[#1C1D2E] border border-[#FF728F] rounded-xl shadow-[2px_2px_0px_0px_#1C1D2E]"
+                      : "text-[#FF728F]/90 border border-dashed border-[#FF728F]/40 hover:bg-[#FF728F]/10 rounded-xl"
+                    : isActive
+                      ? "bg-retro-accent text-[#1C1D2E] border border-retro-accent rounded-xl shadow-[2px_2px_0px_0px_#1c1d2e]"
+                      : "text-retro-text/60 hover:text-retro-accent hover:bg-[#13141f] rounded-xl border border-transparent"
                 } ${collapsed ? "lg:justify-center lg:px-2" : ""}`}
               >
                 <span className="flex-shrink-0">
                   {item.icon}
                 </span>
                 {!collapsed && (
-                  <span className="text-xs font-pixel tracking-wider uppercase whitespace-nowrap">
-                    {item.label}
-                  </span>
+                  <div className="flex flex-col items-start leading-tight">
+                    <span className="text-xs font-pixel tracking-wider uppercase whitespace-nowrap">
+                      {item.label}
+                    </span>
+                    {item.isAi && (
+                      <span className="text-[7px] text-[#FF728F] font-pixel tracking-widest uppercase mt-0.5 block opacity-85">
+                        ★ NEW FEATURE ★
+                      </span>
+                    )}
+                  </div>
                 )}
                 {/* Tooltip for collapsed */}
                 {collapsed && (
-                  <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-retro-surface border border-retro-border text-retro-accent text-[10px] rounded-lg uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 hidden lg:block shadow-[2px_2px_0px_0px_#1C1D2E]">
+                  <div className={`absolute left-full ml-2 px-2.5 py-1.5 bg-retro-surface border text-[10px] rounded-lg uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 hidden lg:block shadow-[2px_2px_0px_0px_#1C1D2E] ${
+                    item.isAi ? "border-[#FF728F] text-[#FF728F]" : "border-retro-border text-retro-accent"
+                  }`}>
                     {item.label}
                   </div>
                 )}
@@ -738,6 +757,7 @@ export default function Dashboard() {
   const [editingBlog, setEditingBlog] = useState(null);
   const [createKey, setCreateKey] = useState(0);
   const [readAdminOnly, setReadAdminOnly] = useState(false);
+  const [activeAiWriter, setActiveAiWriter] = useState(false);
 
   // New state for user's blogs
   const [blogs, setBlogs] = useState([]);
@@ -747,10 +767,11 @@ export default function Dashboard() {
    * Resets editing state and redirects active viewport focus to the blog editor screen.
    * Why: Ensures the editor launches with blank inputs instead of lingering edit session data.
    */
-  const handleNewBlog = () => {
+  const handleNewBlog = (startWithAi = false) => {
     setEditingBlog(null);
     setActive("create");
     setCreateKey(prev => prev + 1);
+    setActiveAiWriter(startWithAi);
   };
 
   /**
@@ -871,7 +892,7 @@ export default function Dashboard() {
 
       <Background />
 
-      <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} setEditingBlog={setEditingBlog} handleNewBlog={handleNewBlog} handleLogout={handleLogout} />
+      <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} setEditingBlog={setEditingBlog} handleNewBlog={handleNewBlog} handleLogout={handleLogout} activeAiWriter={activeAiWriter} />
       <Topbar collapsed={collapsed} setCollapsed={setCollapsed} user={user} setActive={setActive} setEditingBlog={setEditingBlog} handleNewBlog={handleNewBlog} />
 
       {/* Main content */}
@@ -915,7 +936,7 @@ export default function Dashboard() {
 
           {/* Create Blog Page */}
           <div style={{ display: active === "create" ? "block" : "none" }}>
-            <CreateBlogPage key={editingBlog ? `edit-${editingBlog._id}` : `new-${createKey}`} editingBlog={editingBlog} setEditingBlog={setEditingBlog} />
+            <CreateBlogPage key={editingBlog ? `edit-${editingBlog._id}` : `new-${createKey}`} editingBlog={editingBlog} setEditingBlog={setEditingBlog} initialShowAI={activeAiWriter} />
           </div>
 
           {/* My Blogs Page */}

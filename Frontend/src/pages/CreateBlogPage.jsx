@@ -54,7 +54,7 @@ function RetroCard({ children, className = "" }) {
 /* ════════════════════════════════════════════════
    CREATE BLOG PAGE COMPONENT
    ════════════════════════════════════════════════ */
-export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
+export default function CreateBlogPage({ editingBlog, setEditingBlog, initialShowAI }) {
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [excerpt, setExcerpt] = useState("");
@@ -69,7 +69,7 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
   const [uploadingImage, setUploadingImage] = useState(false);
 
   // AI-Assisted Blogging States
-  const [showAIWriter, setShowAIWriter] = useState(false);
+  const [showAIWriter, setShowAIWriter] = useState(initialShowAI || false);
   const [aiSubject, setAiSubject] = useState("");
   const [aiTone, setAiTone] = useState("Professional");
   const [aiBlogType, setAiBlogType] = useState("Technical");
@@ -80,6 +80,13 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog }) {
   const [selectedPresetId, setSelectedPresetId] = useState("");
   const [generating, setGenerating] = useState(false);
   const [aiError, setAiError] = useState("");
+
+  // Sync AI writer visibility if initialShowAI changes
+  useEffect(() => {
+    if (initialShowAI) {
+      setShowAIWriter(true);
+    }
+  }, [initialShowAI]);
 
   // Load presets on mount
   useEffect(() => {
