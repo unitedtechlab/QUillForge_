@@ -114,7 +114,7 @@ describe("QuillForge Backend API Test Suite", () => {
       title: "How to Build Robust Systems",
       slug: "how-to-build-robust-systems",
       excerpt: "verification guidelines",
-      content: "<p>Building systems requires robust verification testing strategies...</p>",
+      content: "<p>Building robust systems requires disciplined verification and testing strategies that catch regressions early, so teams can ship confidently and maintain reliability over time.</p>",
       author: mockUserDoc._id,
       isPublished: true,
       views: 0,
@@ -203,7 +203,7 @@ describe("QuillForge Backend API Test Suite", () => {
   describe("Blog CRUD, Views, and Likes Operations", () => {
     const blogData = {
       title: "How to Build Robust Systems",
-      content: "<p>Building systems requires robust verification testing strategies...</p>",
+      content: "<p>Building robust systems requires disciplined verification and testing strategies that catch regressions early, so teams can ship confidently and maintain reliability over time.</p>",
       excerpt: "verification guidelines",
       slug: "robust-systems-test",
       isPublished: true
@@ -217,6 +217,24 @@ describe("QuillForge Backend API Test Suite", () => {
       expect(res.statusCode).toBe(201);
       expect(res.body.success).toBe(true);
       expect(res.body.data.title).toBe(blogData.title);
+    });
+
+    it("should reject a blog whose title is too short", async () => {
+      const res = await request(app)
+        .post("/api/v1/blogs")
+        .set("Cookie", userCookie)
+        .send({ ...blogData, title: "Hi" });
+      expect(res.statusCode).toBe(400);
+      expect(res.body.success).toBe(false);
+    });
+
+    it("should reject a blog whose content is too short", async () => {
+      const res = await request(app)
+        .post("/api/v1/blogs")
+        .set("Cookie", userCookie)
+        .send({ ...blogData, content: "<p>Hi</p>" });
+      expect(res.statusCode).toBe(400);
+      expect(res.body.success).toBe(false);
     });
 
     it("should get all blog posts", async () => {

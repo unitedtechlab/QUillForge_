@@ -32,6 +32,27 @@ const ALLOWED_HTML = {
   allowedSchemes: ["https", "http"]
 };
 
+// Minimum-length rules for a blog. The client checks these too for a friendly
+// early message, but the server is the real enforcement — never trust the client.
+// Content is measured as plain text (tags stripped) so an empty <p></p> or a
+// lone heading doesn't count as a real post.
+const MIN_TITLE_LEN = 10;
+const MIN_CONTENT_LEN = 100;
+
+function validateBlogLengths(title, content) {
+  if (title !== undefined) {
+    if (!title || title.trim().length < MIN_TITLE_LEN) {
+      throw new ApiError(400, `Title must be at least ${MIN_TITLE_LEN} characters long`);
+    }
+  }
+  if (content !== undefined) {
+    const text = String(content).replace(/<[^>]*>/g, "").trim();
+    if (text.length < MIN_CONTENT_LEN) {
+      throw new ApiError(400, `Content must be at least ${MIN_CONTENT_LEN} characters long`);
+    }
+  }
+}
+
 // Estimate reading time in minutes from HTML content (avg 200 words/min, min 1).
 // Called on create/update so each blog stores a "5 min read" style figure.
 // Strips tags first so we count real words, not markup.
@@ -71,6 +92,9 @@ const createBlog = asyncHandler(async (req, res) => {
   if (!title || !content) {
     throw new ApiError(400, "Title and content are required");
   }
+
+  // Reject near-empty posts (e.g. title "Hi" with a one-word body).
+  validateBlogLengths(title, content);
 
   const safeContent = sanitizeHtml(content, ALLOWED_HTML);
 
@@ -252,6 +276,11 @@ const updateBlog = asyncHandler(async (req, res) => {
 
   // Whitelist only safe fields — prevents mass-assignment attacks
   const { title, content, excerpt, isPublished, featuredImage, category, tags } = req.body;
+
+  // Validate lengths only for fields actually being changed. validateBlogLengths
+  // skips any argument that is undefined, so a title-only edit isn't blocked by
+  // the content rule and vice-versa.
+  validateBlogLengths(title, content);
 
   const safeContent = content ? sanitizeHtml(content, ALLOWED_HTML) : undefined;
 

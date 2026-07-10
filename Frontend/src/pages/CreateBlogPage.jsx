@@ -1,39 +1,3 @@
-// ============================================================================
-// pages/CreateBlogPage.jsx — RICH BLOG EDITOR (Create & Edit)
-// ----------------------------------------------------------------------------
-// A full-featured blog authoring page used for both creating new posts and
-// editing existing ones. Embedded inside the user/admin dashboard as a panel
-// (no separate route; rendered when active === "create").
-//
-// MODES:
-//   New blog     — editingBlog prop is null; form is blank (or pre-filled
-//                  from aiDraft if the user came from AIAssistantPage).
-//   Edit blog    — editingBlog prop is a full blog document; form is
-//                  pre-populated; on save it calls the PUT endpoint.
-//
-// API CALLS:
-//   POST /api/v1/blogs             → blog.controller.js → createBlog
-//      Creates a new blog. Sends multipart/form-data with optional cover image.
-//   PUT  /api/v1/blogs/:id         → blog.controller.js → updateBlog
-//      Updates an existing blog (title, content, tags, category, published
-//      state, and optional new cover image).
-//
-// IMAGE UPLOAD:
-//   The cover image is sent as FormData. On the backend, multer.middleware.js
-//   keeps the file in memory (memoryStorage, no disk write) and cloudinary.js
-//   streams it directly to Cloudinary via upload_stream(). The returned
-//   secure_url is stored in blog.featuredImage.
-//
-// AI DRAFT PRE-FILL:
-//   If the parent passes an aiDraft prop (set after AIAssistantPage returns),
-//   a useEffect fires on mount and populates title, content, tags, and excerpt
-//   from the draft. The user can then edit before publishing.
-//
-// RICH TEXT:
-//   Uses Quill.js (react-quill) for WYSIWYG editing. Content is stored and
-//   sent as HTML, then DOMPurify-sanitised on the reader side (BlogDetails.jsx).
-// ============================================================================
-
 import { useState, useEffect, useRef } from "react";
 import {
   CheckCircle2,
@@ -209,6 +173,22 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog, aiDraft, c
   };
 
   const handleSave = async (publish = false) => {
+    // --- Validation (runs before we hit the API) ---
+    // Guard against near-empty posts like a title of "Hi" with no real body.
+    // We measure content by its plain text (tags stripped) so an empty <p></p>
+    // doesn't count as real writing.
+    const titleTrimmed = title.trim();
+    const contentText = content.replace(/<[^>]*>/g, "").trim();
+
+    if (titleTrimmed.length < 10) {
+      alert("Title must be at least 10 characters long.");
+      return;
+    }
+    if (contentText.length < 100) {
+      alert("Content is too short — please write at least 100 characters before saving.");
+      return;
+    }
+
     try {
       setSaving(true);
       // (response not needed — success is inferred from no throw)
@@ -255,6 +235,10 @@ export default function CreateBlogPage({ editingBlog, setEditingBlog, aiDraft, c
       if (publish) setPub(true);
     } catch (error) {
       console.error(error);
+      // Surface the server's validation message (e.g. length rules) to the user
+      // rather than failing silently.
+      const msg = error?.response?.data?.message || "Failed to save the blog. Please try again.";
+      alert(msg);
     } finally {
       setSaving(false);
     }
