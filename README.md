@@ -1,6 +1,6 @@
 # QuillForge
 
-A retro-themed, terminal-aesthetic blogging platform for developers and writers. Draft, publish, and read engineering posts with a dark-mode CRT pixel UI, AI-assisted writing via Google Gemini, secure JWT + Google OAuth authentication, real-time email verification, offline draft safety, text-to-speech narration, and a full admin moderation dashboard.
+A retro-themed, terminal-aesthetic blogging platform for developers and writers. Draft, publish, and read engineering posts with a dark-mode CRT pixel UI, AI-assisted writing via Groq Cloud AI, secure JWT + Google OAuth authentication, real-time email verification, offline draft safety, text-to-speech narration, and a full admin moderation dashboard.
 
 **Live:** [quillforge.unitedtechlab.com](https://quillforge.unitedtechlab.com)  
 **API Docs (Swagger):** available at `/api-docs` on any running backend instance
@@ -46,7 +46,7 @@ QuillForge is a decoupled client-server monorepo. The backend is a stateless RES
 │  Express-Rate-Limit · Multer (memory storage)               │
 │  Sanitize-HTML · Swagger UI                                 │
 ├──────────┬──────────┬───────────┬───────────┬───────────────┤
-│ MongoDB  │Cloudinary│ Gemini AI │ Unsplash  │ DNS MX Lookup │
+│ MongoDB  │Cloudinary│  Groq AI  │ Unsplash  │ DNS MX Lookup │
 │ (Atlas)  │ (images) │ (content) │ (covers)  │ (email check) │
 └──────────┴──────────┴───────────┴───────────┴───────────────┘
 ```
@@ -92,7 +92,7 @@ QuillForge_/
 │   │   ├── controllers/
 │   │   │   ├── user.controller.js  # Register, login, logout, email validation
 │   │   │   ├── blog.controller.js  # CRUD, views, likes, image upload
-│   │   │   └── ai.controller.js    # Gemini content generation, presets
+│   │   │   └── ai.controller.js    # Groq content generation, presets
 │   │   ├── middlewares/
 │   │   │   ├── auth.middleware.js   # verifyjwt (strict) + optionalAuth (soft)
 │   │   │   ├── admin.middleware.js  # Admin role gate
@@ -110,11 +110,15 @@ QuillForge_/
 │   ├── utilities/
 │   │   ├── asynchandler.js     # Promise-based express error wrapper
 │   │   ├── errors.js           # ApiError class
-│   │   ├── response.js         # ApiResponse class
+     │   ├── response.js         # ApiResponse class
 │   │   └── cloudinary.js       # Stream-based Cloudinary uploader
 │   ├── tests/                  # Jest test suites
 │   ├── Dockerfile              # Production Docker image (Node 20)
 │   └── package.json
+│
+├── .github/workflows/
+│   └── backend-deploy.yml      # CI/CD: build Docker → SCP to EC2 → deploy
+│   └── backend-deploy.yml      # CI/CD: build Docker → SCP to EC2 → deploy
 │
 ├── .github/workflows/
 │   └── backend-deploy.yml      # CI/CD: build Docker → SCP to EC2 → deploy
@@ -132,7 +136,7 @@ QuillForge_/
 
 **Backend:** Node.js 20, Express 5, Mongoose 9, Passport.js (Google OAuth 2.0), JSON Web Tokens, bcryptjs, Helmet, express-rate-limit, Multer, sanitize-html, Swagger UI, Jest + Supertest
 
-**External Services:** MongoDB Atlas, Cloudinary (image hosting), Google Gemini 2.5 Flash (AI content generation), Unsplash (cover images), Google OAuth 2.0
+**External Services:** MongoDB Atlas, Cloudinary (image hosting), Groq AI SDK (content generation), Unsplash (cover images), Google OAuth 2.0
 
 ---
 
@@ -145,7 +149,7 @@ QuillForge_/
 - **MongoDB** (local instance or MongoDB Atlas connection string)
 - **Cloudinary** account (for blog image uploads)
 - **Google Cloud Console** project (for OAuth credentials)
-- **Google Gemini API key** (for AI blog generation)
+- **Groq API key** (for AI blog generation)
 
 ### Clone
 
@@ -181,7 +185,7 @@ MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/quillforge
 JWT_SECRET=your-random-256-bit-secret
 JWT_EXPIRES_IN=7d
 SESSION_SECRET=your-random-session-secret
-GEMINI_API_KEY=your-google-gemini-api-key
+GROQ_API_KEY=your-groq-api-key
 
 # ─── Google OAuth ────────────────────────────────────
 GOOGLE_CLIENT_ID=your-google-client-id
@@ -193,11 +197,12 @@ CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
 
 # ─── Optional ────────────────────────────────────────
 UNSPLASH_ACCESS_KEY=your-unsplash-key          # AI cover images; falls back to local pixel art
+GROQ_MODEL=openai/gpt-oss-20b                  # Overrides the default model
 FRONTEND_URL=http://localhost:3000              # OAuth redirect target
 NODE_ENV=development
 ```
 
-The server will refuse to start if any of the five required variables (`MONGODB_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `SESSION_SECRET`, `GEMINI_API_KEY`) are missing.
+The server will refuse to start if any of the five required variables (`MONGODB_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `SESSION_SECRET`, `GROQ_API_KEY`) are missing.
 
 ### Frontend
 
@@ -295,7 +300,7 @@ Base URL: `/api/v1`
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| `POST` | `/blogs/ai-generate` | JWT | Generate a full blog post via Gemini 2.5 Flash |
+| `POST` | `/blogs/ai-generate` | JWT | Generate a full blog post via Groq Cloud AI |
 | `GET` | `/blogs/ai-presets` | JWT | List the user's saved AI writing presets |
 | `DELETE` | `/blogs/ai-presets/:id` | JWT | Delete a saved preset |
 
@@ -320,11 +325,11 @@ The dashboard uses internal tab navigation rather than separate routes. `CreateB
 
 ## AI Blog Generation
 
-QuillForge integrates Google Gemini 2.5 Flash for AI-assisted blog writing:
+QuillForge integrates Groq Cloud AI for AI-assisted blog writing:
 
 1. The user provides a subject, tone (Professional/Casual/Humorous/Enthusiastic/Academic), and blog type (Technical/Tutorial/Case Study/Narrative/Creative/Opinion), plus optional context.
-2. The backend sanitizes all inputs to prevent prompt injection, then sends a structured prompt to Gemini requesting JSON output with `title`, `excerpt`, `content` (HTML), and `imageKeywords`.
-3. The response is parsed with a robust JSON parser that falls back to regex extraction if Gemini returns malformed JSON.
+2. The backend sanitizes all inputs to prevent prompt injection, then sends a structured prompt to Groq requesting JSON output with `title`, `excerpt`, `content` (HTML), and `imageKeywords`.
+3. The response is parsed with a robust JSON parser that falls back to regex extraction if the model returns malformed JSON.
 4. A cover image is fetched from Unsplash using the generated keywords (falls back to local pixel art placeholders if no Unsplash key is configured).
 5. The generated content is returned to the frontend editor where the user can review, edit, and publish.
 
