@@ -26,6 +26,9 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
+import {
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip
+} from "recharts";
 import CreateBlogPage from "./CreateBlogPage";
 import ReadBlogsPage from "./ReadBlogsFeed";
 import AIAssistantPage from "./AIAssistantPage";
@@ -480,6 +483,26 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5);
 
+  // Views bucketed by creation month over the last 6 months, for the platform chart
+  const monthlyViews = (() => {
+    const months = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({
+        key: `${d.getFullYear()}-${d.getMonth()}`,
+        label: d.toLocaleString("default", { month: "short" }),
+        views: 0
+      });
+    }
+    blogs.forEach(b => {
+      const d = new Date(b.createdAt);
+      const bucket = months.find(m => m.key === `${d.getFullYear()}-${d.getMonth()}`);
+      if (bucket) bucket.views += b.views || 0;
+    });
+    return months;
+  })();
+
   const dynamicActivities = () => {
     const acts = [];
     const sortedByUpdate = [...blogs]
@@ -729,6 +752,40 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
           </GlassCard>
         </div>
       </div>
+
+      {/* Platform analytics — fills the lower dashboard area with real data */}
+      <GlassCard className="overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-retro-border/20 bg-[#13141f]">
+          <div>
+            <h2 className="text-xl font-bold text-retro-accent uppercase tracking-wider font-heading">
+              Platform Views
+            </h2>
+            <p className="text-retro-text/30 text-[10px] font-terminal uppercase mt-0.5">
+              Views across all posts, by month
+            </p>
+          </div>
+          <span className="text-retro-text/40 text-xs font-terminal uppercase">
+            {blogs.reduce((s, b) => s + (b.views || 0), 0)} total views
+          </span>
+        </div>
+        <div className="p-5">
+          <ResponsiveContainer width="100%" height={240}>
+            <AreaChart data={monthlyViews} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+              <defs>
+                <linearGradient id="adminViewsGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#8F72FF" stopOpacity={0.6} />
+                  <stop offset="95%" stopColor="#8F72FF" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1C1D2E" />
+              <XAxis dataKey="label" stroke="#E2E2F5" tick={{ fontSize: 11, fontFamily: "monospace" }} />
+              <YAxis stroke="#E2E2F5" tick={{ fontSize: 11, fontFamily: "monospace" }} allowDecimals={false} />
+              <Tooltip contentStyle={{ background: "#13141f", border: "1px solid #1C1D2E", borderRadius: "8px", fontSize: "12px", color: "#E2E2F5" }} />
+              <Area type="monotone" dataKey="views" stroke="#8F72FF" strokeWidth={2} fill="url(#adminViewsGrad)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </GlassCard>
     </div>
   );
 }

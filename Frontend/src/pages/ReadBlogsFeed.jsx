@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import DOMPurify from "dompurify";
 import {
   Search,
   Eye,
@@ -155,6 +156,29 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
+      <style>{`
+        .blog-content-feed h2, .blog-content-feed h3, .blog-content-feed h4 {
+          color: #8F72FF; font-weight: 800; margin: 1rem 0 0.5rem; line-height: 1.3;
+        }
+        .blog-content-feed h2 { font-size: 1.5rem; }
+        .blog-content-feed h3 { font-size: 1.25rem; }
+        .blog-content-feed h4 { font-size: 1.1rem; }
+        .blog-content-feed p { margin: 0.75rem 0; }
+        .blog-content-feed ul, .blog-content-feed ol { margin: 0.75rem 0; padding-left: 1.5rem; }
+        .blog-content-feed ul { list-style: square; }
+        .blog-content-feed ol { list-style: decimal; }
+        .blog-content-feed li { margin: 0.25rem 0; }
+        .blog-content-feed a { color: #2ac3de; text-decoration: underline; }
+        .blog-content-feed blockquote {
+          border-left: 3px solid #8F72FF; padding-left: 1rem; margin: 1rem 0;
+          font-style: italic; color: rgba(226,226,245,0.7);
+        }
+        .blog-content-feed pre {
+          background: #13141f; border: 1px solid #1C1D2E; border-radius: 8px;
+          padding: 1rem; overflow-x: auto; margin: 1rem 0;
+        }
+        .blog-content-feed code { font-family: monospace; font-size: 0.85rem; }
+      `}</style>
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -192,10 +216,14 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
           FEATURED BY ADMIN
         </button>
 
-        {/* Divider */}
-        <div className="w-0.5 h-6 bg-retro-border/20 flex-shrink-0 mx-1" />
+        {/* Divider — only when there are real categories to show */}
+        {categories.length > 2 && (
+          <div className="w-0.5 h-6 bg-retro-border/20 flex-shrink-0 mx-1" />
+        )}
 
-        {categories.map(cat => (
+        {/* Category filters only appear once you have posts in 2+ categories,
+            so a single lone chip doesn't clutter the bar */}
+        {categories.length > 2 && categories.map(cat => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
@@ -231,13 +259,9 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
             const isLiked = !!likedBlogs[blog._id];
             const isExpanded = !!expandedBlogs[blog._id];
             const readTime = Math.max(3, Math.round((blog.content || "").split(/\s+/).length / 200));
-            const shouldTruncate = (blog.content || "").length > 450;
-
-            const renderedContent = isExpanded 
-              ? blog.content 
-              : shouldTruncate 
-                ? `${blog.content.slice(0, 420)}...` 
-                : blog.content;
+            // Plain-text version (tags stripped) used to decide truncation and for the collapsed preview
+            const plainText = (blog.content || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+            const shouldTruncate = plainText.length > 450;
 
             return (
               <div key={blog._id} className="border-2 border-retro-border bg-retro-surface p-6 sm:p-8 space-y-6 rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E]">
@@ -292,9 +316,16 @@ export default function ReadBlogsFeed({ adminOnly = false }) {
 
                 {/* Content Block */}
                 <div className="relative">
-                  <div className="text-retro-text/80 text-sm leading-relaxed whitespace-pre-wrap font-terminal uppercase space-y-4">
-                    {renderedContent}
-                  </div>
+                  {isExpanded ? (
+                    <div
+                      className="blog-content-feed text-retro-text/80 text-sm leading-relaxed space-y-4"
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(blog.content || "") }}
+                    />
+                  ) : (
+                    <div className="text-retro-text/80 text-sm leading-relaxed font-terminal">
+                      {shouldTruncate ? `${plainText.slice(0, 420)}...` : plainText}
+                    </div>
+                  )}
 
                   {/* Gradient Fade for Truncated Content */}
                   {shouldTruncate && !isExpanded && (
