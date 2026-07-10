@@ -130,11 +130,12 @@ function GradientBtn({ children, onClick, className = "" }) {
    SIDEBAR
    ════════════════════════════════════════════════ */
 const NAV_ITEMS = [
-  { id: "dashboard", icon: <LayoutDashboard size={16}/>, label: "Dashboard" },
-  { id: "create",    icon: <PenLine size={16}/>,         label: "Create Blog" },
-  { id: "ai-assistant", icon: <Sparkles size={16} className="text-[#FF728F] animate-pulse" />, label: "AI Assistant", isAi: true },
-  { id: "manage",    icon: <BookMarked size={16}/>,      label: "My Blogs" },
-  { id: "read",      icon: <BookOpen size={16}/>,        label: "Read Blogs" },
+  { id: "dashboard",   icon: <LayoutDashboard size={16}/>,                                          label: "Dashboard" },
+  { id: "create",      icon: <PenLine size={16}/>,                                                   label: "Create Blog" },
+  { id: "ai-assistant",icon: <Sparkles size={16} className="text-[#FF728F] animate-pulse" />,       label: "AI Assistant", isAi: true },
+  { id: "manage",      icon: <BookMarked size={16}/>,                                                label: "My Blogs" },
+  { id: "read",        icon: <BookOpen size={16}/>,                                                  label: "Read Blogs" },
+  { id: "analytics",   icon: <TrendingUp size={16}/>,                                               label: "Analytics" },
 ];
 
 function Sidebar({ page, setPage, collapsed, setCollapsed, setEditingBlog, handleLogout }) {
@@ -608,7 +609,7 @@ function AdminStreak({ blogs }) {
 /* ════════════════════════════════════════════════
    DASHBOARD PAGE
    ════════════════════════════════════════════════ */
-function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
+function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user, onBlogsLoaded }) {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true); // eslint-disable-line no-unused-vars
   const navigate = useNavigate();
@@ -620,7 +621,9 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
     const fetchBlogs = async () => {
       try {
         const res = await api.get("/blogs");
-        setBlogs(res.data.data || []);
+        const data = res.data.data || [];
+        setBlogs(data);
+        if (onBlogsLoaded) onBlogsLoaded(data); // share with root so analytics panel has real data
       } catch (err) {
         console.error("Failed to fetch blogs in dashboard:", err);
       } finally {
@@ -628,7 +631,7 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
       }
     };
     fetchBlogs();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startEdit = async (id) => {
     try {
@@ -760,6 +763,7 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
 
   return (
     <div className="space-y-6">
+      {/* ── Welcome Banner ── */}
       <div>
         <div className="relative border-2 border-retro-border bg-retro-surface p-6 sm:p-8 rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E]">
           <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-6">
@@ -789,13 +793,16 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
         </div>
       </div>
 
+      {/* ── Stat Cards ── */}
       <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {stats.map((s, i) => (
           <StatCard key={i} {...s} />
         ))}
       </div>
 
+      {/* ── Main two-col grid: Recent Blogs + Quick Actions/Activity ── */}
       <div className="grid xl:grid-cols-[1fr_300px] gap-5">
+        {/* Left: Recent Blogs */}
         <div>
           <GlassCard>
             <div className="flex items-center justify-between px-5 py-4 border-b border-retro-border/20 bg-[#13141f]">
@@ -956,8 +963,7 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user }) {
         </div>
       </div>
 
-      {/* Full platform analytics (charts) + publishing streak — fills the lower dashboard area */}
-      <AdminAnalytics blogs={blogs} />
+      {/* ── Writing / Publishing Streak (bottom, same as user dashboard) ── */}
       <AdminStreak blogs={blogs} />
     </div>
   );
@@ -1271,11 +1277,12 @@ export default function AdminDashboard() {
   const [collapsed, setCollapsed] = useState(false);
   const [readAdminOnly, setReadAdminOnly] = useState(false);
   const [createKey, setCreateKey] = useState(0);
+  const [aiDraft, setAiDraft] = useState(null); // AI draft passed directly to editor (no localStorage race)
+  const [allBlogs, setAllBlogs] = useState([]);  // shared blog list for analytics panel
 
-  const handleAILoad = (aiDraft) => {
-    localStorage.setItem("quillforge_draft", JSON.stringify(aiDraft));
+  const handleAILoad = (draft) => {
     setEditingBlog(null);
-    setCreateKey(prev => prev + 1);
+    setAiDraft(draft);
     setPage("create");
   };
 
@@ -1325,13 +1332,33 @@ export default function AdminDashboard() {
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           {page === "dashboard" && (
-            <DashboardPage setPage={setPage} setEditingBlog={setEditingBlog} setReadAdminOnly={setReadAdminOnly} user={user} />
-          )}
-          {page === "manage" && (
-            <ManageBlogsPage
+            <DashboardPage
               setPage={setPage}
               setEditingBlog={setEditingBlog}
+              setReadAdminOnly={setReadAdminOnly}
+              user={user}
+              onBlogsLoaded={setAllBlogs}
             />
+          )}
+
+          {/* Analytics: separate panel, same retro design language */}
+          {page === "analytics" && (
+            <div className="space-y-6">
+              <div className="border-2 border-retro-border bg-retro-surface p-6 rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E] flex items-center justify-between">
+                <div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 border border-retro-accent bg-[#13141f] text-retro-accent text-[10px] font-pixel rounded-lg mb-2">
+                    <TrendingUp size={10} className="animate-pulse" /> Platform Analytics
+                  </div>
+                  <h1 className="text-3xl font-black text-retro-accent tracking-widest uppercase font-heading">Analytics</h1>
+                  <p className="text-retro-text/40 text-xs font-terminal mt-1">Platform-wide stats across all posts</p>
+                </div>
+              </div>
+              <AdminAnalytics blogs={allBlogs} />
+            </div>
+          )}
+
+          {page === "manage" && (
+            <ManageBlogsPage setPage={setPage} setEditingBlog={setEditingBlog} />
           )}
           {page === "ai-assistant" && (
             <AIAssistantPage onGenerateSuccess={handleAILoad} />
@@ -1340,12 +1367,14 @@ export default function AdminDashboard() {
             <ReadBlogsPage adminOnly={readAdminOnly} />
           )}
 
-          {/* Always mounted so state is never lost, hidden when not active */}
+          {/* Always mounted so editor state is never lost when switching tabs */}
           <div style={{ display: page === "create" ? "block" : "none" }}>
             <CreateBlogPage
               key={editingBlog ? `edit-${editingBlog._id}` : `new-${createKey}`}
               editingBlog={editingBlog}
               setEditingBlog={setEditingBlog}
+              aiDraft={aiDraft}
+              clearAiDraft={() => setAiDraft(null)}
             />
           </div>
         </div>
