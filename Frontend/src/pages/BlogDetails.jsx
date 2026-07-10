@@ -1,3 +1,32 @@
+// ============================================================================
+// pages/BlogDetails.jsx — PUBLIC SINGLE BLOG POST READER  (route: /blog/:id)
+// ----------------------------------------------------------------------------
+// Renders a single blog post identified by its MongoDB _id URL param.
+// Accessible by any visitor — no authentication required to read. However,
+// the Like button requires being logged in (currentUser must be non-null).
+//
+// API CALLS (all fire on mount):
+//   GET  /api/v1/blogs/:id          → blog.controller.js → getBlogById
+//      Fetches the full blog document (title, content, author, coverImage…).
+//   GET  /api/v1/users/current-user → user.controller.js → getCurrentUser
+//      Used to check if the current user already liked the post.
+//   GET  /api/v1/blogs              → fetches all blogs for "Related Articles" section.
+//   PATCH /api/v1/blogs/:id/view    → blog.controller.js → incrementView
+//      Increments the view counter server-side. Fires once, ignores errors.
+//   PATCH /api/v1/blogs/:id/like    → blog.controller.js → toggleLike
+//      Toggles like state for the current user. Optimistic UI update with
+//      server rollback on failure.
+//
+// KEY FEATURES:
+//   • Scroll-progress bar (fixed top-left, width = % scrolled)
+//   • Focus/distraction-free mode (hides sidebar, nav, meta, changes bg)
+//   • TTS audio narrator using browser's SpeechSynthesis API
+//   • DOMPurify-sanitised HTML rendering to prevent XSS
+//   • JSON-LD BlogPosting schema injected into <head> for SEO
+//   • Dynamic <title> and <meta description> updated per post
+//   • Related Articles section filtered by category, then filled by recency
+// ============================================================================
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { 

@@ -1,3 +1,31 @@
+// ============================================================================
+// pages/register.jsx — USER REGISTRATION PAGE
+// ----------------------------------------------------------------------------
+// Creates a new QuillForge account. Two registration paths mirror login.jsx:
+//
+//   1. Form-based → POST /api/v1/users/register  { username, email, password }
+//      Backend hashes the password (bcrypt in user.model.js pre-save hook),
+//      initialises aiQuota, and saves the user document. On success the
+//      component shows a "registered!" confirmation screen and prompts login.
+//
+//   2. Google OAuth → GET <backendUrl>/api/v1/users/google
+//      If the Google account does not yet exist, passport.js creates it.
+//      If it already exists, the user is logged in directly.
+//
+// CLIENT-SIDE VALIDATIONS:
+//   • Debounced email check (600 ms) against GET /api/v1/users/validate-email
+//     to confirm the address is a real Gmail/Google account before submitting.
+//   • Password strength meter (getStrength) scores 0–5 based on length,
+//     uppercase, lowercase, digit, and special character presence.
+//   • Confirm-password match hint shown inline as user types.
+//   • Terms of Service checkbox must be checked before submission.
+//
+// RELATED BACKEND:
+//   POST /api/v1/users/register      → user.controller.js → registerUser
+//   GET  /api/v1/users/validate-email→ user.controller.js → validateEmail
+//   GET  /api/v1/users/google        → passport.js GoogleStrategy
+// ============================================================================
+
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
 import api, { backendUrl } from "../api/axios";

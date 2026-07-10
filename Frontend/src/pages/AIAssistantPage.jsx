@@ -1,3 +1,33 @@
+// ============================================================================
+// pages/AIAssistantPage.jsx — AI BLOG GENERATION ASSISTANT
+// ----------------------------------------------------------------------------
+// Lets users describe a blog idea and have Gemini Flash generate a full draft.
+// The generated draft is passed back to the parent (dashboard.jsx) via the
+// onDraftReady(draft) callback prop, which stores it in aiDraft state and
+// then switches the active panel to "create" so CreateBlogPage auto-fills.
+//
+// WORKFLOW:
+//   1. User selects (or skips) an AI Preset and fills in the generation form.
+//   2. "Compile with Gemini Flash + Pre-fill Writer Desk" button is clicked.
+//   3. POST /api/v1/blogs/generate  ← ai.controller.js → generateBlog()
+//      Payload: { topic, tone, audience, keywords, wordCount, presetId? }
+//   4. Backend calls Gemini Flash, returns { title, content, tags, excerpt }.
+//   5. onDraftReady(draft) is called → parent stores it → switches to "create".
+//   6. CreateBlogPage detects aiDraft prop and pre-fills its form fields.
+//
+// AI PRESETS:
+//   GET  /api/v1/blogs/presets  — lists user's saved presets
+//   POST /api/v1/blogs/presets  — saves a new preset
+//   DELETE /api/v1/blogs/presets/:id — removes a preset
+//   A preset captures tone, audience, and keyword defaults so power users
+//   don't re-type them on every generation.
+//
+// QUOTA:
+//   Each user has a monthly AI generation quota tracked in the User document
+//   (aiQuota field). The backend's quota.middleware.js enforces the limit and
+//   the response includes remaining count so this page can show it.
+// ============================================================================
+
 import { useState, useEffect } from "react";
 import {
   ChevronDown,

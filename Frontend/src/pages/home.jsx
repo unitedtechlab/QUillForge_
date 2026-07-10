@@ -1,3 +1,30 @@
+// ============================================================================
+// pages/home.jsx — PUBLIC LANDING PAGE  (route: /)
+// ----------------------------------------------------------------------------
+// The publicly accessible marketing / blog-discovery page. No authentication
+// required. Composed of self-contained section components:
+//
+//   Navbar       — Fixed top bar with nav links (smooth scroll) and CTA buttons.
+//   Hero         — Hero banner with pixel artwork, tagline, and call-to-action.
+//   Ticker       — Auto-scrolling retro-terminal marquee strip.
+//   Features     — Six feature cards (MODULE_01..06.SYS).
+//   HowItWorks   — Four-step terminal workflow cards.
+//   BlogPreview  — Fetches GET /api/v1/blogs and displays up to 5 published
+//                  posts in a magazine layout (featured large + 4 sidebar).
+//                  Falls back to hardcoded mock posts if the API is unavailable.
+//   Pricing      — Three subscription tier cards (Hobbyist / Pro / Publication).
+//   CTABanner    — System-dialog styled final call-to-action.
+//   Footer       — Column links + social buttons.
+//
+// API CALLS:
+//   GET /api/v1/blogs → BlogPreview fetches published posts on mount.
+//     Only published (isPublished: true) posts are shown to public visitors.
+//
+// DESIGN:
+//   Retro pixel / vaporwave aesthetic. Pixel art images live in /public/.
+//   All components use the same CSS tokens as the dashboard (retro-accent, etc.)
+// ============================================================================
+
 import { useState, useEffect } from "react";
 import {
   ArrowRight, X, Menu,

@@ -1,3 +1,34 @@
+// ============================================================================
+// pages/ReadBlogsFeed.jsx — GLOBAL PUBLISHED BLOGS FEED
+// ----------------------------------------------------------------------------
+// A scrollable, filterable feed of all published blog posts. Used in both the
+// user dashboard ("read" tab) and the admin dashboard ("Read Blogs" tab).
+//
+// PROPS:
+//   adminOnly (bool, default false) — when true, pre-filters the feed to show
+//     only blogs authored by admins ("Featured by Admin" mode). This is toggled
+//     internally by the user, and can also be pre-set by the parent via prop
+//     (e.g., Quick Actions "Featured by Admin" button sets setReadAdminOnly(true)).
+//
+// API CALLS (fire in parallel on mount):
+//   GET /api/v1/blogs              → blog.controller.js → getAllBlogs
+//      Returns all blogs; this page client-side filters to isPublished: true.
+//   GET /api/v1/users/current-user → user.controller.js → getCurrentUser
+//      Needed to seed the liked state and enable the Like button.
+//   PATCH /api/v1/blogs/:id/like   → blog.controller.js → toggleLike
+//      Toggles a like with optimistic UI update and server-confirmed rollback.
+//
+// FILTERS AVAILABLE:
+//   • "Featured by Admin" toggle — filters to author.role === "admin"
+//   • Category pills — extracted dynamically from live blog data (hidden when
+//     all posts share one category to avoid a single lonely chip)
+//   • Search bar — client-side title/content/excerpt substring match
+//
+// INLINE READER:
+//   Each blog card has a "Read Full Article" expand/collapse toggle that shows
+//   the full DOMPurify-sanitised HTML inline without navigating to /blog/:id.
+// ============================================================================
+
 import { useState, useEffect } from "react";
 import DOMPurify from "dompurify";
 import {

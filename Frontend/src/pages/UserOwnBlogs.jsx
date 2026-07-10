@@ -1,3 +1,34 @@
+// ============================================================================
+// pages/UserOwnBlogs.jsx — MY FILE MANAGER (User's personal blog list)
+// ----------------------------------------------------------------------------
+// A data-table-style manager that lists all blogs authored by the currently
+// logged-in user. Displayed inside the dashboard as the "My Blogs" panel.
+//
+// PROPS:
+//   setActive(tabId)         — switches the dashboard's active panel
+//   setEditingBlog(blog)     — stores the blog to edit (null = new)
+//   currentUser              — user object from the parent (contains _id for
+//                              filtering the fetched blogs by author)
+//
+// API CALLS:
+//   GET    /api/v1/blogs       → blog.controller.js → getAllBlogs
+//      Fetches all blogs then client-side filters to those where
+//      blog.author._id === currentUser._id. (A dedicated /my-blogs endpoint
+//      would be more efficient; this is a known improvement area.)
+//   GET    /api/v1/blogs/:id   → blog.controller.js → getBlogById
+//      Used by startEdit() to load the full blog before opening the editor.
+//   DELETE /api/v1/blogs/:id   → blog.controller.js → deleteBlog
+//      Deletes a single blog. Also supports bulk delete (Promise.all).
+//
+// FEATURES:
+//   • Status filter tabs (All / Published / Draft)
+//   • Title search bar (client-side substring match)
+//   • Multi-select checkboxes with batch delete
+//   • Desktop table layout (7 columns) + mobile card layout (responsive grid)
+//   • Inline edit shortcut → loads blog into CreateBlogPage editor
+//   • View button → navigates to /blog/:id
+// ============================================================================
+
 import { useState, useEffect } from "react";
 import {
   Search,

@@ -1,3 +1,28 @@
+// ============================================================================
+// pages/login.jsx — USER LOGIN PAGE
+// ----------------------------------------------------------------------------
+// Provides two authentication paths:
+//   1. Email + Password  → POST /api/v1/users/login
+//      Backend sets an httpOnly "accessToken" cookie on success. The cookie is
+//      then automatically included on all subsequent api.* calls (withCredentials).
+//      On success: role === "admin" → /admin, else → /dashboard.
+//
+//   2. Google OAuth      → GET <backendUrl>/api/v1/users/google
+//      Redirects to Google's OAuth consent screen. On callback the backend
+//      creates/updates the user document via passport.js (config/passport.js)
+//      and sets the same httpOnly cookie.
+//
+// DEBOUNCED EMAIL VALIDATION:
+//   As the user types, GET /api/v1/users/validate-email is called (600 ms
+//   debounce) to verify the address is a real Google/Gmail account. This call
+//   uses the MX record checker in user.controller.js and sets green/red hints.
+//
+// RELATED BACKEND:
+//   POST /api/v1/users/login         → user.controller.js → loginUser
+//   GET  /api/v1/users/validate-email→ user.controller.js → validateEmail
+//   GET  /api/v1/users/google        → passport.js GoogleStrategy
+// ============================================================================
+
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
 import api, { backendUrl } from "../api/axios";

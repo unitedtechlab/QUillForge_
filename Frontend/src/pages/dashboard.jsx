@@ -1,3 +1,37 @@
+// ============================================================================
+// pages/dashboard.jsx — USER DASHBOARD (Authenticated writers only)
+// ----------------------------------------------------------------------------
+// The primary workspace for logged-in users. Fetches the current user via
+// GET /api/v1/users/current-user on mount and redirects to "/" if not logged
+// in or if the user's role is "admin" (admins go to /admin instead).
+//
+// PANEL MAP (what renders in each sidebar section):
+//   "dashboard"   → WelcomeSection + StatCards + RecentBlogs + ActivityFeed +
+//                   QuickActions + WritingStreak (the main landing view)
+//   "create"      → CreateBlogPage — rich editor for new / editing blogs
+//                   POST /api/v1/blogs  or  PUT /api/v1/blogs/:id
+//   "ai-assistant"→ AIAssistantPage — Gemini-powered blog generation
+//                   POST /api/v1/blogs/generate
+//   "blogs"       → UserOwnBlogs (MyBlogsPage) — lists only this user's posts
+//                   GET  /api/v1/blogs/my-blogs
+//   "read"        → ReadBlogsFeed — global feed of all published blogs
+//                   GET  /api/v1/blogs
+//   "analytics"   → AnalyticsPage — per-user charts (area, bar, pie)
+//   "community"   → Placeholder / coming-soon panel
+//
+// KEY STATE:
+//   user        — current user object from the API (role, username, createdAt)
+//   active      — which sidebar tab is visible
+//   collapsed   — sidebar collapse state (auto-collapsed on mobile)
+//   editingBlog — blog document being edited (null = new blog)
+//   aiDraft     — AI-generated draft passed directly to CreateBlogPage as a prop
+//                 (bypasses localStorage to avoid race conditions on navigation)
+//
+// DESIGN SYSTEM:
+//   Uses the "retro/pixel" design tokens defined in index.css and tailwind.config.
+//   Font families: VT323 (headings), Space Mono (body), Silkscreen (pixel labels).
+// ============================================================================
+
 import { useState, useEffect, useRef } from "react";
 import {
   Feather, LayoutDashboard, BookOpen, PenLine, BarChart3,

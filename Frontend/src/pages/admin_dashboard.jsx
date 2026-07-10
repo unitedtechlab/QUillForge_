@@ -526,8 +526,9 @@ function AdminAnalytics({ blogs }) {
 /* ════════════════════════════════════════════════
    ADMIN WRITING STREAK (12-week heatmap)
    ════════════════════════════════════════════════ */
-function AdminStreak({ blogs }) {
-  const weeks = 12;
+function AdminStreak({ blogs, weeks: weeksProp = 12 }) {
+  const weeks = weeksProp; // configurable — pass weeks=6 for compact embedded view
+  const totalDays = weeks * 7;
   const levels = [
     "bg-[#13141f] border border-retro-border/20 rounded",
     "bg-emerald-800 rounded",
@@ -558,7 +559,8 @@ function AdminStreak({ blogs }) {
         datesMap[dStr] = (datesMap[dStr] || 0) + 1;
       });
     }
-    for (let i = 83; i >= 0; i--) {
+    // generate exactly totalDays cells going back from today
+    for (let i = totalDays - 1; i >= 0; i--) {
       const checkDate = new Date();
       checkDate.setDate(checkDate.getDate() - i);
       daysData.push({ val: datesMap[checkDate.toDateString()] || 0 });
@@ -574,7 +576,7 @@ function AdminStreak({ blogs }) {
       <div className="flex items-center justify-between px-5 py-4 border-b border-retro-border/40">
         <div>
           <h2 className="text-xl font-bold text-retro-accent uppercase tracking-wider font-heading">Publishing Streak</h2>
-          <p className="text-retro-text/30 text-xs font-terminal uppercase mt-0.5">12-week platform activity heatmap</p>
+          <p className="text-retro-text/30 text-xs font-terminal uppercase mt-0.5">{weeks}-week platform activity heatmap</p>
         </div>
         <div className="flex items-center gap-2 text-xs font-pixel tracking-wider border border-retro-border bg-[#13141f] px-2.5 py-1 text-retro-accent rounded-lg">
           <Activity size={12} className="text-retro-accent" />
@@ -605,6 +607,7 @@ function AdminStreak({ blogs }) {
     </GlassCard>
   );
 }
+
 
 /* ════════════════════════════════════════════════
    DASHBOARD PAGE
@@ -763,7 +766,6 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user, onBlog
 
   return (
     <div className="space-y-6">
-      {/* ── Welcome Banner ── */}
       <div>
         <div className="relative border-2 border-retro-border bg-retro-surface p-6 sm:p-8 rounded-2xl shadow-[4px_4px_0px_0px_#1C1D2E]">
           <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-6">
@@ -793,17 +795,14 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user, onBlog
         </div>
       </div>
 
-      {/* ── Stat Cards ── */}
       <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {stats.map((s, i) => (
           <StatCard key={i} {...s} />
         ))}
       </div>
 
-      {/* ── Main two-col grid: Recent Blogs + Quick Actions/Activity ── */}
       <div className="grid xl:grid-cols-[1fr_300px] gap-5">
-        {/* Left: Recent Blogs */}
-        <div>
+        <div className="space-y-4">
           <GlassCard>
             <div className="flex items-center justify-between px-5 py-4 border-b border-retro-border/20 bg-[#13141f]">
               <div>
@@ -865,6 +864,8 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user, onBlog
               )}
             </div>
           </GlassCard>
+
+          <AdminStreak blogs={blogs} weeks={6} />
         </div>
 
         <div className="space-y-4">
@@ -962,9 +963,6 @@ function DashboardPage({ setPage, setEditingBlog, setReadAdminOnly, user, onBlog
           </GlassCard>
         </div>
       </div>
-
-      {/* ── Writing / Publishing Streak (bottom, same as user dashboard) ── */}
-      <AdminStreak blogs={blogs} />
     </div>
   );
 }
