@@ -1,12 +1,30 @@
+// ============================================================================
+// user.controller.js — AUTH & ACCOUNT LOGIC
+// ----------------------------------------------------------------------------
+// Handles registration, login, logout, "who am I" (getCurrentUser), and a live
+// email-validity check. These are reached via user.routes.js under /api/v1/users.
+//
+// Auth model: on successful login/register we issue a JWT and set it as an
+// httpOnly cookie (accessToken). Later requests carry that cookie; verifyjwt
+// (auth.middleware.js) reads and verifies it to identify the user.
+// ============================================================================
+
 import { asyncHandler } from "../../utilities/asynchandler.js";
-import {ApiError} from "../../utilities/errors.js";
+import { ApiError } from "../../utilities/errors.js";
 import { ApiResponse } from "../../utilities/response.js";
-import User from "../../start/models/user.model.js";
+import User from "../../start/models/user.model.js"; // Mongoose model = door to the users collection
 import dns from "dns";
 import { promisify } from "util";
 
+// validateEmail below does a real DNS MX-record lookup to check an email domain
+// can actually receive mail. promisify turns the callback-style dns.resolveMx
+// into an awaitable function.
 const resolveMxAsync = promisify(dns.resolveMx);
 
+// POST /api/v1/users/register  → registerUser
+// Validates the three signup fields, ensures email/username aren't already taken,
+// creates the user (the model hashes the password automatically on save), and
+// returns the new user without the password hash.
 const registerUser = asyncHandler(async (req, res) => {
     const { username, email, password } = req.body;
     // Reject missing, non-string, or blank fields (the old `field?.trim() === ""`
@@ -26,6 +44,12 @@ const registerUser = asyncHandler(async (req, res) => {
     return res.status(201).json(new ApiResponse(201, { createdUser }, "User registered successfully"));
 });
 
+// POST /api/v1/users/login  → loginUser
+// Looks up the user by email, checks the password via the model's
+// isPasswordCorrect (which compares against the stored hash), then issues a JWT
+// and sets it as an httpOnly accessToken cookie. That cookie is what verifyjwt
+// reads on every subsequent protected request. Note the deliberately vague
+// "Invalid credentials" message — it avoids revealing whether the email exists.
 const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     if(!email || !password) {
@@ -46,15 +70,26 @@ const loginUser = asyncHandler(async (req, res) => {
     );
 });
 
+// GET /api/v1/users/me (protected) → getCurrentUser
+// verifyjwt already attached req.user, so this just echoes it back. The frontend
+// calls this on load to know if there's a valid session and who's logged in.
 const getCurrentUser = asyncHandler(async(req,res)=>{
     return res.status(200).json(new ApiResponse(200, req.user, "Current user fetched"));
 });
 
+// POST /api/v1/users/logout → logoutUser
+// There's no server-side session to destroy for JWT auth, so "logging out" simply
+// clears the accessToken cookie in the browser. Options must match how it was set.
 const logoutUser = asyncHandler(async(req,res)=>{
     const options = { httpOnly: true, secure: true, sameSite: "none" };
     return res.clearCookie("accessToken", options).status(200).json(new ApiResponse(200, {}, "Logged out successfully"));
 });
 
+// GET /api/v1/users/validate-email?email=... → validateEmail
+// A live check used by the register form: it does a DNS MX-record lookup to
+// confirm the email's domain can actually receive mail, catching typos like
+// "gmial.com". NOTE: this route is intentionally PUBLIC (no verifyjwt) — it runs
+// before the user has an account, so requiring auth here would block signup.
 const validateEmail = asyncHandler(async (req, res) => {
     const { email } = req.query;
     if (!email) {
@@ -92,4 +127,5 @@ const validateEmail = asyncHandler(async (req, res) => {
     }
 });
 
+// Export all auth controllers so user.routes.js can wire them to their routes.
 export { registerUser, loginUser, getCurrentUser, logoutUser, validateEmail };

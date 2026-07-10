@@ -1,9 +1,22 @@
-import Groq from "groq-sdk";
+// ============================================================================
+// ai.controller.js — AI BLOG GENERATION (powered by Groq)
+// ----------------------------------------------------------------------------
+// Handles the "AI Assistant" feature. The main endpoint (generateBlogContent)
+// is reached via: blog.routes.js → verifyjwt → aiRateLimiter → verifyAiLimit
+// → generateBlogContent. It takes a subject/context from the user, sends a
+// structured prompt to Groq's chat API, asks for JSON back, validates it, fetches
+// a cover image from Unsplash, decrements the user's monthly AI quota, and returns
+// a ready-to-edit draft to the frontend (AIAssistantPage.jsx).
+//
+// The other two exports manage "presets" — saved prompt templates a user can reuse.
+// ============================================================================
+
+import Groq from "groq-sdk";                                   // official Groq SDK (OpenAI-compatible chat API)
 import { asyncHandler } from "../../utilities/asynchandler.js";
 import { ApiResponse } from "../../utilities/response.js";
 import { ApiError } from "../../utilities/errors.js";
-import AIPreset from "../models/aiPreset.model.js";
-import User from "../models/user.model.js";
+import AIPreset from "../models/aiPreset.model.js";            // stores reusable prompt presets per user
+import User from "../models/user.model.js";                    // needed to read/decrement the AI quota
 
 import dotenv from "dotenv";
 import path from "path";
@@ -14,7 +27,9 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
-// Helper to retrieve a cool image from Unsplash or fallback to retro placeholders
+// Helper to retrieve a cool image from Unsplash or fallback to retro placeholders.
+// Called after the model returns imageKeywords, so the generated draft gets a
+// relevant cover image without the user having to upload one.
 async function fetchFeaturedImage(keywords) {
   const unsplashAccessKey = process.env.UNSPLASH_ACCESS_KEY;
   if (!unsplashAccessKey) {
@@ -41,7 +56,11 @@ async function fetchFeaturedImage(keywords) {
   return placeholders[Math.floor(Math.random() * placeholders.length)];
 }
 
-// Helper to robustly parse JSON or fall back to regex if Gemini output contains unescaped quotes or format bugs
+// Helper to robustly parse JSON or fall back to regex if Groq output contains unescaped quotes or format bugs
+// LLMs occasionally emit slightly malformed JSON (unescaped quotes, stray text).
+// cleanJSONString + parseAIResponseRobust try normal JSON.parse first, then fall
+// back to a more forgiving extraction so one bad character doesn't fail the whole
+// generation. This is why we ask the model for JSON but still defend against drift.
 function cleanJSONString(str) {
   if (!str) return "";
   return str
@@ -76,7 +95,9 @@ function parseAIResponseRobust(text) {
   }
 }
 
-// Strip characters that could be used for prompt injection
+// Strip characters that could be used for prompt injection.
+// The user's subject/context is embedded into our prompt, so we remove sequences
+// that could try to "break out" and hijack the model's instructions.
 function sanitizeAiInput(str) {
   if (!str) return "";
   return str
@@ -86,7 +107,17 @@ function sanitizeAiInput(str) {
     .slice(0, 2000);                   // hard max length
 }
 
-// Controller to compile blog details using Gemini 2.5 Flash
+// POST /api/v1/blogs/ai-generate  (the core AI endpoint).
+// Full journey of one request:
+//   1. Middleware already ran: user is logged in, under rate limit, has quota left.
+//   2. Layer-1 cheap check: reject obviously empty/gibberish subjects before paying
+//      for an API call.
+//   3. Build a structured prompt and call Groq, asking for JSON only.
+//   4. Layer-2 model-judged check: the model reports sufficientContext; if false we
+//      return 422 and DO NOT charge quota or fetch an image.
+//   5. Parse the JSON robustly, fetch a cover image, decrement the user's quota,
+//      and return the finished draft to AIAssistantPage.jsx.
+// Controller to compile blog details using Groq (openai/gpt-oss-20b)
 export const generateBlogContent = asyncHandler(async (req, res) => {
   const { subject, tone, blogType, context, savePreset, presetName } = req.body;
 
@@ -228,6 +259,8 @@ export const generateBlogContent = asyncHandler(async (req, res) => {
   }
 });
 
+// GET /api/v1/blogs/ai-presets  (route: verifyjwt → getUserPresets)
+// Returns the logged-in user's saved prompt presets so they can reuse them.
 // Get user's saved writing presets
 export const getUserPresets = asyncHandler(async (req, res) => {
   const presets = await AIPreset.find({ userId: req.user._id }).sort({ createdAt: -1 });
@@ -236,6 +269,9 @@ export const getUserPresets = asyncHandler(async (req, res) => {
   );
 });
 
+// DELETE /api/v1/blogs/ai-presets/:id  (route: verifyjwt → deleteUserPreset)
+// Deletes one of the user's presets by id (scoped to that user so you can't
+// delete someone else's preset).
 // Delete a saved writing preset
 export const deleteUserPreset = asyncHandler(async (req, res) => {
   const preset = await AIPreset.findOneAndDelete({ _id: req.params.id, userId: req.user._id });

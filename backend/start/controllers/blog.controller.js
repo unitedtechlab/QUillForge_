@@ -1,10 +1,27 @@
-import Blog from "../models/blog.model.js";
-import { asyncHandler } from "../../utilities/asynchandler.js";
-import { ApiError } from "../../utilities/errors.js";
-import { ApiResponse } from "../../utilities/response.js";
-import { uploadOnCloudinary } from "../../utilities/cloudinary.js";
-import sanitizeHtml from "sanitize-html";
+// ============================================================================
+// blog.controller.js — BLOG BUSINESS LOGIC
+// ----------------------------------------------------------------------------
+// Every function here is the final step of a request that matched a route in
+// blog.routes.js. By the time these run, auth/quota/rate-limit middleware have
+// already passed. Each controller reads req (params/body/user), talks to the
+// Blog Mongoose model (blog.model.js) to touch MongoDB, and sends a JSON reply.
+//
+// Shared helpers used across the app:
+//   asyncHandler  — wraps an async fn so thrown errors go to app.js's error handler
+//   ApiError      — throwable error carrying an HTTP status code
+//   ApiResponse   — standard { statusCode, data, message, success } envelope
+// ============================================================================
 
+import Blog from "../models/blog.model.js";                    // the Mongoose model = our door to the blogs collection
+import { asyncHandler } from "../../utilities/asynchandler.js"; // error-forwarding wrapper
+import { ApiError } from "../../utilities/errors.js";           // throw new ApiError(status, msg)
+import { ApiResponse } from "../../utilities/response.js";      // consistent success envelope
+import { uploadOnCloudinary } from "../../utilities/cloudinary.js"; // pushes an image buffer to Cloudinary
+import sanitizeHtml from "sanitize-html";                       // strips dangerous HTML to prevent stored XSS
+
+// Whitelist of HTML that is allowed to survive sanitization. Blog content is
+// rich HTML (headings, lists, code blocks, links), but we must not allow
+// <script> or event handlers, so anything not listed here is stripped out.
 const ALLOWED_HTML = {
   allowedTags: ["p", "h2", "h3", "h4", "pre", "code", "ul", "ol", "li", "a", "strong", "em", "blockquote", "br", "hr", "span"],
   allowedAttributes: {
@@ -15,14 +32,18 @@ const ALLOWED_HTML = {
   allowedSchemes: ["https", "http"]
 };
 
-// Estimate reading time in minutes from HTML content (avg 200 words/min, min 1)
+// Estimate reading time in minutes from HTML content (avg 200 words/min, min 1).
+// Called on create/update so each blog stores a "5 min read" style figure.
+// Strips tags first so we count real words, not markup.
 function estimateReadingTime(html) {
   const text = String(html || "").replace(/<[^>]*>/g, " ");
   const words = text.split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / 200));
 }
 
-// Normalize tags into a clean string array (accepts array or comma-separated string)
+// Normalize tags into a clean string array (accepts array or comma-separated string).
+// The frontend may send tags as "react, node, api" OR ["react","node"] — this
+// coerces either into a trimmed, non-empty array capped at 10 tags.
 function normalizeTags(tags) {
   if (!tags) return [];
   const arr = Array.isArray(tags) ? tags : String(tags).split(",");
@@ -32,6 +53,9 @@ function normalizeTags(tags) {
     .slice(0, 10); // cap at 10 tags
 }
 
+// POST /api/v1/blogs  (route: blog.routes.js → verifyjwt → createBlog)
+// Creates a new blog owned by the logged-in user. Sanitizes the HTML, builds a
+// URL-safe slug from the title, computes reading time, and saves the document.
 const createBlog = asyncHandler(async (req, res) => {
 
   const {
@@ -94,6 +118,10 @@ const createBlog = asyncHandler(async (req, res) => {
   );
 });
 
+// GET /api/v1/blogs  (route: blog.routes.js → optionalAuth → getAllBlogs)
+// Lists blogs with optional ?q= search, ?category=, ?sort=popular, and
+// ?page=/?limit= pagination. What each caller sees depends on req.user (set by
+// optionalAuth): anonymous → published only; author → their drafts too; admin → all.
 const getAllBlogs = asyncHandler(async (req, res) => {
 
   // Visibility rules:
@@ -152,6 +180,9 @@ const getAllBlogs = asyncHandler(async (req, res) => {
   });
 });
 
+// DELETE /api/v1/blogs/:id  (route: verifyjwt → deleteBlog)
+// Removes a blog. Ownership/permission is enforced inside (only the author or an
+// admin may delete), so a logged-in user cannot delete someone else's post.
 const deleteBlog = asyncHandler(async (req, res) => {
 
   const blog = await Blog.findById(req.params.id);
@@ -181,6 +212,8 @@ const deleteBlog = asyncHandler(async (req, res) => {
   );
 });
 
+// GET /api/v1/blogs/:id  (route: getBlogById — public, no auth)
+// Fetches a single blog by its MongoDB id, used by the reader/detail page.
 const getBlogById = asyncHandler(async (req, res) => {
 
   const blog = await Blog.findById(req.params.id).populate("author", "username email role");
@@ -198,6 +231,10 @@ const getBlogById = asyncHandler(async (req, res) => {
   );
 });
 
+// PUT /api/v1/blogs/:id  (route: verifyjwt → updateBlog)
+// Edits an existing blog. Only whitelisted fields are accepted (guards against
+// mass-assignment), the slug is regenerated if the title changed, and reading
+// time is recomputed only when the content itself changed.
 const updateBlog = asyncHandler(async (req, res) => {
 
   const blog = await Blog.findById(req.params.id);
@@ -263,6 +300,9 @@ const updateBlog = asyncHandler(async (req, res) => {
   );
 });
 
+// PATCH /api/v1/blogs/:id/view  (route: viewRateLimiter → incrementView — public)
+// Bumps a blog's view counter. Rate-limited to 1/min per IP (see blog.routes.js)
+// so a single reader refreshing can't inflate the count.
 const incrementView = asyncHandler(async (req, res) => {
   const blog = await Blog.findByIdAndUpdate(
     req.params.id,
@@ -280,6 +320,9 @@ const incrementView = asyncHandler(async (req, res) => {
 });
 
 // toggleLike uses atomic $addToSet/$pull — no race condition possible
+// PATCH /api/v1/blogs/:id/like  (route: verifyjwt → toggleLike)
+// Adds or removes the current user's id from the blog's likes array. Uses an
+// atomic MongoDB update so two simultaneous likes can't corrupt the count.
 const toggleLike = asyncHandler(async (req, res) => {
   const existing = await Blog.findById(req.params.id).select("likes");
   if (!existing) {
@@ -305,6 +348,10 @@ const toggleLike = asyncHandler(async (req, res) => {
   );
 });
 
+// POST /api/v1/blogs/upload  (route: verifyjwt → multer → uploadBlogImage)
+// Receives one image file (parsed into req.file by multer), pushes it to
+// Cloudinary, and returns the hosted URL. The frontend stores that URL as the
+// blog's featuredImage. This runs BEFORE createBlog in the editor's save flow.
 const uploadBlogImage = asyncHandler(async (req, res) => {
   if (!req.file) {
     throw new ApiError(400, "Image file is required");
@@ -323,4 +370,5 @@ const uploadBlogImage = asyncHandler(async (req, res) => {
   );
 });
 
+// Export all controllers so blog.routes.js can wire them to their routes.
 export { createBlog, getAllBlogs, deleteBlog, updateBlog, getBlogById, incrementView, toggleLike, uploadBlogImage };

@@ -1,11 +1,19 @@
+// ============================================================================
+// user.routes.js — ROUTING TABLE FOR EVERYTHING UNDER /api/v1/users
+// ----------------------------------------------------------------------------
+// app.js mounts this at /api/v1/users. Covers classic auth (register/login/
+// logout), the "current user" check, live email validation, an admin test, and
+// the Google OAuth flow. Controllers live in ../controllers/user.controller.js.
+// ============================================================================
+
 import { Router } from "express";
 import { registerUser, loginUser , getCurrentUser, logoutUser, validateEmail} from "../controllers/user.controller.js";
-import {verifyjwt} from "../middlewares/auth.middleware.js";
-import {verifyadmin} from "../middlewares/admin.middleware.js";
+import {verifyjwt} from "../middlewares/auth.middleware.js";     // hard auth guard
+import {verifyadmin} from "../middlewares/admin.middleware.js";  // extra guard: must be role "admin"
 import rateLimit from "express-rate-limit";
-import passport from "passport";
+import passport from "passport";                                 // handles the Google OAuth strategy
 
-// Max 10 login attempts per 15 minutes per IP
+// Brute-force protection on login: at most 10 attempts per 15 min per IP.
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
@@ -14,7 +22,7 @@ const loginLimiter = rateLimit({
     legacyHeaders: false
 });
 
-// Max 5 registrations per hour per IP
+// Anti-spam on signup: at most 5 new accounts per hour per IP.
 const registerLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
     max: 5,
@@ -24,6 +32,7 @@ const registerLimiter = rateLimit({
 });
 
 // Max 10 email validations per minute per IP — prevents bulk enumeration
+// (i.e. someone scripting this endpoint to discover which emails are valid).
 const validateEmailLimiter = rateLimit({
     windowMs: 60 * 1000,
     max: 10,
@@ -33,15 +42,20 @@ const validateEmailLimiter = rateLimit({
 });
 
 const router = Router();
-  
-router.route("/register").post(registerLimiter, registerUser);
-router.route("/login").post(loginLimiter, loginUser);
+
+// --- Classic auth endpoints ---
+router.route("/register").post(registerLimiter, registerUser); // create account
+router.route("/login").post(loginLimiter, loginUser);          // sign in, sets accessToken cookie
+
 // NOTE: no verifyjwt here — this endpoint is called from the login/register pages
 // BEFORE the user has a token. It is protected by the rate limiter above instead.
 router.route("/validate-email").get(validateEmailLimiter, validateEmail);
-router.route("/current-user").get(verifyjwt, getCurrentUser);
-router.route("/logout").post(verifyjwt, logoutUser);
 
+router.route("/current-user").get(verifyjwt, getCurrentUser); // "am I logged in / who am I"
+router.route("/logout").post(verifyjwt, logoutUser);          // clear the auth cookie
+
+// Admin-only smoke test: passes through verifyjwt (logged in) THEN verifyadmin
+// (role === "admin"). Handy for confirming the admin guard works.
 router.get(
   "/admin-test",
   verifyjwt,
@@ -54,8 +68,11 @@ router.get(
   }
 );
 
-// login and regiter ke alava har action ke liye jwt se verfify hona padega tabhi pta chalega req kaha se aari hai 
+// (Author's note, roughly: "for every action except login and register you must
+//  verify via JWT — only then do we know who the request is coming from.")
 
+// --- Google OAuth flow ---
+// Step 1: hitting /google redirects the user to Google's consent screen.
 router.get(
   "/google",
   passport.authenticate(
@@ -65,6 +82,10 @@ router.get(
     }
   )
 );
+// Step 2: Google redirects back here. Passport exchanges the code and populates
+// req.user. We then mint our own JWT (same accessToken cookie as normal login)
+// and redirect the browser to the admin or user dashboard based on role — so
+// OAuth users end up authenticated exactly like password users.
 router.get(
   "/google/callback",
 
@@ -100,4 +121,4 @@ router.get(
       .redirect(`${frontendUrl}/dashboard`);
 }
 );
-export default router;
+export default router; // mounted at /api/v1/users in app.js
